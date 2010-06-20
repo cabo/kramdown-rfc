@@ -118,6 +118,10 @@ module Kramdown
       def convert_codeblock(el, indent, opts)
         (el.options[:attr] ||= {})['anchor'] ||= generate_id(el.value)
         result = el.value
+        # compensate for XML2RFC idiosyncracy by insisting on a blank line
+        unless el.options[:attr] && el.options[:attr].delete('tight')
+          result[0,0] = "\n" unless result[0,1] == "\n"
+        end
         "#{' '*indent}<figure#{html_attributes(el)}><artwork><![CDATA[#{result}#{result =~ /\n\Z/ ? '' : "\n"}]]></artwork></figure>\n"
       end
 

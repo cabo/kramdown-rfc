@@ -384,7 +384,6 @@ Examples  {#xmp}
 This appendix provides some examples of the STuPiD protocol operation.
 
 ~~~~~~~~~~
-
    Request:
 
       GET /stupid.php HTTP/1.0
@@ -411,7 +410,6 @@ This appendix provides some examples of the STuPiD protocol operation.
 {: #figxmpdisco title="Discovering External IP Address and Port"}
 
 ~~~~~~~~~~
-
    Request:
 
       POST /stupid.php?chid=i781hf64-0 HTTP/1.0
@@ -440,7 +438,6 @@ This appendix provides some examples of the STuPiD protocol operation.
 {: #figxmpstore title="Storing Data"}
 
 ~~~~~~~~~~
-
    Request:
 
       GET /stupid.php?chid=i781hf64-0 HTTP/1.0
@@ -471,7 +468,6 @@ Sample Implementation     {#impl}
 =====================
 
 ~~~~~~~~~~
-
 <?php
 header("Cache-Control: no-cache, must-revalidate");
 header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
@@ -547,7 +543,6 @@ Of course, other methods can be used for setup and teardown, such as Jingle
 (see http://xmpp.org/extensions/xep-0261.html).
 
 ~~~~~~~~~~
-
       <iq from='romeo@montague.net/orchard'
           id='jn3h8g65'
           to='juliet@capulet.com/balcony'
@@ -562,7 +557,6 @@ Of course, other methods can be used for setup and teardown, such as Jingle
 
 
 ~~~~~~~~~~
-
       <iq from='juliet@capulet.com/balcony'
           id='jn3h8g65'
           to='romeo@montague.net/orchard'
@@ -573,7 +567,6 @@ Of course, other methods can be used for setup and teardown, such as Jingle
 
 
 ~~~~~~~~~~
-
       <iq from='romeo@montague.net/orchard'
           id='kr91n475'
           to='juliet@capulet.com/balcony'
@@ -587,7 +580,6 @@ Of course, other methods can be used for setup and teardown, such as Jingle
 {: #figxmpnots title="Sending Notifications: Notification in an IQ stanza"}
 
 ~~~~~~~~~~
-
       <iq from='juliet@capulet.com/balcony'
           id='kr91n475'
           to='romeo@montague.net/orchard'
@@ -596,7 +588,6 @@ Of course, other methods can be used for setup and teardown, such as Jingle
 {: #figxmpnota title="Sending Notifications: Acknowledging notification using IQ"}
 
 ~~~~~~~~~~
-
       <iq from='romeo@montague.net/orchard'
           id='us71g45j'
           to='juliet@capulet.com/balcony'
@@ -608,7 +599,6 @@ Of course, other methods can be used for setup and teardown, such as Jingle
 {: #figxmpclor title="Closing the Bytestream: Request"}
 
 ~~~~~~~~~~
-
       <iq from='juliet@capulet.com/balcony'
           id='us71g45j'
           to='romeo@montague.net/orchard'
