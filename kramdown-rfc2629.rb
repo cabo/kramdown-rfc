@@ -91,12 +91,16 @@ module Kramdown
         send("convert_#{el.type}", el, indent, opts)
       end
 
-      def inner(el, indent, opts)
+      def inner_a(el, indent, opts)
         indent += INDENTATION
         el.children.map do |inner_el|
           inner_el.rfc2629_fix
           send("convert_#{inner_el.type}", inner_el, indent, opts)
-        end.join('')
+        end
+      end
+
+      def inner(el, indent, opts)
+        inner_a(el, indent, opts).join('')
       end
 
       def convert_blank(el, indent, opts)
@@ -115,8 +119,12 @@ module Kramdown
         end
       end
 
+      def saner_generate_id(value)
+        generate_id(value).gsub(/-+/, '-')
+      end
+
       def convert_codeblock(el, indent, opts)
-        (el.options[:attr] ||= {})['anchor'] ||= generate_id(el.value)
+        (el.options[:attr] ||= {})['anchor'] ||= saner_generate_id(el.value)
         result = el.value
         # compensate for XML2RFC idiosyncracy by insisting on a blank line
         unless el.options[:attr] && el.options[:attr].delete('tight')
@@ -146,7 +154,7 @@ module Kramdown
         # todo: handle appendix tags
         el = el.deep_clone
         if @doc.options[:auto_ids] && !(el.options[:attr] && el.options[:attr]['anchor'])
-          (el.options[:attr] ||= {})['anchor'] = generate_id(el.options[:raw_text])
+          (el.options[:attr] ||= {})['anchor'] = saner_generate_id(el.options[:raw_text])
         end
         (el.options[:attr] ||= {})['title'] = inner(el, indent, opts)
         "#{end_sections(el.options[:level], indent)}#{' '*indent}<section#{@sec_level += 1; html_attributes(el)}>\n"
@@ -166,14 +174,18 @@ module Kramdown
       alias :convert_dl :convert_ul
 
       def convert_li(el, indent, opts)
-        res = inner(el, indent, opts)
+        res_a = inner_a(el, indent, opts)
         if el.children.empty? || el.children.first.options[:category] != :block
-          "#{' '*indent}<t#{html_attributes(el)}>#{res}#{(res =~ /\n\Z/ ? ' '*indent : '')}</t>\n"
-        else
-          res
+          res = res_a.join('')
+        else                    # merge multiple <t> elements
+          res = res_a.select { |x|
+            x.strip != ''
+          }.map { |x|
+            x.sub(/\A\s*<t>(.*)<\/t>\s*\Z/m) { $1}
+          }.join("#{' '*indent}<vspace blankLines='1'/>\n").gsub(%r{(</list>)\s*<vspace blankLines='1'/>}) { $1 }.gsub(%r{<vspace blankLines='1'/>\s*(<list)}) { $1 }
         end
+        "#{' '*indent}<t#{html_attributes(el)}>#{res}#{(res =~ /\n\Z/ ? ' '*indent : '')}</t>\n"
       end
-
       def convert_dd(el, indent, opts)
         output = ' '*indent
         if @in_dt == 1
