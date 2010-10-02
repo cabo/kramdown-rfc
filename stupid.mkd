@@ -36,7 +36,7 @@
       </address>
     </author>
 
-    <date year="2009" month="July" day="13"/>
+    <date year="2009" month="July" day="5"/>
 
     <area>General</area>
     <workgroup>XMPP Working Group</workgroup>
@@ -348,6 +348,7 @@ little need to protect the GET side.
 ![:include:](RFC4086)
 
 ![:include:](RFC4648)
+
 {::nomarkdown}
 
   </references>

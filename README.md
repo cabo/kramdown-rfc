@@ -13,12 +13,15 @@ their work in markdown.
 
 # Usage
 
+Start by installing the kramdown gem (tested with version 0.11.0):
+
+    sudo gem install kramdown
+
 The guts of kramdown-rfc2629 are in one Ruby file, `kramdown-rfc2629.rb`
 --- this melds nicely into the extension structure provided by
-kramdown.  `convert1.rb` is a command-line demo showing how to use this,
-which needs to be adapted to the place where a copy of a recent
-kramdown (~ 0.9.0) lives.  Oh, and you'll need a Ruby 1.9, and maybe
-XML2RFC if you want to see the fruits of your work.
+kramdown.  `convert1.rb` is a command-line demo showing how to use
+this.  Oh, and you'll need a Ruby 1.9, and maybe XML2RFC if you want
+to see the fruits of your work.
 
     ./convert1.rb mydraft.mkd >mydraft.xml
     xml2rfc mydraft.xml

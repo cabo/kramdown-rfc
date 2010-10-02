@@ -38,7 +38,7 @@ module Kramdown
       def parse_xref
         @src.pos += @src.matched_size
         href = @src[1]
-        el = Element.new(:xref, nil, {:attr => {'target' => href}})
+        el = Element.new(:xref, nil, {'target' => href})
         @tree.children << el
       end
       define_parser(:xref, XREF_START, '{{')
@@ -48,7 +48,7 @@ module Kramdown
 
   class Element
     def rfc2629_fix
-      if a = options[:attr]
+      if a = attr
         if anchor = a.delete('id')
           a['anchor'] = anchor
         end
@@ -112,7 +112,7 @@ module Kramdown
       end
 
       def convert_p(el, indent, opts)
-        if el.children.size == 1 && el.children[0].type == :img
+        if (el.children.size == 1 && el.children[0].type == :img) || opts[:unpacked]
           inner(el, indent, opts) # Part of the bad reference hack
         else
           "#{' '*indent}<t#{html_attributes(el)}>#{inner(el, indent, opts)}</t>\n"
@@ -124,10 +124,10 @@ module Kramdown
       end
 
       def convert_codeblock(el, indent, opts)
-        (el.options[:attr] ||= {})['anchor'] ||= saner_generate_id(el.value)
+        el.attr['anchor'] ||= saner_generate_id(el.value)
         result = el.value
         # compensate for XML2RFC idiosyncracy by insisting on a blank line
-        unless el.options[:attr] && el.options[:attr].delete('tight')
+        unless el.attr.delete('tight')
           result[0,0] = "\n" unless result[0,1] == "\n"
         end
         "#{' '*indent}<figure#{html_attributes(el)}><artwork><![CDATA[#{result}#{result =~ /\n\Z/ ? '' : "\n"}]]></artwork></figure>\n"
@@ -153,10 +153,10 @@ module Kramdown
       def convert_header(el, indent, opts)
         # todo: handle appendix tags
         el = el.deep_clone
-        if @doc.options[:auto_ids] && !(el.options[:attr] && el.options[:attr]['anchor'])
-          (el.options[:attr] ||= {})['anchor'] = saner_generate_id(el.options[:raw_text])
+        if @doc.options[:auto_ids] && !el.attr['anchor']
+          el.attr['anchor'] = saner_generate_id(el.options[:raw_text])
         end
-        (el.options[:attr] ||= {})['title'] = inner(el, indent, opts)
+        el.attr['title'] = inner(el, indent, opts)
         "#{end_sections(el.options[:level], indent)}#{' '*indent}<section#{@sec_level += 1; html_attributes(el)}>\n"
       end
 
@@ -193,12 +193,12 @@ module Kramdown
         else
           output << "<t#{html_attributes(el)}>"
         end
-        res = inner(el, indent+INDENTATION, opts)
-        if el.children.empty? || el.children.first.options[:category] != :block
+        res = inner(el, indent+INDENTATION, opts.merge(unpacked: true))
+#        if el.children.empty? || el.children.first.options[:category] != :block
           output << res << (res =~ /\n\Z/ ? ' '*indent : '')
-        else
-          output << "\n" << res << ' '*indent
-        end
+#        else                    FIXME: The latter case is needed for more complex cases
+#          output << "\n" << res << ' '*indent
+#        end
         output << "</t>\n"
       end
 
@@ -282,12 +282,12 @@ module Kramdown
       end
 
       def convert_a(el, indent, opts)
-        do_obfuscation = el.options[:attr]['href'] =~ /^mailto:/
+        do_obfuscation = el.attr['href'] =~ /^mailto:/
         if do_obfuscation
           el = el.deep_clone
-          href = obfuscate(el.options[:attr]['href'].sub(/^mailto:/, ''))
+          href = obfuscate(el.attr['href'].sub(/^mailto:/, ''))
           mailto = obfuscate('mailto')
-          el.options[:attr]['href'] = "#{mailto}:#{href}"
+          el.attr['href'] = "#{mailto}:#{href}"
         end
         res = inner(el, indent, opts)
         res = obfuscate(res) if do_obfuscation
@@ -299,7 +299,7 @@ module Kramdown
       end
 
       def convert_img(el, indent, opts) # misuse the tag!
-        if a = el.options[:attr]
+        if a = el.attr
           alt = a.delete('alt').strip
           alt = '' if alt == '!' # work around re-wrap uglyness
           if anchor = a.delete('src')
@@ -371,9 +371,8 @@ module Kramdown
 
       def convert_math(el, indent, opts) # XXX: This is wrong
         el = el.deep_clone
-        el.options[:attr] ||= {}
-        el.options[:attr]['class'] ||= ''
-        el.options[:attr]['class'] += (el.options[:attr]['class'].empty? ? '' : ' ') + 'math'
+        el.attr['class'] ||= ''
+        el.attr['class'] += (el.attr['class'].empty? ? '' : ' ') + 'math'
         type = 'span'
         type = 'div' if el.options[:category] == :block
         "<#{type}#{html_attributes(el)}>#{escape_html(el.value, :text)}</#{type}>#{type == 'div' ? "\n" : ''}"
