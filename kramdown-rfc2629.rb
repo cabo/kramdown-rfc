@@ -270,11 +270,12 @@ module Kramdown
       alias :convert_th :convert_td
 
       def convert_comment(el, indent, opts)
-        if el.options[:category] == :block
-          "#{' '*indent}<!-- #{el.value} -->\n"
-        else
-          "<!-- #{el.value} -->"
-        end
+## Don't actually output all those comments into the XML:
+#        if el.options[:category] == :block
+#          "#{' '*indent}<!-- #{el.value} -->\n"
+#        else
+#          "<!-- #{el.value} -->"
+#        end
       end
 
       def convert_br(el, indent, opts)
