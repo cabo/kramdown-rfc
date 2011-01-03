@@ -31,7 +31,7 @@ if you want to see the fruits of your work.
 # Examples
 
 `stupid.mkd` is a markdown version of an actual Internet-Draft (for a
-protocol called [STuPiD][] [sic!]).  This demonstrates some, but not
+protocol called [STuPiD][] \[sic!]).  This demonstrates some, but not
 all features of kramdown-rfc2629.  Since markdown/kramdown does not
 cater for all the structure of an RFC 2629 style document, some of the
 markup is in XML, and the example switches between XML and markdown
