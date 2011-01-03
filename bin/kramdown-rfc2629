@@ -8,7 +8,9 @@ options = {input: 'RFC2629Kramdown'}
 input = ARGF.read.gsub(/\{::include\s+(.*?)\}/) {
   File.read($1).chomp
 }
-input = "{::nomarkdown}\n#{input}\n{:/nomarkdown}\n"
+if input =~ /\A<\?xml/          # if this is a whole XML file, protect it
+  input = "{::nomarkdown}\n#{input}\n{:/nomarkdown}\n"
+end
 doc = Kramdown::Document.new(input, options)
 $stderr.puts doc.warnings.to_yaml unless doc.warnings.empty?
 puts doc.to_rfc2629
