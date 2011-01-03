@@ -1,6 +1,6 @@
 #!/opt/local/bin/ruby1.9
-# this version is adapted to kramdown 0.11.0
-gem 'kramdown', '= 0.11.0'
+# this version is adapted to kramdown 0.12.0
+gem 'kramdown', '= 0.12.0'
 require 'kramdown'
 require_relative 'kramdown-rfc2629'
 require 'yaml'

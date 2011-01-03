@@ -13,7 +13,8 @@ their work in markdown.
 
 # Usage
 
-Start by installing the kramdown gem (tested with version 0.11.0):
+Start by installing the kramdown gem (tested with version 0.11.0 and
+0.12.0):
 
     sudo gem install kramdown
 

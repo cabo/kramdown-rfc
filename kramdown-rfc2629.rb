@@ -25,8 +25,8 @@ module Kramdown
   module Parser
     class RFC2629Kramdown < Kramdown
 
-      def initialize(doc)
-        super(doc)
+      def initialize(*doc)
+        super
         @span_parsers.unshift(:xref)
       end
 
@@ -64,8 +64,12 @@ module Kramdown
     # Converts a Kramdown::Document to HTML.
     class Rfc2629 < Base
 
-      # we use these to do XML stuff, too
-      include ::Kramdown::Utils::HTML
+      # we use these to do XML stuff, too (XXX: 0.11 vs. 0.12)
+      include ::Kramdown::Utils::HTML      rescue   include ::Kramdown::Utils::Html
+
+      def el_html_attributes(el)
+        html_attributes(el) rescue html_attributes(el.attr) # XXX 0.11 vs. 0.12
+      end
 
       # :stopdoc:
 
@@ -73,7 +77,7 @@ module Kramdown
       INDENTATION = 2
 
       # Initialize the XML converter with the given Kramdown document +doc+.
-      def initialize(doc)
+      def initialize(*doc)
         super
         @sec_level = 1
         @in_dt = 0
@@ -115,7 +119,7 @@ module Kramdown
         if (el.children.size == 1 && el.children[0].type == :img) || opts[:unpacked]
           inner(el, indent, opts) # Part of the bad reference hack
         else
-          "#{' '*indent}<t#{html_attributes(el)}>#{inner(el, indent, opts)}</t>\n"
+          "#{' '*indent}<t#{el_html_attributes(el)}>#{inner(el, indent, opts)}</t>\n"
         end
       end
 
@@ -130,11 +134,11 @@ module Kramdown
         unless el.attr.delete('tight')
           result[0,0] = "\n" unless result[0,1] == "\n"
         end
-        "#{' '*indent}<figure#{html_attributes(el)}><artwork><![CDATA[#{result}#{result =~ /\n\Z/ ? '' : "\n"}]]></artwork></figure>\n"
+        "#{' '*indent}<figure#{el_html_attributes(el)}><artwork><![CDATA[#{result}#{result =~ /\n\Z/ ? '' : "\n"}]]></artwork></figure>\n"
       end
 
       def convert_blockquote(el, indent, opts)
-        "#{' '*indent}<t><list style='empty'#{html_attributes(el)}>\n#{inner(el, indent, opts)}#{' '*indent}</list></t>\n"
+        "#{' '*indent}<t><list style='empty'#{el_html_attributes(el)}>\n#{inner(el, indent, opts)}#{' '*indent}</list></t>\n"
       end
 
       def end_sections(to_level, indent)
@@ -153,11 +157,12 @@ module Kramdown
       def convert_header(el, indent, opts)
         # todo: handle appendix tags
         el = el.deep_clone
-        if @doc.options[:auto_ids] && !el.attr['anchor']
+        options = @doc ? @doc.options : @options # XXX: 0.11 vs. 0.12
+        if options[:auto_ids] && !el.attr['anchor']
           el.attr['anchor'] = saner_generate_id(el.options[:raw_text])
         end
         el.attr['title'] = inner(el, indent, opts)
-        "#{end_sections(el.options[:level], indent)}#{' '*indent}<section#{@sec_level += 1; html_attributes(el)}>\n"
+        "#{end_sections(el.options[:level], indent)}#{' '*indent}<section#{@sec_level += 1; el_html_attributes(el)}>\n"
       end
 
       def convert_hr(el, indent, opts) # misuse for page break
@@ -168,14 +173,14 @@ module Kramdown
 
       def convert_ul(el, indent, opts)
         style = STYLES[el.type]
-        "#{' '*indent}<t><list style='#{style}'#{html_attributes(el)}>\n#{inner(el, indent, opts)}#{' '*indent}</list></t>\n"
+        "#{' '*indent}<t><list style='#{style}'#{el_html_attributes(el)}>\n#{inner(el, indent, opts)}#{' '*indent}</list></t>\n"
       end
       alias :convert_ol :convert_ul
       alias :convert_dl :convert_ul
 
       def convert_li(el, indent, opts)
         res_a = inner_a(el, indent, opts)
-        if el.children.empty? || el.children.first.options[:category] != :block
+        if el.children.empty? || el.children.first.options[:category] == :span
           res = res_a.join('')
         else                    # merge multiple <t> elements
           res = res_a.select { |x|
@@ -184,14 +189,14 @@ module Kramdown
             x.sub(/\A\s*<t>(.*)<\/t>\s*\Z/m) { $1}
           }.join("#{' '*indent}<vspace blankLines='1'/>\n").gsub(%r{(</list>)\s*<vspace blankLines='1'/>}) { $1 }.gsub(%r{<vspace blankLines='1'/>\s*(<list)}) { $1 }
         end
-        "#{' '*indent}<t#{html_attributes(el)}>#{res}#{(res =~ /\n\Z/ ? ' '*indent : '')}</t>\n"
+        "#{' '*indent}<t#{el_html_attributes(el)}>#{res}#{(res =~ /\n\Z/ ? ' '*indent : '')}</t>\n"
       end
       def convert_dd(el, indent, opts)
         output = ' '*indent
         if @in_dt == 1
           @in_dt = 0
         else
-          output << "<t#{html_attributes(el)}>"
+          output << "<t#{el_html_attributes(el)}>"
         end
         res = inner(el, indent+INDENTATION, opts.merge(unpacked: true))
 #        if el.children.empty? || el.children.first.options[:category] != :block
@@ -205,7 +210,7 @@ module Kramdown
       def convert_dt(el, indent, opts) # SERIOUSLY BAD HACK:
         close = "#{' '*indent}</t>\n" * @in_dt
         @in_dt = 1
-        "#{close}#{' '*indent}<t#{html_attributes(el)} hangText='#{inner(el, indent, opts)}'>\n"
+        "#{close}#{' '*indent}<t#{el_html_attributes(el)} hangText='#{inner(el, indent, opts)}'>\n"
       end
 
       HTML_TAGS_WITH_BODY=['div', 'script']
@@ -213,11 +218,11 @@ module Kramdown
       def convert_html_element(el, indent, opts)
         res = inner(el, indent, opts)
         if el.options[:category] == :span
-          "<#{el.value}#{html_attributes(el)}" << (!res.empty? ? ">#{res}</#{el.value}>" : " />")
+          "<#{el.value}#{el_html_attributes(el)}" << (!res.empty? ? ">#{res}</#{el.value}>" : " />")
         else
           output = ''
           output << ' '*indent if !el.options[:parent_is_raw]
-          output << "<#{el.value}#{html_attributes(el)}"
+          output << "<#{el.value}#{el_html_attributes(el)}"
           if !res.empty? && el.options[:parse_type] != :block
             output << ">#{res}</#{el.value}>"
           elsif !res.empty?
@@ -246,7 +251,7 @@ module Kramdown
 
       def convert_table(el, indent, opts) # This only works for tables with headers
         alignment = el.options[:alignment].map { |al| ALIGNMENTS[al]}
-        "#{' '*indent}<texttable#{html_attributes(el)}>\n#{inner(el, indent, opts.merge(table_alignment: alignment))}#{' '*indent}</texttable>\n"
+        "#{' '*indent}<texttable#{el_html_attributes(el)}>\n#{inner(el, indent, opts.merge(table_alignment: alignment))}#{' '*indent}</texttable>\n"
       end
 
       def convert_thead(el, indent, opts)
@@ -262,9 +267,9 @@ module Kramdown
         end
         res = inner(el, indent, opts)
         if alignment
-          "#{' '*indent}<ttcol align='#{alignment}'#{html_attributes(el)}>#{res.empty? ? "&#160;" : res}</ttcol>\n"
+          "#{' '*indent}<ttcol align='#{alignment}'#{el_html_attributes(el)}>#{res.empty? ? "&#160;" : res}</ttcol>\n"
           else
-          "#{' '*indent}<c#{html_attributes(el)}>#{res.empty? ? "&#160;" : res}</c>\n"
+          "#{' '*indent}<c#{el_html_attributes(el)}>#{res.empty? ? "&#160;" : res}</c>\n"
         end
       end
       alias :convert_th :convert_td
@@ -292,11 +297,11 @@ module Kramdown
         end
         res = inner(el, indent, opts)
         res = obfuscate(res) if do_obfuscation
-        "<eref#{html_attributes(el)}>#{res}</eref>"
+        "<eref#{el_html_attributes(el)}>#{res}</eref>"
       end
 
       def convert_xref(el, indent, opts)
-        "<xref#{html_attributes(el)}/>"
+        "<xref#{el_html_attributes(el)}/>"
       end
 
       def convert_img(el, indent, opts) # misuse the tag!
@@ -325,16 +330,16 @@ module Kramdown
           end
           File.read(fn).gsub(/<\?xml version='1.0' encoding='UTF-8'\?>/, '')
         else
-          "<xref#{html_attributes(el)}>#{alt}</xref>"
+          "<xref#{el_html_attributes(el)}>#{alt}</xref>"
         end
       end
 
       def convert_codespan(el, indent, opts)
-        "<spanx style='verb'#{html_attributes(el)}>#{escape_html(el.value)}</spanx>"
+        "<spanx style='verb'#{el_html_attributes(el)}>#{escape_html(el.value)}</spanx>"
       end
 
       def convert_footnote(el, indent, opts) # XXX: This is wrong.
-        "<xref target='#{escape_html(el.value)}'#{html_attributes(el)}/>"
+        "<xref target='#{escape_html(el.value)}'#{el_html_attributes(el)}/>"
       end
 
       def convert_raw(el, indent, opts)
@@ -345,7 +350,7 @@ module Kramdown
       EMPH = { em: "emph", strong: "strong"}
 
       def convert_em(el, indent, opts)
-        "<spanx style='#{EMPH[el.type]}'#{html_attributes(el)}>#{inner(el, indent, opts)}</spanx>"
+        "<spanx style='#{EMPH[el.type]}'#{el_html_attributes(el)}>#{inner(el, indent, opts)}</spanx>"
       end
       alias :convert_strong :convert_em
 
@@ -376,7 +381,7 @@ module Kramdown
         el.attr['class'] += (el.attr['class'].empty? ? '' : ' ') + 'math'
         type = 'span'
         type = 'div' if el.options[:category] == :block
-        "<#{type}#{html_attributes(el)}>#{escape_html(el.value, :text)}</#{type}>#{type == 'div' ? "\n" : ''}"
+        "<#{type}#{el_html_attributes(el)}>#{escape_html(el.value, :text)}</#{type}>#{type == 'div' ? "\n" : ''}"
       end
 
       def convert_abbreviation(el, indent, opts) # XXX: This is wrong
