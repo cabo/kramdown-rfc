@@ -9,6 +9,7 @@ spec = Gem::Specification.new do |s|
   s.require_path = 'lib'
   s.executables = ['kramdown-rfc2629']
   s.default_executable = 'kramdown-rfc2629'
+  s.required_ruby_version = '>= 1.9.2'
   #  s.has_rdoc = true
   s.author = "Carsten Bormann"
   s.email = "cabo@tzi.org"
