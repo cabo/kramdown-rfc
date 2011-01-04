@@ -22,8 +22,8 @@ The guts of kramdown-rfc2629 are in one Ruby file,
 `lib/kramdown-rfc2629.rb` --- this melds nicely into the extension
 structure provided by kramdown.  `bin/kramdown-rfc2629` is a simple
 command-line program showing how to use this.  For this, you'll need a
-Ruby 1.9 that can be found under the name "ruby1.9", and maybe XML2RFC
-if you want to see the fruits of your work.
+Ruby 1.9 that can be found under the name "ruby1.9", the command
+"wget", and maybe XML2RFC if you want to see the fruits of your work.
 
     kramdown-rfc2629 mydraft.mkd >mydraft.xml
     xml2rfc mydraft.xml
