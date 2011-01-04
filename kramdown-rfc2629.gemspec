@@ -1,6 +1,6 @@
 spec = Gem::Specification.new do |s|
   s.name = 'kramdown-rfc2629'
-  s.version = '0.12.0'
+  s.version = '0.12.1'
   s.summary = "Kramdown extension for generating RFC 2629 XML."
   s.description = %{An RFC2629 (XML2RFC) generating backend for Thomas Leitner's
 "kramdown" markdown parser.  Mostly useful for RFC writers.}
@@ -10,6 +10,7 @@ spec = Gem::Specification.new do |s|
   s.executables = ['kramdown-rfc2629']
   s.default_executable = 'kramdown-rfc2629'
   s.required_ruby_version = '>= 1.9.2'
+  s.requirements = 'wget'
   #  s.has_rdoc = true
   s.author = "Carsten Bormann"
   s.email = "cabo@tzi.org"
