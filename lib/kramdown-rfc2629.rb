@@ -308,6 +308,19 @@ module Kramdown
         "<xref#{el_html_attributes(el)}/>"
       end
 
+      REFCACHEDIR = ".refcache"
+      def get_and_cache_resource(url, tn = Time.now, tvalid = 7200)
+        Dir.mkdir(REFCACHEDIR) unless Dir.exists?(REFCACHEDIR)
+        fn = "#{REFCACHEDIR}/#{File.basename(url)}"
+        f = File.stat(fn) rescue nil
+        if !f || tn - f.ctime >= tvalid
+          $stderr.puts "#{fn}: #{f && tn-f.ctime}"
+          `cd #{REFCACHEDIR}; wget -Nnv "#{url}"` # ignore errors if offline (hack)
+          File.utime nil, nil, fn
+        end
+        File.read(fn)
+      end
+
       def convert_img(el, indent, opts) # misuse the tag!
         if a = el.attr
           alt = a.delete('alt').strip
@@ -317,22 +330,15 @@ module Kramdown
           end
         end
         if alt == ":include:"   # Really bad misuse of tag...
-          tn = Time.now
-          fn = "/dev/null"
+          to_insert = ""
           anchor.scan(/([A-Z-]+)[.]?([a-z0-9-]+)/) do |t, n|
             fn = "reference.#{t}.#{n}.xml"
             sub = { "RFC" => "bibxml", "I-D" => "bibxml3" }[t]
             puts "Huh: ${fn}" unless sub
             url = "http://xml.resource.org/public/rfc/#{sub}/#{fn}"
-            f = File.stat(fn) rescue nil
-            if !f || tn - f.ctime >= 7200
-              $stderr.puts "#{fn}: #{f && tn-f.ctime}"
-              `wget -Nnv "#{url}"` # ignore errors if offline (hack)
-              File.utime nil, nil, fn
-            end
-            # puts url, f && tn - f.ctime
+            to_insert = get_and_cache_resource(url)
           end
-          File.read(fn).gsub(/<\?xml version='1.0' encoding='UTF-8'\?>/, '')
+          to_insert.gsub(/<\?xml version='1.0' encoding='UTF-8'\?>/, '')
         else
           "<xref#{el_html_attributes(el)}>#{alt}</xref>"
         end
