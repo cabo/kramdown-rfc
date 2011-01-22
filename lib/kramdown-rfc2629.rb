@@ -12,8 +12,8 @@
 
 raise "sorry, 1.8 was last decade" unless RUBY_VERSION >= '1.9'
 
-# this version is adapted to kramdown 0.12.0
-gem 'kramdown', '= 0.12.0'
+# this version is adapted to kramdown 0.12.0 or 0.13.1
+gem 'kramdown', '~> 0.13'
 require 'kramdown'
 
 require 'rexml/parsers/baseparser'

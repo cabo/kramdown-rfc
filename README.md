@@ -14,7 +14,7 @@ their work in markdown.
 # Usage
 
 Start by installing the kramdown-rfc2629 gem (this requires kramdown
-version 0.12.0, but has been tested with version 0.11.0 and 0.12.0):
+version 0.13.1, but has also been tested with version 0.11.0 and 0.12.0):
 
     sudo gem install kramdown-rfc2629
 
