@@ -305,7 +305,12 @@ module Kramdown
       end
 
       def convert_xref(el, indent, opts)
-        "<xref#{el_html_attributes(el)}/>"
+        target = el.attr['target']
+        if target[0] == "&"
+          "#{target};"
+        else
+          "<xref#{el_html_attributes(el)}/>"
+        end
       end
 
       REFCACHEDIR = ".refcache"

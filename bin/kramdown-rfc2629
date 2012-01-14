@@ -1,16 +1,119 @@
 #!/usr/bin/env ruby1.9
+# -*- coding: utf-8 -*-
 require 'kramdown-rfc2629'
 require 'yaml'
+require 'pp'
+require 'erb'
+require 'ostruct'
+require 'date'
 
 Encoding.default_external = "UTF-8" # wake up, smell the coffee
 
-options = {input: 'RFC2629Kramdown'}
+RE_NL = /(?:\n|\r|\r\n)/
+RE_SECTION = /---(?:\s+(\w+)(-?))?\s*#{RE_NL}(.*?#{RE_NL})(?=---(?:\s+\w+-?)?\s*#{RE_NL}|\Z)/m
+
+def xml_from_sections(input)
+  sections = input.scan(RE_SECTION) # array of [label, nomarkdown-flag, text]
+
+  ps = ParameterSet.new(YAML.load(sections.shift[2])) # front matter parameters
+  coding_override = (ps.has(:coding) =~ /ascii/i) ? :symbolic : :as_char
+
+  sechash = Hash.new{ |h,k| h[k] = ""}
+  snames = []
+  sections.each do |sname, nmdflag, text|
+    nmdin, nmdout = {
+      "-" => ["", ""],
+      "" => ["{:/nomarkdown}\n\n", "\n{::nomarkdown}\n"],
+    }[nmdflag || ""]
+    if sname
+      snames << sname           # --- label -> push label
+    else
+      snames.pop                # --- -> pop label
+    end
+    sechash[snames.last] << "#{nmdin}#{text}#{nmdout}"
+  end
+
+  mydata = File.read(File.join(File.dirname(__FILE__), '..', 'data', 'kramdown-rfc2629.erb'), coding: "UTF-8")
+  erb = ERB.new(mydata)
+  input = erb.result(binding)
+  ps.warn_if_leftovers
+  sechash.delete("fluff")
+  if !sechash.empty?
+    warn "*** sections left #{sechash.keys.inspect}!"
+  end
+
+  [input.gsub(%r"{::nomarkdown}\s*{:/nomarkdown}"m, ""), coding_override]
+end
+
+class ParameterSet
+  attr_reader :f
+  def initialize(y)
+    @f = y
+  end
+  def [](pn)
+    @f.delete(pn.to_s)
+  end
+  def has(pn)
+    @f[pn.to_s]
+  end
+  def van(pn)                   # pn is a parameter name, possibly with an =alias
+    an, pn = pn.to_s.split("=")
+    pn ||= an
+    [self[pn] || self[an], an]
+  end
+  def attr(pn)
+    val, an = van(pn)
+    %{#{an}="#{val}"}    if val
+  end
+  def attrs(*pns)
+    pns.map{ |pn| attr(pn) }.join(" ")
+  end
+  def ele(pn, attr=nil)
+    val, an = van(pn)
+    if val
+      val = [val] unless val.respond_to? :to_a
+      val.map do |val1|
+        %{<#{[an, attr.to_s].join(" ").strip}>#{val1}</#{an}>}
+      end.join(" ")
+    end
+  end
+  def arr(an, &block)
+    (self[an] || []).each(&block)
+  end
+  def rest
+    @f
+  end
+  def warn_if_leftovers
+    if !@f.empty?
+      warn "*** attributes left #{@f.inspect}!"
+    end
+  end
+end
+
+def bibtagsys(bib)
+  if bib =~ /\Arfc(\d+)/i
+    rfc4d = "%04d" % $1.to_i
+    [bib.upcase,
+     "http://xml.resource.org/public/rfc/bibxml/reference.RFC.#{rfc4d}.xml"]
+  else
+    [bib,
+     "http://xml.resource.org/public/rfc/bibxml3/reference.#{bib}.xml"]
+  end
+end
+
+
+coding_override = :as_char
 input = ARGF.read.gsub(/\{::include\s+(.*?)\}/) {
   File.read($1).chomp
 }
+if input =~ /\A---/        # this is a sectionized file
+  input, coding_override = xml_from_sections(input)
+end
 if input =~ /\A<\?xml/          # if this is a whole XML file, protect it
   input = "{::nomarkdown}\n#{input}\n{:/nomarkdown}\n"
 end
+options = {input: 'RFC2629Kramdown', entity_output: coding_override}
+warn "options: #{options.inspect}"
 doc = Kramdown::Document.new(input, options)
 $stderr.puts doc.warnings.to_yaml unless doc.warnings.empty?
 puts doc.to_rfc2629
