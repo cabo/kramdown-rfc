@@ -6,32 +6,27 @@
    tag, sys = bibtagsys(bib) %>
 <!ENTITY <%= tag %> SYSTEM "<%= sys %>">
 <% end %>
-<% ps.arr("entity") do |en, ev| %>
+<% ps.arr("entity", false) do |en, ev| %>
 <!ENTITY <%=en%> "<%=ev%>">
 <% end %>
 ]>
 
 <rfc <%= ps.attrs("ipr", "docName=docname", "category=cat",
-                  "number", "obsoletes", "updates", "seriesNo=seriesno") %> >
+                  "number", "obsoletes", "updates", "seriesNo=seriesno") %>>
 
-<% ps.arr("pi") do |pi| %>
-<?rfc <%=pi%>="yes"?>
+<% ps.arr("pi", false) do |pi, val| %>
+<?rfc <%=pi%>="<%= {true => "yes", false => "no", nil => "yes"}[val] || val %>"?>
 <% end %>
 
   <front>
     <%= ps.ele("title", ps.attr("abbrev=titleabbrev")) %>
 
 <% ps.arr("author") do |au|
-   aups = ParameterSet.new(au)
-   if ins = aups[:ins]
-     parts = ins.split('.').map(&:strip)
-     aups.rest["initials"] = parts[0..-2].join('.') << '.'
-     aups.rest["surname"] = parts[-1]
-   end
+   aups = authorps_from_hash(au)
  %>
 
     <author <%=aups.attrs("initials", "surname", "fullname=name", "role")%>>
-      <%= aups.ele("organization=org", aups.attr("abbrev=orgabbrev")) %>
+      <%= aups.ele("organization=org", aups.attr("abbrev=orgabbrev"), "") %>
       <address>
         <% if aups.has("street") %>
         <postal>
@@ -52,7 +47,7 @@
 <%   aups.warn_if_leftovers  %>
 <% end %>
 
-    <date <%= (ps[:date]||Date.today).strftime(%{year="%Y" month="%B" day="%d"}) %> />
+    <date <%= dateattrs(ps[:date]||Date.today) %>/>
 
     <%= ps.ele("area") %>
     <%= ps.ele("workgroup=wg") %>

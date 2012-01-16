@@ -14,7 +14,7 @@
 
 ]>
 
-<rfc ipr="trust200902" docName="draft-ietf-core-block-05" category="std"     >
+<rfc ipr="trust200902" docName="draft-ietf-core-block-05" category="std">
 
 
 <?rfc toc="yes"?>
@@ -29,7 +29,7 @@
 
 
 
-    <author initials="C." surname="Bormann" fullname="Carsten Bormann" >
+    <author initials="C." surname="Bormann" fullname="Carsten Bormann">
       <organization>Universitaet Bremen TZI</organization>
       <address>
         
@@ -73,7 +73,7 @@
 
 
 
-    <date year="2012" month="January" day="13" />
+    <date year="2012" month="January" day="13"/>
 
     <area>Applications</area>
     <workgroup>CoRE Working Group</workgroup>
@@ -948,8 +948,8 @@ in this version.</t>
 
   <references title='Normative References'>
 
-&RFC2616;
 &RFC2119;
+&RFC2616;
 &I-D.ietf-core-coap;
 
 
@@ -961,16 +961,22 @@ in this version.</t>
 
   <references title='Informative References'>
 
-<reference anchor="REST">
+<reference anchor="REST" >
   <front>
     <title>Architectural Styles and the Design of Network-based Software Architectures</title>
-    <author initials="R" surname="Fielding" fullname="Roy Fielding">
+
+
+    <author initials="R." surname="Fielding" fullname="Roy Fielding">
       <organization>University of California, Irvine</organization>
     </author>
-    <date year="2000" />
+
+
+
+
+    <date year="2000"/>
+
   </front>
 </reference>
-
 
 
   </references>

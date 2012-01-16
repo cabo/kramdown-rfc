@@ -6,7 +6,7 @@
 
 ]>
 
-<rfc ipr="trust200902" docName="draft-hartke-xmpp-stupid-00" category="info"     >
+<rfc ipr="trust200902" docName="draft-hartke-xmpp-stupid-00" category="info">
 
 
 <?rfc toc="yes"?>
@@ -21,7 +21,7 @@
 
 
 
-    <author initials="K." surname="Hartke" fullname="Klaus Hartke" >
+    <author initials="K." surname="Hartke" fullname="Klaus Hartke">
       <organization>Universität Bremen TZI</organization>
       <address>
         
@@ -35,7 +35,7 @@
 
 
 
-    <author initials="C." surname="Bormann" fullname="Carsten Bormann" >
+    <author initials="C." surname="Bormann" fullname="Carsten Bormann">
       <organization>Universität Bremen TZI</organization>
       <address>
         
@@ -57,7 +57,7 @@
 
 
 
-    <date year="2009" month="July" day="05" />
+    <date year="2009" month="July" day="05"/>
 
     <area>General</area>
     <workgroup>XMPP Working Group</workgroup>
@@ -369,6 +369,7 @@ little need to protect the GET side.</t>
 
 
 
+
 <reference anchor='RFC2119'>
 
 <front>
@@ -526,6 +527,7 @@ specifications of each URI scheme.
 
 
 
+
   </references>
 
 
@@ -533,6 +535,7 @@ specifications of each URI scheme.
 
 
   <references title='Informative References'>
+
 
 
 
@@ -586,21 +589,24 @@ specifications of each URI scheme.
         target='http://www.ietf.org/internet-drafts/draft-ietf-behave-turn-16.txt' />
 </reference>
 
+
 <reference anchor="STUNT" target="http://deusty.blogspot.com/2007/09/stunt-out-of-band-channels.html">
   <front>
     <title>STUNT &amp; out-of-band channels</title>
 
-    <author fullname="Robbie Hanson" initials="R" surname="Hanson">
-          <organization />
 
-</author>
-
-    <date month="September" day="17" year="2007" />
+    <author initials="R." surname="Hanson" fullname="Robbie Hanson">
+      <organization></organization>
+    </author>
 
 
-</front>
 
+
+    <date year="2007" month="September" day="17"/>
+
+  </front>
 </reference>
+
 
 
 
@@ -647,6 +653,7 @@ specifications of each URI scheme.
 <format type='TXT'
         target='http://www.ietf.org/internet-drafts/draft-ietf-xmpp-3920bis-22.txt' />
 </reference>
+
 
 
 

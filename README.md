@@ -48,6 +48,8 @@ supported by kramdown-rfc2629.  The document metadata are in a short
 piece of YAML at the start, and from there, `abstract`, `middle`,
 references (`normative` and `informative`) and `back` are sections
 delimited in the markdown file.  See the example for how this works.
+The sections `normative` and `informative` can be populated right from
+the metadata, so there is never a need to write XML any more.
 Much less scary, and no `{:/nomarkdown}` etc. is needed any more.
 Similarly, `stupid-s.xml` and `stupid-s.txt` show what
 kramdown-rfc2629 and xml2rfc make out of this.

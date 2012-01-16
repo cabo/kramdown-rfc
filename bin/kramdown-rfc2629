@@ -2,9 +2,7 @@
 # -*- coding: utf-8 -*-
 require 'kramdown-rfc2629'
 require 'yaml'
-require 'pp'
 require 'erb'
-require 'ostruct'
 require 'date'
 
 Encoding.default_external = "UTF-8" # wake up, smell the coffee
@@ -12,40 +10,90 @@ Encoding.default_external = "UTF-8" # wake up, smell the coffee
 RE_NL = /(?:\n|\r|\r\n)/
 RE_SECTION = /---(?:\s+(\w+)(-?))?\s*#{RE_NL}(.*?#{RE_NL})(?=---(?:\s+\w+-?)?\s*#{RE_NL}|\Z)/m
 
-def xml_from_sections(input)
-  sections = input.scan(RE_SECTION) # array of [label, nomarkdown-flag, text]
+NMDTAGS = ["{:/nomarkdown}\n\n", "\n{::nomarkdown}\n"]
 
-  ps = ParameterSet.new(YAML.load(sections.shift[2])) # front matter parameters
+def xml_from_sections(input)
+  sections = input.scan(RE_SECTION)
+  # resulting in an array; each section is [section-label, nomarkdown-flag, section-text]
+
+  # the first section is a YAML with front matter parameters (don't put a label here)
+  ps = ParameterSet.new(YAML.load(sections.shift[2]))
   coding_override = (ps.has(:coding) =~ /ascii/i) ? :symbolic : :as_char
 
+  # all the other sections are put in a Hash, possibly concatenated from parts there
   sechash = Hash.new{ |h,k| h[k] = ""}
-  snames = []
+  snames = []                   # a stack of section names
   sections.each do |sname, nmdflag, text|
     nmdin, nmdout = {
-      "-" => ["", ""],
-      "" => ["{:/nomarkdown}\n\n", "\n{::nomarkdown}\n"],
+      "-" => ["", ""],          # stay in nomarkdown
+      "" => NMDTAGS, # pop out temporarily
     }[nmdflag || ""]
     if sname
-      snames << sname           # --- label -> push label
+      snames << sname           # "--- label" -> push label (now current)
     else
-      snames.pop                # --- -> pop label
+      snames.pop                # just "---" -> pop label (previous now current)
     end
     sechash[snames.last] << "#{nmdin}#{text}#{nmdout}"
   end
 
-  mydata = File.read(File.join(File.dirname(__FILE__), '..', 'data', 'kramdown-rfc2629.erb'), coding: "UTF-8")
-  erb = ERB.new(mydata)
-  input = erb.result(binding)
+  stand_alone = ps[:stand_alone]
+
+  [:normative, :informative].each do |sn|
+    if refs = ps[sn]
+      refs.each do |k, v|
+        if bts = bibtagsys(k)
+          warn "*** redundant in #{k}: #{v.inspect}" if v
+          if stand_alone
+            sechash[sn.to_s] << %{\n#{NMDTAGS[0]}\n![:include:](#{bts[0]})\n#{NMDTAGS[1]}\n}
+          else
+            (ps.rest["bibxml"] ||= []) << k
+            sechash[sn.to_s] << %{&#{bts[0]};\n}
+          end
+        else
+          vps = ParameterSet.new(v)
+          erb = ERB.new <<-REFERB
+<reference anchor="<%= k %>" <%= vps.attr("target") %>>
+  <front>
+    <%= vps.ele("title") %>
+
+<% vps.arr("author") do |au|
+   aups = authorps_from_hash(au)
+ %>
+    <author <%=aups.attrs("initials", "surname", "fullname=name", "role")%>>
+      <%= aups.ele("organization=org", aups.attr("abbrev=orgabbrev"), "") %>
+    </author>
+<%   aups.warn_if_leftovers  %>
+<% end %>
+
+<% if date = vps[:date] %>
+    <date <%= dateattrs(date) %>/>
+<% end %>
+  </front>
+</reference>
+          REFERB
+          sechash[sn.to_s] << erb.result(binding)
+        end
+      end
+    end
+  end
+
+  erbfilename = File.expand_path '../../data/kramdown-rfc2629.erb', __FILE__
+  erbfile = File.read(erbfilename, coding: "UTF-8")
+  erb = ERB.new(erbfile)
+  # remove redundant nomarkdown pop outs/pop ins as they confuse kramdown
+  input = erb.result(binding).gsub(%r"{::nomarkdown}\s*{:/nomarkdown}"m, "")
   ps.warn_if_leftovers
-  sechash.delete("fluff")
-  if !sechash.empty?
+  sechash.delete("fluff")       # fluff is a "commented out" section
+  if !sechash.empty?            # any sections unused by the ERb file?
     warn "*** sections left #{sechash.keys.inspect}!"
   end
 
-  [input.gsub(%r"{::nomarkdown}\s*{:/nomarkdown}"m, ""), coding_override]
+  [input, coding_override]
 end
 
 class ParameterSet
+  include Kramdown::Utils::Html
+
   attr_reader :f
   def initialize(y)
     @f = y
@@ -66,19 +114,19 @@ class ParameterSet
     %{#{an}="#{val}"}    if val
   end
   def attrs(*pns)
-    pns.map{ |pn| attr(pn) }.join(" ")
+    pns.map{ |pn| attr(pn) }.compact.join(" ")
   end
-  def ele(pn, attr=nil)
+  def ele(pn, attr=nil, defcontent=nil)
     val, an = van(pn)
-    if val
-      val = [val] unless val.respond_to? :to_a
-      val.map do |val1|
-        %{<#{[an, attr.to_s].join(" ").strip}>#{val1}</#{an}>}
-      end.join(" ")
-    end
+    val ||= defcontent
+    Array(val).map do |val1|
+      %{<#{[an, *Array(attr).map(&:to_s)].join(" ").strip}>#{escape_html(val1.to_s)}</#{an}>}
+    end.join(" ")
   end
-  def arr(an, &block)
-    (self[an] || []).each(&block)
+  def arr(an, converthash=true, &block)
+    arr = self[an] || []
+    arr = [arr] if Hash === arr && converthash
+    Array(arr).each(&block)
   end
   def rest
     @f
@@ -95,12 +143,37 @@ def bibtagsys(bib)
     rfc4d = "%04d" % $1.to_i
     [bib.upcase,
      "http://xml.resource.org/public/rfc/bibxml/reference.RFC.#{rfc4d}.xml"]
-  else
+  elsif bib =~ /\AI-D\./i
     [bib,
      "http://xml.resource.org/public/rfc/bibxml3/reference.#{bib}.xml"]
   end
 end
 
+def authorps_from_hash(au)
+  aups = ParameterSet.new(au)
+  if ins = aups[:ins]
+    parts = ins.split('.').map(&:strip)
+    aups.rest["initials"] = parts[0..-2].join('.') << '.'
+    aups.rest["surname"] = parts[-1]
+  end
+  aups
+end
+
+def dateattrs(date)
+  begin
+    case date
+    when Integer
+      %{year="#{"%04d" % date}"}
+    when String
+      Date.parse("#{date}-01").strftime(%{year="%Y" month="%B"})
+    when Date
+      date.strftime(%{year="%Y" month="%B" day="%d"})
+    end
+
+  rescue ArgumentError
+    warn "*** Invalid date: #{date} -- use 2012, 2012-07, or 2012-07-28"
+  end
+end
 
 coding_override = :as_char
 input = ARGF.read.gsub(/\{::include\s+(.*?)\}/) {
@@ -113,7 +186,7 @@ if input =~ /\A<\?xml/          # if this is a whole XML file, protect it
   input = "{::nomarkdown}\n#{input}\n{:/nomarkdown}\n"
 end
 options = {input: 'RFC2629Kramdown', entity_output: coding_override}
-warn "options: #{options.inspect}"
+# warn "options: #{options.inspect}"
 doc = Kramdown::Document.new(input, options)
 $stderr.puts doc.warnings.to_yaml unless doc.warnings.empty?
 puts doc.to_rfc2629

@@ -3,6 +3,10 @@ title: Blockwise transfers in CoAP
 # abbrev: CoAP-Block
 docname: draft-ietf-core-block-05
 date: 2012-01-13
+# date: 2012-01
+# date: 2012
+
+# stand_alone: true
 
 ipr: trust200902
 area: Applications
@@ -11,10 +15,13 @@ kw: Internet-Draft
 cat: std
 
 coding: us-ascii
-pi:
-        - toc
-        - sortrefs
-        - symrefs
+pi:    # can use array (if all yes) or hash here
+#  - toc
+#  - sortrefs
+#  - symrefs
+  toc: yes
+  sortrefs:   # defaults to yes
+  symrefs: yes
 
 author:
       -
@@ -43,10 +50,25 @@ author:
         country: Finland
         phone: "+358407796297"
         email: zach@sensinode.com
-bibxml:
-        - rfc2119
-        - rfc2616
-        - I-D.ietf-core-coap
+
+normative:
+#        - rfc2119
+#        - rfc2616
+#        - I-D.ietf-core-coap
+  RFC2119:
+  RFC2616:
+  I-D.ietf-core-coap:
+
+informative:
+  REST:
+    title: Architectural Styles and the Design of Network-based Software Architectures
+    author:
+#      -
+        ins: R. Fielding
+        name: Roy Fielding
+        org: University of California, Irvine
+    date: 2000
+
 entity:
         SELF: "[RFCXXXX]"
 
@@ -88,18 +110,6 @@ In summary, the Block options provide a minimal way to
 transfer larger representations in a block-wise fashion.
 
 
---- informative-
-
-<reference anchor="REST">
-  <front>
-    <title>Architectural Styles and the Design of Network-based Software Architectures</title>
-    <author initials="R" surname="Fielding" fullname="Roy Fielding">
-      <organization>University of California, Irvine</organization>
-    </author>
-    <date year="2000" />
-  </front>
-</reference>
-
 --- middle
 
 Introduction        {#problems}
@@ -112,10 +122,6 @@ unlike HTTP {{RFC2616}},
 while reducing the complexity of implementation as well as the size of
 packets exchanged in order to make these services useful in a highly
 constrained network of themselves highly constrained nodes.
-
---- normative-
-&RFC2616;
----
 
 This objective requires restraint in a number of sometimes conflicting ways:
 
@@ -174,10 +180,6 @@ document are to be interpreted as described in RFC 2119, BCP 14
 {{RFC2119}} and indicate requirement levels for compliant CoAP
 implementations.
 
---- normative-
-&RFC2119;
----
-
 In this document, the term "byte" is used in its now customary sense
 as a synonym for "octet".
 
@@ -235,10 +237,6 @@ useful with the payload-bearing POST and PUT requests and their
 responses.  Block2 is useful with GET, POST, and PUT requests and
 their payload-bearing responses (2.01, 2.02, 2.04, 2.05 --- see
 section "Payload" of {{I-D.ietf-core-coap}}).
-
---- normative-
-&I-D.ietf-core-coap;
----
 
 (As a memory aid: Block_1_ pertains to the payload of the _1st_ part
 of the request-response exchange, i.e. the request, and Block_2_
