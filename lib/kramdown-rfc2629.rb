@@ -177,7 +177,11 @@ module Kramdown
 
       def convert_ul(el, indent, opts)
         style = STYLES[el.type]
-        "#{' '*indent}<t><list style='#{style}'#{el_html_attributes(el)}>\n#{inner(el, indent, opts)}#{' '*indent}</list></t>\n"
+        if opts[:unpacked]
+          "#{' '*indent}<list style='#{style}'#{el_html_attributes(el)}>\n#{inner(el, indent, opts)}#{' '*indent}</list>\n"
+          else
+          "#{' '*indent}<t><list style='#{style}'#{el_html_attributes(el)}>\n#{inner(el, indent, opts)}#{' '*indent}</list></t>\n"
+        end
       end
       alias :convert_ol :convert_ul
       alias :convert_dl :convert_ul

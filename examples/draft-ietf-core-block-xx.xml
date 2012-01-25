@@ -2,37 +2,24 @@
   <?xml-stylesheet type="text/xsl" href="rfc2629.xslt" ?>
 
 <!DOCTYPE rfc SYSTEM "rfc2629.dtd" [
-
 <!ENTITY RFC2119 SYSTEM "http://xml.resource.org/public/rfc/bibxml/reference.RFC.2119.xml">
-
 <!ENTITY RFC2616 SYSTEM "http://xml.resource.org/public/rfc/bibxml/reference.RFC.2616.xml">
-
 <!ENTITY I-D.ietf-core-coap SYSTEM "http://xml.resource.org/public/rfc/bibxml3/reference.I-D.ietf-core-coap.xml">
-
-
 <!ENTITY SELF "[RFCXXXX]">
-
 ]>
 
 <rfc ipr="trust200902" docName="draft-ietf-core-block-05" category="std">
 
-
 <?rfc toc="yes"?>
-
 <?rfc sortrefs="yes"?>
-
 <?rfc symrefs="yes"?>
-
 
   <front>
     <title>Blockwise transfers in CoAP</title>
 
-
-
     <author initials="C." surname="Bormann" fullname="Carsten Bormann">
       <organization>Universitaet Bremen TZI</organization>
       <address>
-        
         <postal>
           <street>Postfach 330440</street>
           <city>Bremen</city>
@@ -40,21 +27,15 @@
           <code>D-28359</code>
           <country>Germany</country>
         </postal>
-        
         <phone>+49-421-218-63921</phone>
         <facsimile>+49-421-218-7000</facsimile>
         <email>cabo@tzi.org</email>
         
       </address>
     </author>
-
-
-
-
     <author initials="Z." surname="Shelby" fullname="Zach Shelby" role="editor">
       <organization>Sensinode</organization>
       <address>
-        
         <postal>
           <street>Kidekuja 2</street>
           <city>Vuokatti</city>
@@ -62,16 +43,12 @@
           <code>88600</code>
           <country>Finland</country>
         </postal>
-        
         <phone>+358407796297</phone>
         
         <email>zach@sensinode.com</email>
         
       </address>
     </author>
-
-
-
 
     <date year="2012" month="January" day="13"/>
 
@@ -115,18 +92,6 @@ transfer larger representations in a block-wise fashion.</t>
 
 
     </abstract>
-
-
-
-
-
-
-
-
-
-
-
-
 
 
   </front>
@@ -942,46 +907,31 @@ in this version.</t>
 
   </middle>
 
-<back>
+  <back>
 
-
-
-  <references title='Normative References'>
+    <references title='Normative References'>
 
 &RFC2119;
 &RFC2616;
 &I-D.ietf-core-coap;
 
 
-  </references>
+    </references>
 
-
-
-
-
-  <references title='Informative References'>
+    <references title='Informative References'>
 
 <reference anchor="REST" >
   <front>
     <title>Architectural Styles and the Design of Network-based Software Architectures</title>
-
-
     <author initials="R." surname="Fielding" fullname="Roy Fielding">
       <organization>University of California, Irvine</organization>
     </author>
-
-
-
-
     <date year="2000"/>
-
   </front>
 </reference>
 
 
-  </references>
-
-
+    </references>
 
 
 <section anchor="compat" title="Historical Note">
@@ -1012,6 +962,6 @@ July 1st, 2011.</t>
 </section>
 
 
-</back>
+  </back>
 </rfc>
 

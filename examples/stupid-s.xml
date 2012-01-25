@@ -2,43 +2,29 @@
   <?xml-stylesheet type="text/xsl" href="rfc2629.xslt" ?>
 
 <!DOCTYPE rfc SYSTEM "rfc2629.dtd" [
-
-
 ]>
 
 <rfc ipr="trust200902" docName="draft-hartke-xmpp-stupid-00" category="info">
 
-
 <?rfc toc="yes"?>
-
 <?rfc sortrefs="yes"?>
-
 <?rfc symrefs="yes"?>
-
 
   <front>
     <title abbrev="STuPiD">STUN/TURN using PHP in Despair</title>
-
-
 
     <author initials="K." surname="Hartke" fullname="Klaus Hartke">
       <organization>Universität Bremen TZI</organization>
       <address>
         
         
-        
         <email>hartke@tzi.org</email>
         
       </address>
     </author>
-
-
-
-
     <author initials="C." surname="Bormann" fullname="Carsten Bormann">
       <organization>Universität Bremen TZI</organization>
       <address>
-        
         <postal>
           <street>Postfach 330440</street>
           <city>Bremen</city>
@@ -46,16 +32,12 @@
           <code>D-28359</code>
           <country>Germany</country>
         </postal>
-        
         <phone>+49-421-218-63921</phone>
         <facsimile>+49-421-218-7000</facsimile>
         <email>cabo@tzi.org</email>
         
       </address>
     </author>
-
-
-
 
     <date year="2009" month="July" day="05"/>
 
@@ -81,16 +63,6 @@ providing the most important function of STUN.</t>
 
 
     </abstract>
-
-
-
-
-
-
-
-
-
-
 
 
   </front>
@@ -360,11 +332,9 @@ little need to protect the GET side.</t>
 
   </middle>
 
-<back>
+  <back>
 
-
-
-  <references title='Normative References'>
+    <references title='Normative References'>
 
 
 
@@ -528,13 +498,9 @@ specifications of each URI scheme.
 
 
 
-  </references>
+    </references>
 
-
-
-
-
-  <references title='Informative References'>
+    <references title='Informative References'>
 
 
 
@@ -593,17 +559,10 @@ specifications of each URI scheme.
 <reference anchor="STUNT" target="http://deusty.blogspot.com/2007/09/stunt-out-of-band-channels.html">
   <front>
     <title>STUNT &amp; out-of-band channels</title>
-
-
     <author initials="R." surname="Hanson" fullname="Robbie Hanson">
       <organization></organization>
     </author>
-
-
-
-
     <date year="2007" month="September" day="17"/>
-
   </front>
 </reference>
 
@@ -657,9 +616,7 @@ specifications of each URI scheme.
 
 
 
-  </references>
-
-
+    </references>
 
 
 <section anchor="xmp" title="Examples">
@@ -877,6 +834,6 @@ http://xmpp.org/extensions/xep-0047.html#send)</t>
 </section>
 
 
-</back>
+  </back>
 </rfc>
 

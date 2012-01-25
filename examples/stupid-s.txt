@@ -4,7 +4,7 @@
 XMPP Working Group                                             K. Hartke
 Internet-Draft                                                C. Bormann
 Intended status: Informational                   Universitaet Bremen TZI
-Expires: January 6, 2010                                   July 05, 2009
+Expires: January 6, 2010                                    July 5, 2009
 
 
                      STUN/TURN using PHP in Despair

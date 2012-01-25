@@ -3,32 +3,31 @@
 
 <!DOCTYPE rfc SYSTEM "rfc2629.dtd" [
 <% ps.arr("bibxml") do |bib|
-   tag, sys = bibtagsys(bib) %>
+   tag, sys = bibtagsys(bib) -%>
 <!ENTITY <%= tag %> SYSTEM "<%= sys %>">
-<% end %>
-<% ps.arr("entity", false) do |en, ev| %>
+<% end -%>
+<% ps.arr("entity", false) do |en, ev| -%>
 <!ENTITY <%=en%> "<%=ev%>">
-<% end %>
+<% end -%>
 ]>
 
 <rfc <%= ps.attrs("ipr", "docName=docname", "category=cat",
                   "number", "obsoletes", "updates", "seriesNo=seriesno") %>>
 
-<% ps.arr("pi", false) do |pi, val| %>
+<% ps.arr("pi", false) do |pi, val| -%>
 <?rfc <%=pi%>="<%= {true => "yes", false => "no", nil => "yes"}[val] || val %>"?>
-<% end %>
+<% end -%>
 
   <front>
     <%= ps.ele("title", ps.attr("abbrev=titleabbrev")) %>
 
 <% ps.arr("author") do |au|
    aups = authorps_from_hash(au)
- %>
-
+ -%>
     <author <%=aups.attrs("initials", "surname", "fullname=name", "role")%>>
       <%= aups.ele("organization=org", aups.attr("abbrev=orgabbrev"), "") %>
       <address>
-        <% if aups.has("street") %>
+<% if aups.has("street") -%>
         <postal>
           <%= aups.ele("street") %>
           <%= aups.ele("city") %>
@@ -36,16 +35,15 @@
           <%= aups.ele("code") %>
           <%= aups.ele("country") %>
         </postal>
-        <% end %>
+<% end -%>
         <%= aups.ele("phone") %>
         <%= aups.ele("facsimile") %>
         <%= aups.ele("email") %>
         <%= aups.ele("uri") %>
       </address>
     </author>
-
-<%   aups.warn_if_leftovers  %>
-<% end %>
+<%   aups.warn_if_leftovers  -%>
+<% end -%>
 
     <date <%= dateattrs(ps[:date]||Date.today) %>/>
 
@@ -59,18 +57,17 @@
 
     </abstract>
 
-<% sechash.keys.each do |k| %>
-<%   if k =~ /\Anote_(.*)/ %>
+<% sechash.keys.each do |k| -%>
+<%   if k =~ /\Anote_(.*)/ -%>
 
     <note title="<%= $1.gsub("_", " ")%>">
 
-<%= sechash.delete(k) %>
+<%= sechash.delete(k) -%>
 
     </note>
 
-<% end %>
-<% end %>
-
+<% end -%>
+<% end -%>
 
   </front>
 
@@ -80,29 +77,25 @@
 
   </middle>
 
-<back>
+  <back>
 
-<% if sh = sechash.delete("normative") %>
-
-  <references title='Normative References'>
-
-<%= sh %>
-
-  </references>
-
-<% end %>
-
-<% if sh = sechash.delete("informative") %>
-
-  <references title='Informative References'>
+<% if sh = sechash.delete("normative") -%>
+    <references title='Normative References'>
 
 <%= sh %>
 
-  </references>
+    </references>
+<% end -%>
 
-<% end %>
+<% if sh = sechash.delete("informative") -%>
+    <references title='Informative References'>
+
+<%= sh %>
+
+    </references>
+<% end -%>
 
 <%= sechash.delete("back") %>
 
-</back>
+  </back>
 </rfc>
