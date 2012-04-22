@@ -12,6 +12,8 @@ RE_SECTION = /---(?:\s+(\w+)(-?))?\s*#{RE_NL}(.*?#{RE_NL})(?=---(?:\s+\w+-?)?\s*
 
 NMDTAGS = ["{:/nomarkdown}\n\n", "\n{::nomarkdown}\n"]
 
+NORMINFORM = { "!" => :normative, "?" => :informative }
+
 def xml_from_sections(input)
   sections = input.scan(RE_SECTION)
   # resulting in an array; each section is [section-label, nomarkdown-flag, section-text]
@@ -36,13 +38,77 @@ def xml_from_sections(input)
     sechash[snames.last] << "#{nmdin}#{text}#{nmdout}"
   end
 
+  ref_replacements = { }
+
+  [:ref, :normative, :informative].each do |sn|
+    if refs = ps.has(sn)
+      warn "*** bad section #{sn}: #{refs.inspect}" unless refs.respond_to? :each
+      refs.each do |k, v|
+        if v.respond_to? :to_str
+          ref_replacements[v.to_str] = k
+        end
+      end
+    end
+  end
+  open_refs = ps[:ref] || { }       # consumed
+
+  norm_ref = { }
+
+  # convenience replacement of {{-coap}} with {{I-D.ietf-core-coap}}
+  # collect normative/informative tagging {{!RFC2119}} {{?RFC4711}}
+  sechash.each do |k, v|
+    next if k == "fluff"
+    v.gsub!(/{{(?:([?!])(-)?|(-))([\w.\-]+)}}/) do |match|
+      norminform = $1
+      replacing = $2 || $3
+      word = $4
+      if replacing
+        if new = ref_replacements[word]
+          word = new
+        else
+          warn "*** no alias replacement for {{-#{word}}}" 
+          word = "-#{word}"
+        end
+      end
+      # things can be normative in one place and informative in another -> normative
+      # collect norm/inform above and assign it by priority here
+      if norminform
+        norm_ref[word] ||= norminform == '!' # one normative ref is enough
+      end
+      "{{#{word}}}"
+    end
+  end
+
+  [:normative, :informative].each do |k|
+    ps.rest[k.to_s] ||= { }
+  end
+
+  norm_ref.each do |k, v|
+    # could check bibtagsys here: needed if open_refs is nil or string
+    target = ps.has(v ? :normative : :informative)
+    warn "*** overwriting #{k}" if target.has_key?(k)
+    target[k] = open_refs[k] # add reference to normative/informative
+  end
+  # note that unused items from ref are considered OK, therefore no check for that here
+
+  # also should allow norm/inform check of other references
+  # {{?coap}} vs. {{!coap}} vs. {{-coap}} (undecided)
+  # or {{?-coap}} vs. {{!-coap}} vs. {{-coap}} (undecided)
+  # could require all references to be decided by a global flag
+  overlap = [:normative, :informative].map { |s| (ps.has(s) || { }).keys }.reduce(:&)
+  unless overlap.empty?
+    warn "*** #{overlap.join(', ')}: both normative and informative"
+  end
+
   stand_alone = ps[:stand_alone]
 
   [:normative, :informative].each do |sn|
     if refs = ps[sn]
       refs.each do |k, v|
         if bts = bibtagsys(k)
-          warn "*** redundant in #{k}: #{v.inspect}" if v
+          if v
+            warn "*** redundant in #{k}: #{v.inspect}" unless v.respond_to? :to_str
+          end
           if stand_alone
             sechash[sn.to_s] << %{\n#{NMDTAGS[0]}\n![:include:](#{bts[0]})\n#{NMDTAGS[1]}\n}
           else
@@ -50,6 +116,10 @@ def xml_from_sections(input)
             sechash[sn.to_s] << %{&#{bts[0]};\n}
           end
         else
+          unless v && Hash === v
+            warn "*** don't know how to expand ref #{k}" 
+            next
+          end
           vps = ParameterSet.new(v)
           erb = ERB.new <<-REFERB, nil, '-'
 <reference anchor="<%= k %>" <%= vps.attr("target") %>>
@@ -70,6 +140,9 @@ def xml_from_sections(input)
   </front>
 <% vps.arr("seriesinfo", false) do |k, v| -%>
   <seriesInfo name="<%=k%>" value="<%=v%>"/>
+<% end -%>
+<% vps.arr("format", false) do |k, v| -%>
+  <format type="<%=k%>" target="<%=v%>"/>
 <% end -%>
 </reference>
           REFERB
