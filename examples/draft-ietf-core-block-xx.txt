@@ -1350,9 +1350,9 @@ Internet-Draft         Blockwise transfers in CoAP          January 2012
 8.1.  Normative References
 
    [I-D.ietf-core-coap]
-              Shelby, Z., Hartke, K., Bormann, C., and B. Frank,
-              "Constrained Application Protocol (CoAP)",
-              draft-ietf-core-coap-08 (work in progress), October 2011.
+              Shelby, Z., Hartke, K., and C. Bormann, "Constrained
+              Application Protocol (CoAP)", draft-ietf-core-coap-14
+              (work in progress), March 2013.
 
    [RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
               Requirement Levels", BCP 14, RFC 2119, March 1997.

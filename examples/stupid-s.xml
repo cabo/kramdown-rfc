@@ -379,7 +379,7 @@ little need to protect the GET side.</t>
 <seriesInfo name='BCP' value='14' />
 <seriesInfo name='RFC' value='2119' />
 <format type='TXT' octets='4723' target='http://www.rfc-editor.org/rfc/rfc2119.txt' />
-<format type='HTML' octets='17491' target='http://xml.resource.org/public/rfc/html/rfc2119.html' />
+<format type='HTML' octets='17970' target='http://xml.resource.org/public/rfc/html/rfc2119.html' />
 <format type='XML' octets='5777' target='http://xml.resource.org/public/rfc/xml/rfc2119.xml' />
 </reference>
 
@@ -454,7 +454,7 @@ specifications of each URI scheme.
 <seriesInfo name='STD' value='66' />
 <seriesInfo name='RFC' value='3986' />
 <format type='TXT' octets='141811' target='http://www.rfc-editor.org/rfc/rfc3986.txt' />
-<format type='HTML' octets='213584' target='http://xml.resource.org/public/rfc/html/rfc3986.html' />
+<format type='HTML' octets='214067' target='http://xml.resource.org/public/rfc/html/rfc3986.html' />
 <format type='XML' octets='163534' target='http://xml.resource.org/public/rfc/xml/rfc3986.xml' />
 </reference>
 
