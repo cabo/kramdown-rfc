@@ -126,7 +126,7 @@ def xml_from_sections(input)
   <front>
     <%= vps.ele("title") -%>
 
-<% vps.arr("author") do |au|
+<% vps.arr("author", true, true) do |au|
    aups = authorps_from_hash(au)
  -%>
     <author <%=aups.attrs("initials", "surname", "fullname=name", "role")%>>
@@ -144,6 +144,7 @@ def xml_from_sections(input)
 <% vps.arr("format", false) do |k, v| -%>
   <format type="<%=k%>" target="<%=v%>"/>
 <% end -%>
+<%= vps.ele("annotation=ann") -%>
 </reference>
           REFERB
           sechash[sn.to_s] << erb.result(binding)
@@ -196,12 +197,13 @@ class ParameterSet
     val, an = van(pn)
     val ||= defcontent
     Array(val).map do |val1|
-      %{<#{[an, *Array(attr).map(&:to_s)].join(" ").strip}>#{escape_html(val1.to_s)}</#{an}>}
+      %{<#{[an, *Array(attr).map(&:to_s)].join(" ").strip}>#{escape_html(val1.to_s.strip)}</#{an}>}
     end.join(" ")
   end
-  def arr(an, converthash=true, &block)
+  def arr(an, converthash=true, must_have_one=false, &block)
     arr = self[an] || []
     arr = [arr] if Hash === arr && converthash
+    arr << { } if must_have_one && arr.empty?
     Array(arr).each(&block)
   end
   def rest
