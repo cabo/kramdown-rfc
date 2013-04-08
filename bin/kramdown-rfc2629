@@ -173,6 +173,7 @@ class ParameterSet
 
   attr_reader :f
   def initialize(y)
+    raise "*** invalid parameter set #{y.inspect}" unless Hash === y
     @f = y
   end
   def [](pn)

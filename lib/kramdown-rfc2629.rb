@@ -134,10 +134,6 @@ module Kramdown
       def convert_codeblock(el, indent, opts)
         el.attr['anchor'] ||= saner_generate_id(el.value)
         result = el.value
-        # compensate for XML2RFC idiosyncracy by insisting on a blank line
-        unless el.attr.delete('tight')
-          result[0,0] = "\n" unless result[0,1] == "\n"
-        end
         blockclass = el.attr.delete('class')
         if blockclass == 'language-tbreak'
           result = result.lines.map {|line| [line.chomp, 0]}
@@ -145,18 +141,23 @@ module Kramdown
           result.each_with_index {|pair, index|
             if pair[0] == ''
               result[spaceind][1] += 1
+              pair[0] = nil unless index == spaceind
             else
               spaceind = index
             end
           }
-          $stderr.puts(result.inspect)
+          # $stderr.puts(result.inspect)
           result = result.map {|line, space|
-            "<![CDATA[#{line.gsub(/^\s+/) {|s| "\u00A0" * s.size}}]]><vspace blankLines=\"#{space}\"/>"
-          }.join("\n")
+            "<![CDATA[#{line.gsub(/^\s+/) {|s| "\u00A0" * s.size}}]]><vspace blankLines=\"#{space}\"/>" if line
+          }.compact.join("\n")
           "#{' '*indent}<t>#{result}</t>\n"
         else
           if blockclass
             $stderr.puts "*** Unimplemented block class: #{blockclass}"
+          end
+          # compensate for XML2RFC idiosyncracy by insisting on a blank line
+          unless el.attr.delete('tight')
+            result[0,0] = "\n" unless result[0,1] == "\n"
           end
           "#{' '*indent}<figure#{el_html_attributes(el)}><artwork><![CDATA[#{result}#{result =~ /\n\Z/ ? '' : "\n"}]]></artwork></figure>\n"
         end
@@ -198,6 +199,7 @@ module Kramdown
 
       def convert_ul(el, indent, opts)
         style = STYLES[el.type]
+        opts = opts.merge(vspace: el.attr.delete('vspace'))
         if opts[:unpacked]
           "#{' '*indent}<list style='#{style}'#{el_html_attributes(el)}>\n#{inner(el, indent, opts)}#{' '*indent}</list>\n"
           else
@@ -239,7 +241,9 @@ module Kramdown
       def convert_dt(el, indent, opts) # SERIOUSLY BAD HACK:
         close = "#{' '*indent}</t>\n" * @in_dt
         @in_dt = 1
-        "#{close}#{' '*indent}<t#{el_html_attributes(el)} hangText='#{inner(el, indent, opts)}'>\n"
+        vspace = opts[:vspace]
+        vspaceel = "<vspace blankLines='#{vspace}'/>" if vspace
+        "#{close}#{' '*indent}<t#{el_html_attributes(el)} hangText='#{inner(el, indent, opts)}'>#{vspaceel}\n"
       end
 
       HTML_TAGS_WITH_BODY=['div', 'script']
