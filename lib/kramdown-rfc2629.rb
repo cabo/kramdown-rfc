@@ -138,7 +138,28 @@ module Kramdown
         unless el.attr.delete('tight')
           result[0,0] = "\n" unless result[0,1] == "\n"
         end
-        "#{' '*indent}<figure#{el_html_attributes(el)}><artwork><![CDATA[#{result}#{result =~ /\n\Z/ ? '' : "\n"}]]></artwork></figure>\n"
+        blockclass = el.attr.delete('class')
+        if blockclass == 'language-tbreak'
+          result = result.lines.map {|line| [line.chomp, 0]}
+          spaceind = 0
+          result.each_with_index {|pair, index|
+            if pair[0] == ''
+              result[spaceind][1] += 1
+            else
+              spaceind = index
+            end
+          }
+          $stderr.puts(result.inspect)
+          result = result.map {|line, space|
+            "<![CDATA[#{line.gsub(/^\s+/) {|s| "\u00A0" * s.size}}]]><vspace blankLines=\"#{space}\"/>"
+          }.join("\n")
+          "#{' '*indent}<t>#{result}</t>\n"
+        else
+          if blockclass
+            $stderr.puts "*** Unimplemented block class: #{blockclass}"
+          end
+          "#{' '*indent}<figure#{el_html_attributes(el)}><artwork><![CDATA[#{result}#{result =~ /\n\Z/ ? '' : "\n"}]]></artwork></figure>\n"
+        end
       end
 
       def convert_blockquote(el, indent, opts)
