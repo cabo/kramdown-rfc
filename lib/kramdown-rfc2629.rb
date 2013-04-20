@@ -317,7 +317,7 @@ module Kramdown
       end
 
       def convert_br(el, indent, opts)
-        "<br />"
+        "<vspace />"
       end
 
       def convert_a(el, indent, opts)
