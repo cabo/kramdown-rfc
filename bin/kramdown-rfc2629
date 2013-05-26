@@ -134,9 +134,7 @@ def xml_from_sections(input)
     </author>
 <%   aups.warn_if_leftovers  -%>
 <% end -%>
-<% if date = vps[:date] -%>
-    <date <%= dateattrs(date) %>/>
-<% end -%>
+    <date <%= dateattrs(vps[:date]) %>/>
   </front>
 <% vps.arr("seriesinfo", false) do |k, v| -%>
   <seriesInfo name="<%=k%>" value="<%=v%>"/>
@@ -247,6 +245,10 @@ def dateattrs(date)
       Date.parse("#{date}-01").strftime(%{year="%Y" month="%B"})
     when Date
       date.strftime(%{year="%Y" month="%B" day="%d"})
+    when Array                  # this allows to explicitly give a string
+      %{year="#{date.join(" ")}"}
+    when nil
+      %{year="n.d."}
     end
 
   rescue ArgumentError
