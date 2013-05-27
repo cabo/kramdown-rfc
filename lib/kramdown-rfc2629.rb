@@ -281,10 +281,12 @@ module Kramdown
       alias :convert_html_doctype :convert_xml_comment
 
       ALIGNMENTS = { default: :left, left: :left, right: :right, center: :center}
+      COLS_ALIGN = { "l" => :left, "c" => :center, "r" => :right}
 
       def convert_table(el, indent, opts) # This only works for tables with headers
         alignment = el.options[:alignment].map { |al| ALIGNMENTS[al]}
-        "#{' '*indent}<texttable#{el_html_attributes(el)}>\n#{inner(el, indent, opts.merge(table_alignment: alignment))}#{' '*indent}</texttable>\n"
+        cols = (el.attr.delete("cols") || "").split(' ')
+        "#{' '*indent}<texttable#{el_html_attributes(el)}>\n#{inner(el, indent, opts.merge(table_alignment: alignment, table_cols: cols))}#{' '*indent}</texttable>\n"
       end
 
       def convert_thead(el, indent, opts)
@@ -297,10 +299,15 @@ module Kramdown
       def convert_td(el, indent, opts)
         if alignment = opts[:table_alignment]
           alignment = alignment.shift
+          if cols = opts[:table_cols].shift
+            md = cols.match(/(\d*)(.*)/)
+            widthopt = "width='#{md[1]}' " if md[1].to_i != 0
+            alignment = COLS_ALIGN[md[2]] || :left
+          end
         end
         res = inner(el, indent, opts)
         if alignment
-          "#{' '*indent}<ttcol align='#{alignment}'#{el_html_attributes(el)}>#{res.empty? ? "&#160;" : res}</ttcol>\n"
+          "#{' '*indent}<ttcol #{widthopt}align='#{alignment}'#{el_html_attributes(el)}>#{res.empty? ? "&#160;" : res}</ttcol>\n"
           else
           "#{' '*indent}<c#{el_html_attributes(el)}>#{res.empty? ? "&#160;" : res}</c>\n"
         end
