@@ -132,7 +132,7 @@ module Kramdown
       end
 
       def convert_codeblock(el, indent, opts)
-        el.attr['anchor'] ||= saner_generate_id(el.value)
+        # el.attr['anchor'] ||= saner_generate_id(el.value) -- no longer in 1.0.6
         result = el.value
         blockclass = el.attr.delete('class')
         if blockclass == 'language-tbreak'
