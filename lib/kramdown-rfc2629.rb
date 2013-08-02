@@ -357,7 +357,11 @@ module Kramdown
         if !f || tn - f.ctime >= tvalid
           $stderr.puts "#{fn}: #{f && tn-f.ctime}"
           `cd #{REFCACHEDIR}; wget -Nnv "#{url}"` # ignore errors if offline (hack)
-          File.utime nil, nil, fn
+          begin
+            File.utime nil, nil, fn
+          rescue Errno::ENOENT
+            warn "Can't fetch #{url} -- is wget in path?"
+          end
         end
         File.read(fn)
       end
@@ -372,9 +376,9 @@ module Kramdown
         end
         if alt == ":include:"   # Really bad misuse of tag...
           to_insert = ""
-          anchor.scan(/([A-Z-]+)[.]?([a-z0-9-]+)/) do |t, n|
+          anchor.scan(/(W3C|[A-Z-]+)[.]?([A-Za-z0-9-]+)/) do |t, n|
             fn = "reference.#{t}.#{n}.xml"
-            sub = { "RFC" => "bibxml", "I-D" => "bibxml3" }[t]
+            sub = { "RFC" => "bibxml", "I-D" => "bibxml3", "W3C" => "bibxml4" }[t]
             puts "Huh: ${fn}" unless sub
             url = "http://xml.resource.org/public/rfc/#{sub}/#{fn}"
             to_insert = get_and_cache_resource(url)

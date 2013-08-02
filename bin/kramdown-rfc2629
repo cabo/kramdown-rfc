@@ -223,6 +223,9 @@ def bibtagsys(bib)
   elsif bib =~ /\AI-D\./i
     [bib,
      "http://xml.resource.org/public/rfc/bibxml3/reference.#{bib}.xml"]
+  elsif bib =~ /\AW3C\./i
+    [bib,
+     "http://xml.resource.org/public/rfc/bibxml4/reference.#{bib}.xml"]
   end
 end
 
