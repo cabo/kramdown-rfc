@@ -13,7 +13,7 @@
 raise "sorry, 1.8 was last decade" unless RUBY_VERSION >= '1.9'
 
 # this version also works with kramdown 0.12, 0.13, 0.14, but 1.x has the right license
-gem 'kramdown', '~> 1.2.0'
+gem 'kramdown', '~> 1.3.0'
 require 'kramdown'
 
 require 'rexml/parsers/baseparser'
@@ -42,6 +42,7 @@ module Kramdown
       def parse_xref
         @src.pos += @src.matched_size
         href = @src[1]
+        href = href.gsub(/\A[0-9]/) { "_#{$&}" } # can't start an IDREF with a number
         el = Element.new(:xref, nil, {'target' => href})
         @tree.children << el
       end
@@ -366,6 +367,20 @@ module Kramdown
         File.read(fn)
       end
 
+      XML_RESOURCE_ORG_MAP = {
+        "RFC" => "bibxml", "I-D" => "bibxml3", "W3C" => "bibxml4", "3GPP" => "bibxml5",
+        "ANSI" => "bibxml2",
+        "CCITT" => "bibxml2",
+        "FIPS" => "bibxml2",
+        "IANA" => "bibxml2",
+        "IEEE" => "bibxml2",
+        "ISO" => "bibxml2",
+        "ITU" => "bibxml2",
+        "NIST" => "bibxml2",
+        "OASIS" => "bibxml2",
+        "PKCS" => "bibxml2",
+      }
+
       def convert_img(el, indent, opts) # misuse the tag!
         if a = el.attr
           alt = a.delete('alt').strip
@@ -376,14 +391,15 @@ module Kramdown
         end
         if alt == ":include:"   # Really bad misuse of tag...
           to_insert = ""
-          anchor.scan(/(W3C|[A-Z-]+)[.]?([A-Za-z0-9-]+)/) do |t, n|
+          anchor.scan(/(W3C|3GPP|[A-Z-]+)[.]?([A-Za-z0-9.-]+)/) do |t, n|
             fn = "reference.#{t}.#{n}.xml"
-            sub = { "RFC" => "bibxml", "I-D" => "bibxml3", "W3C" => "bibxml4" }[t]
+            sub = XML_RESOURCE_ORG_MAP[t]
             puts "Huh: ${fn}" unless sub
             url = "http://xml.resource.org/public/rfc/#{sub}/#{fn}"
             to_insert = get_and_cache_resource(url)
           end
-          to_insert.gsub(/<\?xml version='1.0' encoding='UTF-8'\?>/, '')
+          to_insert.gsub(/<\?xml version=["']1.0["'] encoding=["']UTF-8["']\?>/, '').
+            gsub(/(anchor=["'])([0-9])/) { "#{$1}_#{$2}"} # can't start an ID with a number
         else
           "<xref#{el_html_attributes(el)}>#{alt}</xref>"
         end
