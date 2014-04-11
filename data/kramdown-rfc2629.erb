@@ -27,19 +27,17 @@
     <author <%=aups.attrs("initials", "surname", "fullname=name", "role")%>>
       <%= aups.ele("organization=org", aups.attr("abbrev=orgabbrev"), "") %>
       <address>
-<% if aups.has("street") -%>
+<% postal = %w{street city region code country}.select{|gi| aups.has(gi)}
+   if postal != [] -%>
         <postal>
-          <%= aups.ele("street") %>
-          <%= aups.ele("city") %>
-          <%= aups.ele("region") %>
-          <%= aups.ele("code") %>
-          <%= aups.ele("country") %>
+<%   postal.each do |gi| -%>
+          <%= aups.ele(gi) %>
+<%   end -%>
         </postal>
 <% end -%>
-        <%= aups.ele("phone") %>
-        <%= aups.ele("facsimile") %>
-        <%= aups.ele("email") %>
-        <%= aups.ele("uri") %>
+<% %w{phone facsimile email uri}.select{|gi| aups.has(gi)}.each do |gi| -%>
+        <%= aups.ele(gi) %>
+<% end -%>
       </address>
     </author>
 <%   aups.warn_if_leftovers  -%>
