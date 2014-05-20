@@ -69,11 +69,14 @@ module Kramdown
     # Converts a Kramdown::Document to HTML.
     class Rfc2629 < Base
 
-      # we use these to do XML stuff, too (XXX: 0.11 vs. 0.12)
-      include ::Kramdown::Utils::HTML      rescue   include ::Kramdown::Utils::Html
+      # we use these to do XML stuff, too
+      include ::Kramdown::Utils::Html
 
       def el_html_attributes(el)
-        html_attributes(el) rescue html_attributes(el.attr) # XXX 0.11 vs. 0.12
+        html_attributes(el.attr)
+      end
+      def el_html_attributes_with(el, defattr)
+        html_attributes(defattr.merge(el.attr))
       end
 
       # :stopdoc:
@@ -199,12 +202,12 @@ module Kramdown
       STYLES = {ul: 'symbols', ol: 'numbers', dl: 'hanging'}
 
       def convert_ul(el, indent, opts)
-        style = STYLES[el.type]
         opts = opts.merge(vspace: el.attr.delete('vspace'))
+        attrstring = el_html_attributes_with(el, {"style" => STYLES[el.type]})
         if opts[:unpacked]
-          "#{' '*indent}<list style='#{style}'#{el_html_attributes(el)}>\n#{inner(el, indent, opts)}#{' '*indent}</list>\n"
+          "#{' '*indent}<list#{attrstring}>\n#{inner(el, indent, opts)}#{' '*indent}</list>\n"
           else
-          "#{' '*indent}<t><list style='#{style}'#{el_html_attributes(el)}>\n#{inner(el, indent, opts)}#{' '*indent}</list></t>\n"
+          "#{' '*indent}<t><list#{attrstring}>\n#{inner(el, indent, opts)}#{' '*indent}</list></t>\n"
         end
       end
       alias :convert_ol :convert_ul
@@ -406,7 +409,8 @@ module Kramdown
       end
 
       def convert_codespan(el, indent, opts)
-        "<spanx style='verb'#{el_html_attributes(el)}>#{escape_html(el.value)}</spanx>"
+        attrstring = el_html_attributes_with(el, {"style" => 'verb'})
+        "<spanx#{attrstring}>#{escape_html(el.value)}</spanx>"
       end
 
       def convert_footnote(el, indent, opts) # XXX: This is wrong.
@@ -421,7 +425,8 @@ module Kramdown
       EMPH = { em: "emph", strong: "strong"}
 
       def convert_em(el, indent, opts)
-        "<spanx style='#{EMPH[el.type]}'#{el_html_attributes(el)}>#{inner(el, indent, opts)}</spanx>"
+        attrstring = el_html_attributes_with(el, {"style" => EMPH[el.type]})
+        "<spanx#{attrstring}>#{inner(el, indent, opts)}</spanx>"
       end
       alias :convert_strong :convert_em
 
