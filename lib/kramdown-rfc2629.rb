@@ -360,7 +360,7 @@ module Kramdown
         f = File.stat(fn) rescue nil
         if !f || tn - f.ctime >= tvalid
           $stderr.puts "#{fn}: #{f && tn-f.ctime}"
-          `cd #{REFCACHEDIR}; wget -Nnv "#{url}"` # ignore errors if offline (hack)
+          `cd #{REFCACHEDIR}; wget -t 3 -T 20 -Nnv "#{url}"` # ignore errors if offline (hack)
           begin
             File.utime nil, nil, fn
           rescue Errno::ENOENT
@@ -384,6 +384,11 @@ module Kramdown
         "PKCS" => "bibxml2",
       }
 
+      # XML_RESOURCE_ORG_HOST = ENV["XML_RESOURCE_ORG_HOST"] || "xml.resource.org"
+      XML_RESOURCE_ORG_HOST = ENV["XML_RESOURCE_ORG_HOST"] || "xml2rfc.tools.ietf.org"
+      XML_RESOURCE_ORG_PREFIX = ENV["XML_RESOURCE_ORG_PREFIX"] ||
+                                "http://#{XML_RESOURCE_ORG_HOST}/public/rfc"
+
       def convert_img(el, indent, opts) # misuse the tag!
         if a = el.attr
           alt = a.delete('alt').strip
@@ -398,7 +403,7 @@ module Kramdown
             fn = "reference.#{t}.#{n}.xml"
             sub = XML_RESOURCE_ORG_MAP[t]
             puts "Huh: ${fn}" unless sub
-            url = "http://xml.resource.org/public/rfc/#{sub}/#{fn}"
+            url = "#{XML_RESOURCE_ORG_PREFIX}/#{sub}/#{fn}"
             to_insert = get_and_cache_resource(url)
           end
           to_insert.gsub(/<\?xml version=["']1.0["'] encoding=["']UTF-8["']\?>/, '').

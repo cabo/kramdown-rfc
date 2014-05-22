@@ -215,16 +215,18 @@ class ParameterSet
   end
 end
 
+XML_RESOURCE_ORG_PREFIX = Kramdown::Converter::Rfc2629::XML_RESOURCE_ORG_PREFIX
+
 def bibtagsys(bib)
   if bib =~ /\Arfc(\d+)/i
     rfc4d = "%04d" % $1.to_i
     [bib.upcase,
-     "http://xml.resource.org/public/rfc/bibxml/reference.RFC.#{rfc4d}.xml"]
+     "#{XML_RESOURCE_ORG_PREFIX}/bibxml/reference.RFC.#{rfc4d}.xml"]
   elsif bib =~ /\A([-A-Z0-9]+)\./ &&
         dir = Kramdown::Converter::Rfc2629::XML_RESOURCE_ORG_MAP[$1]
     bib1 = bib.gsub(/\A[0-9]/) { "_#{$&}" } # can't start an ID with a number
     [bib1,
-     "http://xml.resource.org/public/rfc/#{dir}/reference.#{bib}.xml"]
+     "#{XML_RESOURCE_ORG_PREFIX}/#{dir}/reference.#{bib}.xml"]
   end
 end
 
