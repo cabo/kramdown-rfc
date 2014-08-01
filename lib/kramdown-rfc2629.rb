@@ -13,7 +13,7 @@
 raise "sorry, 1.8 was last decade" unless RUBY_VERSION >= '1.9'
 
 # this version also works with kramdown 0.12, 0.13, 0.14, but 1.x has the right license
-gem 'kramdown', '~> 1.3.0'
+gem 'kramdown', '~> 1.4.0'
 require 'kramdown'
 
 require 'rexml/parsers/baseparser'
