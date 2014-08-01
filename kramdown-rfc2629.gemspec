@@ -5,7 +5,7 @@ spec = Gem::Specification.new do |s|
   s.description = %{An RFC2629 (XML2RFC) generating backend for Thomas Leitner's
 "kramdown" markdown parser.  Mostly useful for RFC writers.}
   s.add_dependency('kramdown', '~> 1.3.0')
-  s.files = Dir['lib/**/*.rb'] + %w(README.md kramdown-rfc2629.gemspec bin/kramdown-rfc2629 data/kramdown-rfc2629.erb)
+  s.files = Dir['lib/**/*.rb'] + %w(README.md LICENSE kramdown-rfc2629.gemspec bin/kramdown-rfc2629 data/kramdown-rfc2629.erb)
   s.require_path = 'lib'
   s.executables = ['kramdown-rfc2629']
   s.default_executable = 'kramdown-rfc2629'
