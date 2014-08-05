@@ -1,12 +1,11 @@
 # -*- coding: utf-8 -*-
 #
 #--
-# Copyright (C) 2010 Carsten Bormann <cabo@tzi.org>
+# Copyright (C) 2009-2010 Thomas Leitner <t_leitner@gmx.at>
+# Copyright (C) 2010-2014 Carsten Bormann <cabo@tzi.org>
 #
-# This file is designed to work with kramdown.
-# License: GPLv3, unfortunately (look it up).
-# Any code that I haven't stolen from kramdown is also licensed under
-# the 2-clause BSD license (look it up).
+# This file was derived from a part of the kramdown gem which is licensed under the MIT license.
+# This derived work is also licensed under the MIT license, see LICENSE.
 #++
 #
 
