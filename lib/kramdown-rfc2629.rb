@@ -417,8 +417,14 @@ module Kramdown
         "<spanx#{attrstring}>#{escape_html(el.value)}</spanx>"
       end
 
-      def convert_footnote(el, indent, opts) # XXX: This is wrong.
-        "<xref target='#{escape_html(el.value)}'#{el_html_attributes(el)}/>"
+      def convert_footnote(el, indent, opts) # XXX: footnotes into crefs???
+        # this would be more like xml2rfc v3:
+        # "\n#{' '*indent}<cref>\n#{inner(el.value, indent, opts).rstrip}\n#{' '*indent}</cref>"
+        content = inner(el.value, indent, opts).strip
+        content = escape_html(content.sub(/\A<t>(.*)<\/t>\z/m) {$1}, :text) # text only...
+        name = el.options[:name].sub(/\A[0-9]/) {"_" << $&}
+        attrstring = el_html_attributes_with(el, {"anchor" => name})
+        "\n#{' '*indent}<cref#{attrstring}>#{content}</cref>"
       end
 
       def convert_raw(el, indent, opts)
