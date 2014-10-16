@@ -14,7 +14,7 @@ their work in markdown.
 # Usage
 
 Start by installing the kramdown-rfc2629 gem (this automatically
-installs kramdown version 1.3.x as well):
+installs kramdown version 1.4.x as well):
 
     sudo gem install kramdown-rfc2629
 
@@ -24,7 +24,7 @@ structure provided by kramdown.  `bin/kramdown-rfc2629` started out as
 a simple command-line program showing how to use this, but can now do
 much more (see below).
 
-To use kramdown-rfc2629, you'll need a Ruby 1.9 or 2.0, the command
+To use kramdown-rfc2629, you'll need a Ruby 1.9 or 2.x, the command
 "wget" (if you want to use the offline feature), and maybe [XML2RFC][]
 if you want to see the fruits of your work.
 
@@ -180,7 +180,9 @@ spell it out like this:
       RFC6690:
 
 (as in the author list, `ins` is an abbreviation for
-"initials/surname".) Then you can simply reference `{{ASN.1}}` and
+"initials/surname"; note that the first title had to be put in double
+quotes as it contains a colon which is special syntax in YAML.)
+Then you can simply reference `{{ASN.1}}` and
 `{{ECMA262}}` in the text.  (Make sure the reference keys are valid XML
 names, though.)
 
@@ -199,13 +201,13 @@ Moving from XML to Markdown for RFC writing apparently is a
 no-brainer, so I'm not the only one who has written code for this.
 
 [Miek Gieben][] has done a [similar thing][pandoc2rfc] employing
-pandoc/asciidoc.  He uses multiple input files instead of
+pandoc, now documented in [RFC 7328][].  He uses multiple input files instead of
 kramdown-rfc2629's sectionized input format.  He keeps the metadata in
 a separate XML file, similar to the way the previous version of
 kramdown-rfc2629 stored (and still can store) the metadata in XML in
 the markdown document.  He also uses a slightly different referencing
 syntax, which is closer to what markdown does elsewhere but more
-verbose.
+verbose (this syntax is now also supported in kramdown-rfc2629).
 
 # License
 
@@ -221,3 +223,4 @@ license.
 [Miek Gieben]: http://www.miek.nl/
 [pandoc2rfc]: https://github.com/miekg/pandoc2rfc/
 [XML2RFC]: http://xml.resource.org
+[RFC 7328]: http://tools.ietf.org/html/rfc7328
