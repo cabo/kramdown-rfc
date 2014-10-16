@@ -331,16 +331,14 @@ module Kramdown
       end
 
       def convert_a(el, indent, opts)
-        do_obfuscation = el.attr['href'] =~ /^mailto:/
-        if do_obfuscation
-          el = el.deep_clone
-          href = obfuscate(el.attr['href'].sub(/^mailto:/, ''))
-          mailto = obfuscate('mailto')
-          el.attr['href'] = "#{mailto}:#{href}"
-        end
         res = inner(el, indent, opts)
-        res = obfuscate(res) if do_obfuscation
-        "<eref#{el_html_attributes(el)}>#{res}</eref>"
+        target = el.attr['target']
+        if target[0] == "#"     # handle [](#foo) as xref as in RFC 7328
+          el.attr['target'] = target[1..-1]
+          "<xref#{el_html_attributes(el)}>#{res}</xref>"
+        else
+          "<eref#{el_html_attributes(el)}>#{res}</eref>"
+        end
       end
 
       def convert_xref(el, indent, opts)
