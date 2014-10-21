@@ -24,9 +24,8 @@ structure provided by kramdown.  `bin/kramdown-rfc2629` started out as
 a simple command-line program showing how to use this, but can now do
 much more (see below).
 
-To use kramdown-rfc2629, you'll need a Ruby 1.9 or 2.x, the command
-"wget" (if you want to use the offline feature), and maybe [XML2RFC][]
-if you want to see the fruits of your work.
+To use kramdown-rfc2629, you'll need a Ruby 1.9 or 2.x, and maybe
+[XML2RFC][] if you want to see the fruits of your work.
 
     kramdown-rfc2629 mydraft.mkd >mydraft.xml
     xml2rfc mydraft.xml

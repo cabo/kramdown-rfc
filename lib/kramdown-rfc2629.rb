@@ -356,15 +356,34 @@ module Kramdown
         fn = "#{REFCACHEDIR}/#{File.basename(url)}"
         f = File.stat(fn) rescue nil
         if !f || tn - f.ctime >= tvalid
-          $stderr.puts "#{fn}: #{f && tn-f.ctime}"
-          `cd #{REFCACHEDIR}; wget -t 3 -T 20 -Nnv "#{url}"` # ignore errors if offline (hack)
-          begin
-            File.utime nil, nil, fn
-          rescue Errno::ENOENT
-            warn "Can't fetch #{url} -- is wget in path?"
+          $stderr.puts "#{fn}: #{f && "renewing (stale by #{"%.1f" % ((tn-f.ctime)/86400)} days)" || "fetching"}"
+          if ENV["HAVE_WGET"]
+            `cd #{REFCACHEDIR}; wget -t 3 -T 20 -Nnv "#{url}"` # ignore errors if offline (hack)
+            begin
+              File.utime nil, nil, fn
+            rescue Errno::ENOENT
+              warn "Can't fetch #{url} -- is wget in path?"
+            end
+          else
+            require 'open-uri'
+            require 'timeout'
+            begin
+              Timeout::timeout(f ? 10 : 30) do # give up quickly if just renewing
+                open(url) do |f|
+                  s = f.read
+                  if f.status[0] != "200"
+                    warn "*** Status code #{status} while fetching #{url}"
+                  else
+                    File.write(fn, s)
+                  end
+                end
+              end
+            rescue OpenURI::HTTPError, SocketError, Timeout::Error => e
+              warn "*** #{e} while fetching #{url}"
+            end
           end
         end
-        File.read(fn)
+        File.read(fn) # this blows up if no cache available after fetch attempt
       end
 
       XML_RESOURCE_ORG_MAP = {
