@@ -1,4 +1,4 @@
-#!/usr/bin/env ruby1.9
+#!/usr/bin/env ruby2.1
 # -*- coding: utf-8 -*-
 require 'kramdown-rfc2629'
 require 'yaml'
@@ -19,7 +19,9 @@ def xml_from_sections(input)
   # resulting in an array; each section is [section-label, nomarkdown-flag, section-text]
 
   # the first section is a YAML with front matter parameters (don't put a label here)
-  ps = ParameterSet.new(YAML.load(sections.shift[2]))
+  # We put back the "---" plus gratuitous blank lines to hack the line number in errors
+  yaml_in = input[/---\s*/] << sections.shift[2]
+  ps = ParameterSet.new(YAML.load(yaml_in))
   coding_override = (ps.has(:coding) =~ /ascii/i) ? :symbolic : :as_char
 
   # all the other sections are put in a Hash, possibly concatenated from parts there

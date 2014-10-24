@@ -98,6 +98,21 @@ or
         country: Finland
         phone: "+358407796297"
         email: zach@sensinode.com
+      -
+        role: editor
+        ins: P. Thubert
+        name: Pascal Thubert
+        org: Cisco Systems
+        abbrev: Cisco
+        street:
+        - Village d'Entreprises Green Side
+        - 400, Avenue de Roumanille
+        - Batiment T3
+        city: Biot - Sophia Antipolis
+        code: '06410'
+        country: FRANCE
+        phone: "+33 4 97 23 26 34"
+        email: pthubert@cisco.com
 
 (the hash keys are the XML GIs from RFC 2629, with a flattened
 structure.  As RFC 2629 requires giving both the name and
@@ -105,6 +120,10 @@ surname/initials, we use `ins` as an abbreviation for
 "initials/surname".  Yes, the toolchain is Unicode-capable, even if
 the final RFC output is still in ASCII.)
 
+Note that the YAML header needs to be syntactically valid YAML.
+Where there is a potential for triggering some further YAML feature, a
+string should be put in quotes (like the "+358407796297" above, which
+might otherwise be interpreted as a number, losing the + sign).
 
 ## References
 
@@ -133,6 +152,7 @@ spell it out like this:
       RFC1925:
       WEI:
         title: "6LoWPAN: the Wireless Embedded Internet"
+        # see the quotes above?  Needed because of the embedded colon.
         author:
           -
             ins: Z. Shelby
@@ -149,6 +169,7 @@ spell it out like this:
           Information Technology — ASN.1 encoding rules:
           Specification of Basic Encoding Rules (BER), Canonical Encoding
           Rules (CER) and Distinguished Encoding Rules (DER)
+        # YAML's ">" syntax used above is a good way to write longer titles
         author:
           org: International Telecommunications Union
         date: 1994
@@ -210,9 +231,8 @@ verbose (this syntax is now also supported in kramdown-rfc2629).
 
 # License
 
-With kramdown version 1.0, kramdown itself now is MIT licensed, so it
-is finally possible to license kramdown-rfc2629 under the same
-license.
+Since kramdown version 1.0, kramdown itself is MIT licensed, which
+made it possible to license kramdown-rfc2629 under the same license.
 
 [kramdown]: http://kramdown.rubyforge.org/
 [stupid]: http://tools.ietf.org/id/draft-hartke-xmpp-stupid-00

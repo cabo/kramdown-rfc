@@ -303,9 +303,13 @@ module Kramdown
         if alignment = opts[:table_alignment]
           alignment = alignment.shift
           if cols = opts[:table_cols].shift
-            md = cols.match(/(\d*)(.*)/)
-            widthopt = "width='#{md[1]}' " if md[1].to_i != 0
-            alignment = COLS_ALIGN[md[2]] || :left
+            md = cols.match(/(\d*(|em|[%*]))([lrc])/)
+            if md[1].to_i != 0
+              widthval = md[1]
+              widthval << "em" if md[2].empty?
+              widthopt = "width='#{widthval}' "
+            end
+            alignment = COLS_ALIGN[md[3]] || :left
           end
         end
         res = inner(el, indent, opts)
@@ -488,7 +492,7 @@ module Kramdown
       end
 
       def convert_abbreviation(el, indent, opts) # XXX: This is wrong
-        title = @doc.parse_infos[:abbrev_defs][el.value]
+        title = @root.options[:abbrev_defs][el.value]
         title = nil if title.empty?
         "<abbr#{title ? " title=\"#{title}\"" : ''}>#{el.value}</abbr>"
       end
