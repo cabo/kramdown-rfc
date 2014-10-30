@@ -103,10 +103,13 @@ def xml_from_sections(input)
   end
 
   stand_alone = ps[:stand_alone]
+  link_defs = {}
 
   [:normative, :informative].each do |sn|
     if refs = ps[sn]
       refs.each do |k, v|
+        href = k.gsub(/\A[0-9]/) { "_#{$&}" } # can't start an IDREF with a number
+        link_defs[k] = ["##{href}", nil]            # allow [RFC2119] in addition to {{RFC2119}}
         if bts = bibtagsys(k)
           if v
             warn "*** redundant in #{k}: #{v.inspect}" unless v.respond_to? :to_str
@@ -165,7 +168,7 @@ def xml_from_sections(input)
     warn "*** sections left #{sechash.keys.inspect}!"
   end
 
-  [input, coding_override]
+  [input, coding_override, link_defs]
 end
 
 class ParameterSet
@@ -266,13 +269,14 @@ coding_override = :as_char
 input = ARGF.read.gsub(/\{::include\s+(.*?)\}/) {
   File.read($1).chomp
 }
+link_defs = {}
 if input =~ /\A---/        # this is a sectionized file
-  input, coding_override = xml_from_sections(input)
+  input, coding_override, link_defs = xml_from_sections(input)
 end
 if input =~ /\A<\?xml/          # if this is a whole XML file, protect it
   input = "{::nomarkdown}\n#{input}\n{:/nomarkdown}\n"
 end
-options = {input: 'RFC2629Kramdown', entity_output: coding_override}
+options = {input: 'RFC2629Kramdown', entity_output: coding_override, link_defs: link_defs}
 # warn "options: #{options.inspect}"
 doc = Kramdown::Document.new(input, options)
 $stderr.puts doc.warnings.to_yaml unless doc.warnings.empty?

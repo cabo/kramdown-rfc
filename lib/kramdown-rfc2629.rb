@@ -338,7 +338,10 @@ module Kramdown
         res = inner(el, indent, opts)
         target = el.attr['target']
         if target[0] == "#"     # handle [](#foo) as xref as in RFC 7328
-          el.attr['target'] = target[1..-1]
+          el.attr['target'] = target = target[1..-1]
+          if target.downcase == res.downcase
+            res = ''            # get rid of raw anchors leaking through
+          end
           "<xref#{el_html_attributes(el)}>#{res}</xref>"
         else
           "<eref#{el_html_attributes(el)}>#{res}</eref>"
