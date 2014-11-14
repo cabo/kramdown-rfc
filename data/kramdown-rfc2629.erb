@@ -13,12 +13,12 @@
 <% end -%>
 ]>
 
-<rfc <%= ps.attrs("ipr", "docName=docname", "category=cat",
-                  "number", "obsoletes", "updates", "seriesNo=seriesno") %>>
-
 <% ps.arr("pi", false) do |pi, val| -%>
 <?rfc <%=pi%>="<%= {true => "yes", false => "no", nil => "yes"}[val] || val %>"?>
 <% end -%>
+
+<rfc <%= ps.attrs("ipr", "docName=docname", "category=cat",
+                  "number", "obsoletes", "updates", "seriesNo=seriesno") %>>
 
   <front>
     <%= ps.ele("title", ps.attr("abbrev=titleabbrev")) %>
