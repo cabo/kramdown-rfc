@@ -497,7 +497,8 @@ module Kramdown
       def convert_abbreviation(el, indent, opts) # XXX: This is wrong
         title = @root.options[:abbrev_defs][el.value]
         title = nil if title.empty?
-        "<abbr#{title ? " title=\"#{title}\"" : ''}>#{el.value}</abbr>"
+        value = el.value
+        "#{el.value}<iref #{title ? "item=\"#{title}\" sub" : ''}item=\"#{value}\"/>"
       end
 
       def convert_root(el, indent, opts)
