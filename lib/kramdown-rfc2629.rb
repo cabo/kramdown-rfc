@@ -505,16 +505,6 @@ module Kramdown
         result = inner(el, indent, opts)
       end
 
-      # Helper method for obfuscating the +text+ by using XML entities.
-      def obfuscate(text)
-        result = ""
-        text.each_byte do |b|
-          result += (b > 128 ? b.chr : "&#%03d;" % b)
-        end
-        result.force_encoding(text.encoding) if RUBY_VERSION >= '1.9'
-        result
-      end
-
     end
 
   end
