@@ -182,6 +182,18 @@ module Kramdown
         end
       end
 
+      def clean_pcdata(parts)    # hack, will become unnecessary with XML2RFCv3
+        clean = ''
+        irefs = ''
+        # warn "clean_parts: #{parts.inspect}"
+        parts.each do |p|
+          md = p.match(%r{([^<]*)(.*)})
+          clean << md[1]
+          irefs << md[2]        # breaks for spanx... don't emphasize in headings!
+        end
+        [clean, irefs]
+      end
+
       def convert_header(el, indent, opts)
         # todo: handle appendix tags
         el = el.deep_clone
@@ -189,8 +201,9 @@ module Kramdown
         if options[:auto_ids] && !el.attr['anchor']
           el.attr['anchor'] = saner_generate_id(el.options[:raw_text])
         end
-        el.attr['title'] = inner(el, indent, opts)
-        "#{end_sections(el.options[:level], indent)}#{' '*indent}<section#{@sec_level += 1; el_html_attributes(el)}>\n"
+        clean, irefs = clean_pcdata(inner_a(el, indent, opts))
+        el.attr['title'] = clean
+        "#{end_sections(el.options[:level], indent)}#{' '*indent}<section#{@sec_level += 1; el_html_attributes(el)}>#{irefs}\n"
       end
 
       def convert_hr(el, indent, opts) # misuse for page break
@@ -311,10 +324,12 @@ module Kramdown
             alignment = COLS_ALIGN[md[3]] || :left
           end
         end
-        res = inner(el, indent, opts)
         if alignment
-          "#{' '*indent}<ttcol #{widthopt}align='#{alignment}'#{el_html_attributes(el)}>#{res.empty? ? "&#160;" : res}</ttcol>\n"
-          else
+          res, irefs = clean_pcdata(inner_a(el, indent, opts))
+          warn "*** lost markup #{irefs} in table heading" unless irefs.empty?
+          "#{' '*indent}<ttcol #{widthopt}align='#{alignment}'#{el_html_attributes(el)}>#{res.empty? ? "&#160;" : res}</ttcol>\n" # XXX need clean_pcdata
+        else
+          res = inner(el, indent, opts)
           "#{' '*indent}<c#{el_html_attributes(el)}>#{res.empty? ? "&#160;" : res}</c>\n"
         end
       end
@@ -459,7 +474,8 @@ module Kramdown
 
       def convert_em(el, indent, opts)
         attrstring = el_html_attributes_with(el, {"style" => EMPH[el.type]})
-        "<spanx#{attrstring}>#{inner(el, indent, opts)}</spanx>"
+        span, irefs = clean_pcdata(inner_a(el, indent, opts))
+        "<spanx#{attrstring}>#{span}</spanx>#{irefs}"
       end
       alias :convert_strong :convert_em
 
