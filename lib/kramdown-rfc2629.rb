@@ -30,6 +30,7 @@ module Kramdown
       def initialize(*doc)
         super
         @span_parsers.unshift(:xref)
+        @span_parsers.unshift(:iref)
       end
 
       XREF_START = /\{\{(.*?)\}\}/u
@@ -45,6 +46,17 @@ module Kramdown
         @tree.children << el
       end
       define_parser(:xref, XREF_START, '{{')
+
+      IREF_START = /\(\(\((.*?)\)\)\)/u
+
+      # Introduce new (((target))) syntax for irefs
+      def parse_iref
+        @src.pos += @src.matched_size
+        href = @src[1]
+        el = Element.new(:iref, nil, {'target' => href}) # XXX
+        @tree.children << el
+      end
+      define_parser(:iref, IREF_START, '\(\(\(')
 
     end
   end
@@ -509,11 +521,39 @@ module Kramdown
         "<#{type}#{el_html_attributes(el)}>#{escape_html(el.value, :text)}</#{type}>#{type == 'div' ? "\n" : ''}"
       end
 
+      ITEM_RE = '\s*(?:"([^"]*)"|([^,]*?))\s*'
+      IREF_RE = %r{\A(!\s*)?#{ITEM_RE}(?:,#{ITEM_RE})?\z}
+
+      def iref_attr(s)
+        md = s.match(IREF_RE)
+        attr = {
+          item: md[2] || md[3],
+          subitem: md[4] || md[5],
+          primary: md[1] && 'true',
+        }
+        "<iref#{html_attributes(attr)}/>"
+      end
+
+      def convert_iref(el, indent, opts)
+        iref_attr(el.attr['target'])
+      end
+
       def convert_abbreviation(el, indent, opts) # XXX: This is wrong
         title = @root.options[:abbrev_defs][el.value]
         title = nil if title.empty?
         value = el.value
-        "#{el.value}<iref #{title ? "item=\"#{title}\" sub" : ''}item=\"#{value}\"/>"
+        if item = title
+          m = title.scan(Parser::RFC2629Kramdown::IREF_START)
+          if m.empty?
+            subitem = value
+          else
+            iref = m.map{|a,| iref_attr(a)}.join('')
+          end
+        else
+          item = value
+        end
+        iref ||= "<iref#{html_attributes(item: item, subitem: subitem)}/>"
+        "#{el.value}#{iref}"
       end
 
       def convert_root(el, indent, opts)
