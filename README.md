@@ -61,7 +61,7 @@ collaborating with XML-only co-authors).  See the `bibxml` metadata.
 # The YAML header
 
 Please consult the examples for the structure of the YAML header, this should be mostly
-obvious.  The `standalone` attribute controls whether the RFC/I-D
+obvious.  The `stand_alone` attribute controls whether the RFC/I-D
 references are inserted into the document (yes) or entity-referenced
 (no), the latter leads to increased build time, but may be more
 palatable for a final XML conversion.
@@ -206,14 +206,134 @@ Then you can simply reference `{{ASN.1}}` and
 `{{ECMA262}}` in the text.  (Make sure the reference keys are valid XML
 names, though.)
 
+# Experimental features
+
+Most of the [kramdown syntax][kdsyntax] is supported and does
+something useful; with the exception of the math syntax (math has no
+special support in XML2RFC), and HTML syntax of course.
+
+A number of more esoteric features have recently been added.  
+(The minimum required version for each full feature is indicated.)
+
+(1.0.22:)
+Index entries can be created with `(((item)))` or
+`(((item, subitem)))`; use quotes for weird entries: `(((",", comma)))`.
+If the index entry is to be marked "primary", prefix an (unquoted) `!`
+as in `(((!item)))`.
+
+In addition, auto-indexing is supported by hijacking the kramdown
+"abbrev" syntax:
+
+    *[IANA]:
+    *[MUST]: BCP14
+    *[CBOR]: (((Object Representation, Concise Binary))) (((CBOR)))
+
+The word in square brackets (which must match case-insensitively) is
+entered into the index automatically for each place where it occurs.
+If no title is given, just the word is entered (first example).  If
+one is given, that becomes the main item (the auto-indexed word
+becomes the subitem, second example).  If full control is desired
+(e.g., for multiple entries per occurrence), just write down the full
+index entries instead (third example).
+
+(1.0.20:)
+As an alternative referencing syntax for references with text,
+`{{ref}}` can be expressed as `[text](#ref)`.  As a special case, a
+simple `[ref]` is interpreted as `[](#ref)`.  This syntax does not
+allow for automatic entry of items as normative/informative.
+
+(1.0.16:) Markdown footnotes are converted into `cref`s (XML2RFC formal
+comments; note that these are only visible if the pi "comments" is set to yes).
+The anchor is taken from the markdown footnote name. The source, if
+needed, can be supplied by an IAD, as in (first example with
+ALD):
+
+```markdown
+{:cabo: source="cabo"}
+
+(This section to be removed by the RFC editor.)[^1]{:cabo}
+
+[^1]: here is my editorial comment
+
+Another questionable paragraph.[^2]{: source="observer"}
+
+[^2]: so why not delete it
+```
+
+Note that XML2RFC v2 doesn't allow structure in crefs. If you put any,
+you get the escaped verbatim XML...
+
+(1.0.11:) Allow overriding "style" attribute (via IAL =
+[inline attribute list][kdsyntax-ial]) in lists and spans
+as in:
+
+```markdown
+{:req: counter="bar" style="format R(%d)"}
+
+{: req}
+* Foo
+* Bar
+* Bax
+
+Text outside the list, so a new IAL is needed.
+
+* Foof
+* Barf
+* Barx
+{: req}
+```
+
+(1.0.5:) An IAL attribute "cols" can be added to tables to override
+the column layout.  For example, `cols="* 20 30c r"` sets the width attributes to
+20 and 30 for the middle columns and sets the right two columns to
+center and right alignment, respectively.  The alignment from `cols`
+overrides that from the kramdown table, if present.
+
+(1.0.2:) An IAL attribute "vspace" can be added to a definition list
+to break after the definition term:
+
+```markdown
+{: vspace="0"}
+word:
+: definition
+
+anotherword:
+: another definition
+```
+
+(0.x:) Files can be included with the syntax `{::include fn}` (needs
+to be in column 1 since 1.0.22; can be suppressed for use in servers
+by setting environment variable KRAMDOWN_SAFE since 1.0.22).  A
+typical example from a recent RFC, where the contents of a figure was
+machine-generated:
+
+```markdown
+~~~~~~~~~~
+{::include ../ghc/packets-new/p4.out}
+~~~~~~~~~~
+{: #example2 title="A longer RPL example"}
+```
+
+(0.x:) A page break can be forced by adding a horizontal rule (`----`,
+note that this creates ugly blank space in some HTML converters).
+
 # Risks and Side-Effects
 
-The code is not very polished, but it has been successfully used for a
-number of non-trivial Internet-Drafts.  You probably still need to
+The code is not very polished, but now quite stable; it has been successfully used for a
+number of non-trivial Internet-Drafts and RFCs.  You probably still need to
 skim [RFC 2629][] if you want to write an Internet-Draft, but you
 don't really need to understand XML very much.  Knowing the basics of
 YAML helps with the metadata (but you'll understand it from the
 examples).
+
+# Upconversion
+
+If you have an old RFC and want to convert it to markdown, try just
+using that RFC, it is 80 % there.  It may be possible to automate the
+remaining 20 % some more, but that hasn't been done.
+
+If you have XML, there is an experimental upconverter that does 99 %
+of the work.  Please contact the author if you want to try it.
 
 # Related Work
 
@@ -228,6 +348,8 @@ kramdown-rfc2629 stored (and still can store) the metadata in XML in
 the markdown document.  He also uses a slightly different referencing
 syntax, which is closer to what markdown does elsewhere but more
 verbose (this syntax is now also supported in kramdown-rfc2629).
+(Miek now also has a new thing going on with mostly different syntax,
+see [mmark][].)
 
 # License
 
@@ -235,6 +357,8 @@ Since kramdown version 1.0, kramdown itself is MIT licensed, which
 made it possible to license kramdown-rfc2629 under the same license.
 
 [kramdown]: http://kramdown.rubyforge.org/
+[kdsyntax]: http://kramdown.gettalong.org/syntax.html
+[kdsyntax-ial]: http://kramdown.gettalong.org/syntax.html#inline-attribute-lists
 [stupid]: http://tools.ietf.org/id/draft-hartke-xmpp-stupid-00
 [RFC 2629]: http://xml.resource.org/public/rfc/html/rfc2629.html
 [markdown]: http://en.wikipedia.org/wiki/Markdown
@@ -243,3 +367,5 @@ made it possible to license kramdown-rfc2629 under the same license.
 [pandoc2rfc]: https://github.com/miekg/pandoc2rfc/
 [XML2RFC]: http://xml.resource.org
 [RFC 7328]: http://tools.ietf.org/html/rfc7328
+[mmark]: https://github.com/miekg/mmark
+[YAML]: http://www.yaml.org/spec/1.2/spec.html
