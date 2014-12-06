@@ -266,9 +266,10 @@ def dateattrs(date)
 end
 
 coding_override = :as_char
-input = ARGF.read.gsub(/\{::include\s+(.*?)\}/) {
+input = ARGF.read
+input.gsub!(/^\{::include\s+(.*?)\}/) {
   File.read($1).chomp
-}
+} unless ENV["KRAMDOWN_SAFE"]
 link_defs = {}
 if input =~ /\A---/        # this is a sectionized file
   input, coding_override, link_defs = xml_from_sections(input)
