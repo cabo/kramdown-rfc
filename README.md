@@ -215,6 +215,19 @@ special support in XML2RFC), and HTML syntax of course.
 A number of more esoteric features have recently been added.  
 (The minimum required version for each full feature is indicated.)
 
+(1.0.23:)
+As before, IAL attributes on a codeblock go to the figure element.
+Language attributes on the code block now become the artwork type, and any
+attribute with a name that starts "artwork-" is moved over to the artwork.
+So this snippet now does the obvious things:
+
+```markdown
+~~~ abnf
+a = b / %s"foo" / %x0D.0A
+~~~
+{: artwork-align="center" artwork-name="syntax"}
+```
+
 (1.0.22:)
 Index entries can be created with `(((item)))` or
 `(((item, subitem)))`; use quotes for weird entries: `(((",", comma)))`.

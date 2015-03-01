@@ -166,14 +166,28 @@ module Kramdown
           }.compact.join("\n")
           "#{' '*indent}<t>#{result}</t>\n"
         else
+          artwork_attr = {}
           if blockclass
-            $stderr.puts "*** Unimplemented block class: #{blockclass}"
+            classes = blockclass.split(' ')
+            classes.each do |cl|
+              if md = cl.match(/\Alanguage-(.*)/)
+                artwork_attr["type"] = md[1] # XXX overwrite
+              else
+                $stderr.puts "*** Unimplemented block class: #{cl}"
+              end
+            end
           end
           # compensate for XML2RFC idiosyncracy by insisting on a blank line
           unless el.attr.delete('tight')
             result[0,0] = "\n" unless result[0,1] == "\n"
           end
-          "#{' '*indent}<figure#{el_html_attributes(el)}><artwork><![CDATA[#{result}#{result =~ /\n\Z/ ? '' : "\n"}]]></artwork></figure>\n"
+          el.attr.each do |k, v|
+            if md = k.match(/\Aartwork-(.*)/)
+              el.attr.delete(k)
+              artwork_attr[md[1]] = v
+            end
+          end
+          "#{' '*indent}<figure#{el_html_attributes(el)}><artwork#{html_attributes(artwork_attr)}><![CDATA[#{result}#{result =~ /\n\Z/ ? '' : "\n"}]]></artwork></figure>\n"
         end
       end
 
