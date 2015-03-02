@@ -14,9 +14,12 @@ their work in markdown.
 # Usage
 
 Start by installing the kramdown-rfc2629 gem (this automatically
-installs kramdown version 1.4.x as well):
+installs kramdown version 1.6.x as well):
 
-    sudo gem install kramdown-rfc2629
+    gem install kramdown-rfc2629
+
+(Add a `sudo` and a space in front of that command if you don't have
+all the permissions needed.)
 
 The guts of kramdown-rfc2629 are in one Ruby file,
 `lib/kramdown-rfc2629.rb` --- this melds nicely into the extension
@@ -216,6 +219,26 @@ A number of more esoteric features have recently been added.
 (The minimum required version for each full feature is indicated.)
 
 (1.0.23:)
+Move up to kramdown 1.6.0.  This inherits a number of fixes and one
+nice feature:
+Markdown footnote definitions that turn into `cref`s can have their
+attributes in the footnote definition:
+
+```markdown
+{:cabo: source="cabo"}
+
+(This section to be removed by the RFC editor.)[^1]
+
+[^1]: here is my editorial comment: warble warble.
+{:cabo}
+
+Another questionable paragraph.[^2]
+
+[^2]: so why not delete it?
+{: source="observer"}
+```
+
+(1.0.23:)
 As before, IAL attributes on a codeblock go to the figure element.
 Language attributes on the code block now become the artwork type, and any
 attribute with a name that starts "artwork-" is moved over to the artwork.
@@ -252,7 +275,8 @@ index entries instead (third example).
 (1.0.20:)
 As an alternative referencing syntax for references with text,
 `{{ref}}` can be expressed as `[text](#ref)`.  As a special case, a
-simple `[ref]` is interpreted as `[](#ref)`.  This syntax does not
+simple `[ref]` is interpreted as `[](#ref)` (except that the latter
+syntax is not actually allowed by kramdown).  This syntax does not
 allow for automatic entry of items as normative/informative.
 
 (1.0.16:) Markdown footnotes are converted into `cref`s (XML2RFC formal
@@ -334,10 +358,12 @@ note that this creates ugly blank space in some HTML converters).
 
 The code is not very polished, but now quite stable; it has been successfully used for a
 number of non-trivial Internet-Drafts and RFCs.  You probably still need to
-skim [RFC 2629][] if you want to write an Internet-Draft, but you
+skim [RFC 2629][] (or the more current [Internet-Draft][IAB-RFCXMLv2]) if you want to write an Internet-Draft, but you
 don't really need to understand XML very much.  Knowing the basics of
 YAML helps with the metadata (but you'll understand it from the
 examples).
+
+[IAB-RFCXMLv2]: https://tools.ietf.org/html/draft-iab-xml2rfcv2-00
 
 # Upconversion
 
