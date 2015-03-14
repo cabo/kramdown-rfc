@@ -102,6 +102,7 @@ module Kramdown
         super
         @sec_level = 1
         @in_dt = 0
+        @footnote_names_in_use = {}
       end
 
       def convert(el, indent = -INDENTATION, opts = {})
@@ -490,6 +491,14 @@ module Kramdown
         content = inner(el.value, indent, opts).strip
         content = escape_html(content.sub(/\A<t>(.*)<\/t>\z/m) {$1}, :text) # text only...
         name = el.options[:name].sub(/\A[0-9]/) {"_" << $&}
+        while @footnote_names_in_use[name] do
+          if name =~ /:\d+\z/
+            name.succ!
+          else
+            name << ":1"
+          end
+        end
+        @footnote_names_in_use[name] = true
         attrstring = el_html_attributes_with(el, {"anchor" => name})
         "\n#{' '*indent}<cref#{attrstring}>#{content}</cref>"
       end
