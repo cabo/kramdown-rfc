@@ -264,13 +264,13 @@ In addition, auto-indexing is supported by hijacking the kramdown
     *[MUST]: BCP14
     *[CBOR]: (((Object Representation, Concise Binary))) (((CBOR)))
 
-The word in square brackets (which must match case-insensitively) is
-entered into the index automatically for each place where it occurs.
-If no title is given, just the word is entered (first example).  If
-one is given, that becomes the main item (the auto-indexed word
-becomes the subitem, second example).  If full control is desired
-(e.g., for multiple entries per occurrence), just write down the full
-index entries instead (third example).
+The word in square brackets (which must match exactly,
+case-sensitively) is entered into the index automatically for each
+place where it occurs.  If no title is given, just the word is entered
+(first example).  If one is given, that becomes the main item (the
+auto-indexed word becomes the subitem, second example).  If full
+control is desired (e.g., for multiple entries per occurrence), just
+write down the full index entries instead (third example).
 
 (1.0.20:)
 As an alternative referencing syntax for references with text,
