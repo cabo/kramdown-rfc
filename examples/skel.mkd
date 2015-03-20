@@ -1,0 +1,32 @@
+---
+coding: utf-8
+
+title: Many fine lunches and dinners
+abbrev: mfld
+docname: draft-mfld-00
+category: info
+
+stand_alone: yes
+pi: [toc, sortrefs, symrefs, comments]
+
+author:
+  -
+    ins: C. Bormann
+    name: Carsten Bormann
+    org: Universität Bremen TZI
+    street: Postfach 330440
+    city: Bremen
+    code: D-28359
+    country: Germany
+    phone: +49-421-218-63921
+    email: cabo@tzi.org
+
+--- abstract
+
+insert abstract here
+
+--- middle
+
+# Introduction
+
+This MAY {{?RFC2119}} be useful.
