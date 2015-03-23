@@ -10,7 +10,7 @@ Encoding.default_external = "UTF-8" # wake up, smell the coffee
 RE_NL = /(?:\n|\r|\r\n)/
 RE_SECTION = /---(?:\s+(\w+)(-?))?\s*#{RE_NL}(.*?#{RE_NL})(?=---(?:\s+\w+-?)?\s*#{RE_NL}|\Z)/m
 
-NMDTAGS = ["{:/nomarkdown}\n\n", "\n{::nomarkdown}\n"]
+NMDTAGS = ["{:/nomarkdown}\n\n", "\n\n{::nomarkdown}\n"]
 
 NORMINFORM = { "!" => :normative, "?" => :informative }
 
