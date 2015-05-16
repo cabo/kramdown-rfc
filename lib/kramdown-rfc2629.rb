@@ -409,7 +409,7 @@ module Kramdown
         if !f || tn - f.ctime >= tvalid
           $stderr.puts "#{fn}: #{f && "renewing (stale by #{"%.1f" % ((tn-f.ctime)/86400)} days)" || "fetching"}"
           if ENV["HAVE_WGET"]
-            `cd #{REFCACHEDIR}; wget -t 3 -T 20 -Nnv "#{url}"` # ignore errors if offline (hack)
+            `cd #{REFCACHEDIR}; wget -t 3 -T 60 -Nnv "#{url}"` # ignore errors if offline (hack)
             begin
               File.utime nil, nil, fn
             rescue Errno::ENOENT
@@ -419,7 +419,7 @@ module Kramdown
             require 'open-uri'
             require 'timeout'
             begin
-              Timeout::timeout(f ? 10 : 30) do # give up quickly if just renewing
+              Timeout::timeout(f ? 10 : 60) do # give up quickly if just renewing
                 open(url) do |f|
                   s = f.read
                   if f.status[0] != "200"
