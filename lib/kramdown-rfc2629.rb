@@ -196,7 +196,9 @@ module Kramdown
       end
 
       def convert_blockquote(el, indent, opts)
-        "#{' '*indent}<t><list style='empty'#{el_html_attributes(el)}>\n#{inner(el, indent, opts)}#{' '*indent}</list></t>\n"
+        text = inner(el, indent, opts)
+        text = "<t></t>" unless text =~ /</ # empty block quote
+        "#{' '*indent}<t><list style='empty'#{el_html_attributes(el)}>\n#{text}#{' '*indent}</list></t>\n"
       end
 
       def end_sections(to_level, indent)
@@ -407,9 +409,16 @@ module Kramdown
         fn = "#{REFCACHEDIR}/#{File.basename(url)}"
         f = File.stat(fn) rescue nil
         if !f || tn - f.ctime >= tvalid
-          $stderr.puts "#{fn}: #{f && "renewing (stale by #{"%.1f" % ((tn-f.ctime)/86400)} days)" || "fetching"}"
+          if f
+            message = "renewing (stale by #{"%.1f" % ((tn-f.ctime)/86400)} days)"
+            fetch_timeout = 10 # seconds, give up quickly if just renewing
+          else
+            message = "fetching"
+            fetch_timeout = 60 # seconds; long timeout needed for Travis
+          end
+          $stderr.puts "#{fn}: #{message}"
           if ENV["HAVE_WGET"]
-            `cd #{REFCACHEDIR}; wget -t 3 -T 20 -Nnv "#{url}"` # ignore errors if offline (hack)
+            `cd #{REFCACHEDIR}; wget -t 3 -T #{fetch_timeout} -Nnv "#{url}"` # ignore errors if offline (hack)
             begin
               File.utime nil, nil, fn
             rescue Errno::ENOENT
@@ -419,7 +428,7 @@ module Kramdown
             require 'open-uri'
             require 'timeout'
             begin
-              Timeout::timeout(f ? 10 : 30) do # give up quickly if just renewing
+              Timeout::timeout(fetch_timeout) do
                 open(url) do |f|
                   s = f.read
                   if f.status[0] != "200"
