@@ -11,7 +11,7 @@
 
 raise "sorry, 1.8 was last decade" unless RUBY_VERSION >= '1.9'
 
-gem 'kramdown', '~> 1.6.0'
+gem 'kramdown', '~> 1.8.0'
 require 'kramdown'
 my_span_elements =  %w{list figure xref eref iref cref spanx vspace}
 Kramdown::Parser::Html::Constants::HTML_SPAN_ELEMENTS.concat my_span_elements
