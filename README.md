@@ -190,6 +190,21 @@ spell it out like this:
           "Ph.D.": "Dissertation, University of California, Irvine"
         format:
           PDF: http://www.ics.uci.edu/~fielding/pubs/dissertation/fielding_dissertation.pdf
+      COAP:
+        title: "CoAP: An Application Protocol for Billions of Tiny Internet Nodes"
+        seriesinfo:
+          DOI:: 10.1109/MIC.2012.29
+        date: 2012
+        author:
+          -
+            ins: C. Bormann
+            name: Carsten Bormann
+          -
+            ins: A. P. Castellani
+            name: Angelo P. Castellani
+          -
+            ins: Z. Shelby
+            name: Zach Shelby
     normative:
       ECMA262:
         author:
