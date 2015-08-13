@@ -267,6 +267,10 @@ end
 
 coding_override = :as_char
 input = ARGF.read
+if input[0] == "\uFEFF"
+   warn "*** There is a leading byte order mark. Ignored."
+   input[0..0] = ''
+end
 input.gsub!(/^\{::include\s+(.*?)\}/) {
   File.read($1).chomp
 } unless ENV["KRAMDOWN_SAFE"]
