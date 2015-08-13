@@ -193,7 +193,7 @@ spell it out like this:
       COAP:
         title: "CoAP: An Application Protocol for Billions of Tiny Internet Nodes"
         seriesinfo:
-          DOI:: 10.1109/MIC.2012.29
+          DOI: 10.1109/MIC.2012.29
         date: 2012
         author:
           -
