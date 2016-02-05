@@ -481,6 +481,7 @@ module Kramdown
             puts "Huh: ${fn}" unless sub
             url = "#{XML_RESOURCE_ORG_PREFIX}/#{sub}/#{fn}"
             to_insert = get_and_cache_resource(url)
+            to_insert.scrub! rescue nil # only do this for Ruby >= 2.1
           end
           to_insert.gsub(/<\?xml version=["']1.0["'] encoding=["']UTF-8["']\?>/, '').
             gsub(/(anchor=["'])([0-9])/) { "#{$1}_#{$2}"} # can't start an ID with a number
