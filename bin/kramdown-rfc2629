@@ -287,6 +287,10 @@ if input =~ /\A<\?xml/          # if this is a whole XML file, protect it
   input = "{::nomarkdown}\n#{input}\n{:/nomarkdown}\n"
 end
 options = {input: 'RFC2629Kramdown', entity_output: coding_override, link_defs: link_defs}
+case coding_override
+when :symbolic
+  options[:smart_quotes] = ["'".ord, "'".ord, '"'.ord, '"'.ord]
+end
 # warn "options: #{options.inspect}"
 doc = Kramdown::Document.new(input, options)
 $stderr.puts doc.warnings.to_yaml unless doc.warnings.empty?
