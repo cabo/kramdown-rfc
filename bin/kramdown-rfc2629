@@ -49,6 +49,11 @@ def xml_from_sections(input)
         if v.respond_to? :to_str
           ref_replacements[v.to_str] = k
         end
+        if v.respond_to? :[]
+          if aliasname = v.delete("-")
+            ref_replacements[aliasname] = k
+          end
+        end
       end
     end
   end
