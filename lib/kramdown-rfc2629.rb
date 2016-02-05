@@ -398,6 +398,8 @@ module Kramdown
         target = el.attr['target']
         if target[0] == "&"
           "#{target};"
+        elsif target =~ %r{\A\w+:(?://|.*@)}
+          "<eref#{el_html_attributes(el)}/>"
         else
           "<xref#{el_html_attributes(el)}/>"
         end
