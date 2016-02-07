@@ -4,8 +4,8 @@
 number of backends for generating HTML, Latex, and markdown again.
 
 **kramdown-rfc2629** is an additional backend to that: It allows the
-generation of [XML2RFC][] XML markup (also known as [RFC 2629][]
-compliant markup).
+generation of [XML2RFC][] XML markup (originally known as [RFC 2629][]
+compliant markup, now documented in [RFC 7749][]).
 
 Who would care?  Anybody who is writing Internet-Drafts and RFCs in
 the [IETF][] and prefers (or has co-authors who prefer) to do part of
@@ -35,10 +35,11 @@ To use kramdown-rfc2629, you'll need a Ruby 1.9 or 2.x, and maybe
 
 # Examples
 
+For historical interest
 `stupid.mkd` was an early markdown version of an actual Internet-Draft
 (for a protocol called [STuPiD][] \[sic!]).  This demonstrated some,
 but not all features of kramdown-rfc2629.  Since markdown/kramdown
-does not cater for all the structure of an RFC 2629 style document,
+does not cater for all the structure of an RFC 7749 style document,
 some of the markup is in XML, and the example switches between XML and
 markdown using kramdown's `{::nomarkdown}` and `{:/nomarkdown}` (this
 is ugly, but works well enough).  `stupid.xml` and `stupid.txt` show
@@ -117,8 +118,8 @@ or
         phone: "+33 4 97 23 26 34"
         email: pthubert@cisco.com
 
-(the hash keys are the XML GIs from RFC 2629, with a flattened
-structure.  As RFC 2629 requires giving both the name and
+(the hash keys are the XML GIs from RFC 7749, with a flattened
+structure.  As RFC 7749 requires giving both the full name and
 surname/initials, we use `ins` as an abbreviation for
 "initials/surname".  Yes, the toolchain is Unicode-capable, even if
 the final RFC output is still in ASCII.)
@@ -373,12 +374,10 @@ note that this creates ugly blank space in some HTML converters).
 
 The code is not very polished, but now quite stable; it has been successfully used for a
 number of non-trivial Internet-Drafts and RFCs.  You probably still need to
-skim [RFC 2629][] (or the more current [Internet-Draft][IAB-RFCXMLv2]) if you want to write an Internet-Draft, but you
+skim [RFC 7749][] if you want to write an Internet-Draft, but you
 don't really need to understand XML very much.  Knowing the basics of
 YAML helps with the metadata (but you'll understand it from the
 examples).
-
-[IAB-RFCXMLv2]: https://tools.ietf.org/html/draft-iab-xml2rfcv2-00
 
 # Upconversion
 
@@ -415,6 +414,7 @@ made it possible to license kramdown-rfc2629 under the same license.
 [kdsyntax-ial]: http://kramdown.gettalong.org/syntax.html#inline-attribute-lists
 [stupid]: http://tools.ietf.org/id/draft-hartke-xmpp-stupid-00
 [RFC 2629]: http://xml.resource.org/public/rfc/html/rfc2629.html
+[RFC 7749]: http://tools.ietf.org/html/rfc7749
 [markdown]: http://en.wikipedia.org/wiki/Markdown
 [IETF]: http://www.ietf.org
 [Miek Gieben]: http://www.miek.nl/
