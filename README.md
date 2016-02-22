@@ -391,7 +391,7 @@ of the work.  Please contact the author if you want to try it.
 # Tools
 
 Joe Hildebrand has a
-[grunt][] plugin for kramdown-rfc2629 is at:
+[grunt][] plugin for kramdown-rfc2629 at:
 https://github.com/hildjj/grunt-kramdown-rfc2629
 .
 Get started with it at:
