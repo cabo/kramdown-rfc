@@ -388,6 +388,28 @@ remaining 20 % some more, but that hasn't been done.
 If you have XML, there is an experimental upconverter that does 99 %
 of the work.  Please contact the author if you want to try it.
 
+# Tools
+
+Joe Hildebrand has a
+[grunt][] plugin for kramdown-rfc2629 is at:
+https://github.com/hildjj/grunt-kramdown-rfc2629
+.
+Get started with it at:
+https://github.com/hildjj/grunt-init-rfc
+.
+This provides a self-refreshing web page with the
+kramdown-rfc2629/xml2rfc rendition of the draft you are editing.
+
+[grunt]: http://gruntjs.com
+
+Martin Thomson has an [I-D Template][] for github repositories that enable
+collaboration on draft development.
+This supports kramdown-rfc2629 out of the
+box.  Just name your draft like `draft-ietf-unicorn-protocol-latest.md` and
+follow the installation instructions.
+
+[I-D Template]: https://github.com/martinthomson/i-d-template
+
 # Related Work
 
 Moving from XML to Markdown for RFC writing apparently is a
