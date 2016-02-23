@@ -247,6 +247,13 @@ def authorps_from_hash(au)
     aups.rest["initials"] = parts[0..-2].join('.') << '.'
     aups.rest["surname"] = parts[-1]
   end
+  # hack ("heuristic for") initials and surname from name
+  # -- only works for people with exactly one last name and uncomplicated first names
+  if n = aups.rest["name"]
+    n = n.split
+    aups.rest["initials"] ||= n[0..-2].map(&:chr).join('.') << '.'
+    aups.rest["surname"] ||= n[-1]
+  end
   aups
 end
 
