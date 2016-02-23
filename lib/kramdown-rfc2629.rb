@@ -290,7 +290,8 @@ module Kramdown
         @in_dt = 1
         vspace = opts[:vspace]
         vspaceel = "<vspace blankLines='#{vspace}'/>" if vspace
-        "#{close}#{' '*indent}<t#{el_html_attributes(el)} hangText='#{inner(el, indent, opts)}'>#{vspaceel}\n"
+        ht = escape_html(inner(el, indent, opts), :attribute) # XXX this may leave gunk
+        "#{close}#{' '*indent}<t#{el_html_attributes(el)} hangText='#{ht}'>#{vspaceel}\n"
       end
 
       HTML_TAGS_WITH_BODY=['div', 'script']
