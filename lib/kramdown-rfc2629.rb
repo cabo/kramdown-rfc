@@ -17,6 +17,7 @@ my_span_elements =  %w{list figure xref eref iref cref spanx vspace}
 Kramdown::Parser::Html::Constants::HTML_SPAN_ELEMENTS.concat my_span_elements
 
 require 'rexml/parsers/baseparser'
+require 'open3'                 # for math
 
 class Object
   def deep_clone
@@ -553,11 +554,26 @@ module Kramdown
 
       def convert_math(el, indent, opts) # XXX: This is wrong
         el = el.deep_clone
-        el.attr['class'] ||= ''
-        el.attr['class'] += (el.attr['class'].empty? ? '' : ' ') + 'math'
-        type = 'span'
-        type = 'div' if el.options[:category] == :block
-        "<#{type}#{el_html_attributes(el)}>#{escape_html(el.value, :text)}</#{type}>#{type == 'div' ? "\n" : ''}"
+        if el.options[:category] == :block
+          el.attr['artwork-type'] ||= ''
+          el.attr['artwork-type'] += (el.attr['artwork-type'].empty? ? '' : ' ') + 'math'
+          artwork_attr = {}
+          el.attr.each do |k, v|
+            if md = k.match(/\Aartwork-(.*)/)
+              el.attr.delete(k)
+              artwork_attr[md[1]] = v
+            end
+          end
+          result, _s = Open3.capture2("tex2mail", stdin_data: el.value);
+          # warn "*** tex2mail not in path?" unless s.success? -- doesn't have useful status
+          "#{' '*indent}<figure#{el_html_attributes(el)}><artwork#{html_attributes(artwork_attr)}><![CDATA[#{result}#{result =~ /\n\Z/ ? '' : "\n"}]]></artwork></figure>\n"
+
+        else
+          warn "*** no support for inline math in XML2RFCv2"
+          type = 'spanx'
+          attrstring = el_html_attributes_with(el, {"style" => 'verb'})
+          "<#{type}#{attrstring}>#{escape_html(el.value, :text)}</#{type}>"
+        end
       end
 
       ITEM_RE = '\s*(?:"([^"]*)"|([^,]*?))\s*'
