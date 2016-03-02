@@ -234,6 +234,22 @@ special support in XML2RFC), and HTML syntax of course.
 A number of more esoteric features have recently been added.  
 (The minimum required version for each full feature is indicated.)
 
+(1.0.30:)
+kramdown-rfc now uses kramdown 1.10, which leads to two notable updates:
+
+ * Support for empty link texts in the standard markdown
+   reference syntax, as in `[](#RFC7744)`.
+ * Language names in fenced code blocks now support all characters
+   except whitespace, so you can go wild with `asn.1` and `C#`.
+
+A heuristic generates missing initials/surname from the `name` entry
+in author information.  This should save a lot of redundant typing.
+You'll need to continue using the `ins` entry as well if that
+heuristic fails (e.g., for Spanish names).
+
+Also, there is some rather experimental support for markdown display
+math (blocks between `$$` pairs) if the `tex2mail` tool is available.
+
 (1.0.23:)
 Move up to kramdown 1.6.0.  This inherits a number of fixes and one
 nice feature:

@@ -11,7 +11,7 @@
 
 raise "sorry, 1.8 was last decade" unless RUBY_VERSION >= '1.9'
 
-gem 'kramdown', '~> 1.9.0'
+gem 'kramdown', '~> 1.10.0'
 require 'kramdown'
 my_span_elements =  %w{list figure xref eref iref cref spanx vspace}
 Kramdown::Parser::Html::Constants::HTML_SPAN_ELEMENTS.concat my_span_elements
@@ -564,7 +564,7 @@ module Kramdown
               artwork_attr[md[1]] = v
             end
           end
-          result, _s = Open3.capture2("tex2mail", stdin_data: el.value);
+          result, _s = Open3.capture2("tex2mail -noindent -ragged -by_par -linelength=69", stdin_data: el.value);
           # warn "*** tex2mail not in path?" unless s.success? -- doesn't have useful status
           "#{' '*indent}<figure#{el_html_attributes(el)}><artwork#{html_attributes(artwork_attr)}><![CDATA[#{result}#{result =~ /\n\Z/ ? '' : "\n"}]]></artwork></figure>\n"
 
