@@ -234,6 +234,22 @@ special support in XML2RFC), and HTML syntax of course.
 A number of more esoteric features have recently been added.  
 (The minimum required version for each full feature is indicated.)
 
+(1.0.31:)
+The kramdown `smart_quotes` feature can be controlled better.
+By default, it is on (with default kramdown settings), unless `coding:
+us-ascii` is in effect, when it is off by default.
+It also can be explicitly set on (`true`) or off (`false`) in the YAML
+header, or to a specific value (an array of four kramdown entity names
+or character numbers).  E.g., for a German text (that is not intended
+to become an Internet-Draft), one might write:
+
+```yaml
+smart_quotes: [sbquo, lsquo, bdquo, ldquo]
+pi:
+  topblock: no
+  private: yes
+```
+
 (1.0.30:)
 kramdown-rfc now uses kramdown 1.10, which leads to two notable updates:
 

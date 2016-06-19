@@ -22,7 +22,8 @@ def xml_from_sections(input)
   # We put back the "---" plus gratuitous blank lines to hack the line number in errors
   yaml_in = input[/---\s*/] << sections.shift[2]
   ps = ParameterSet.new(YAML.load(yaml_in))
-  coding_override = (ps.has(:coding) =~ /ascii/i) ? :symbolic : :as_char
+  coding_override = ps.has(:coding)
+  smart_quotes = ps[:smart_quotes]
 
   # all the other sections are put in a Hash, possibly concatenated from parts there
   sechash = Hash.new{ |h,k| h[k] = ""}
@@ -173,7 +174,7 @@ def xml_from_sections(input)
     warn "*** sections left #{sechash.keys.inspect}!"
   end
 
-  [input, coding_override, link_defs]
+  [input, coding_override, link_defs, smart_quotes]
 end
 
 class ParameterSet
@@ -277,6 +278,23 @@ def dateattrs(date)
   end
 end
 
+def read_encodings
+  encfilename = File.expand_path '../../data/encoding-fallbacks.txt', __FILE__
+  encfile = File.read(encfilename, coding: "UTF-8")
+  Hash[encfile.lines.map{|l| 
+         l.chomp!;
+         x, s = l.split(" ", 2)
+         [x.hex.chr(Encoding::UTF_8), s || " "]}]
+end
+
+FALLBACK = read_encodings
+
+def expand_tabs(s, tab_stops = 8)
+  s.gsub(/([^\t\n]*)\t/) do
+    $1 + " " * (tab_stops - ($1.size % tab_stops))
+  end
+end
+
 coding_override = :as_char
 input = ARGF.read
 if input[0] == "\uFEFF"
@@ -286,18 +304,37 @@ end
 input.gsub!(/^\{::include\s+(.*?)\}/) {
   File.read($1).chomp
 } unless ENV["KRAMDOWN_SAFE"]
+if input =~ /[\t]/
+   warn "*** Input contains HT (\"tab\") characters. Undefined behavior will ensue."
+   input = expand_tabs(input)
+end
 link_defs = {}
 if input =~ /\A---/        # this is a sectionized file
-  input, coding_override, link_defs = xml_from_sections(input)
+  input, target_coding, link_defs, smart_quotes = xml_from_sections(input)
 end
 if input =~ /\A<\?xml/          # if this is a whole XML file, protect it
   input = "{::nomarkdown}\n#{input}\n{:/nomarkdown}\n"
 end
 options = {input: 'RFC2629Kramdown', entity_output: coding_override, link_defs: link_defs}
-case coding_override
-when :symbolic
-  options[:smart_quotes] = ["'".ord, "'".ord, '"'.ord, '"'.ord]
+if target_coding && target_coding =~ /ascii/ && smart_quotes.nil?
+  smart_quotes = false
 end
+if smart_quotes == false
+  smart_quotes = ["'".ord, "'".ord, '"'.ord, '"'.ord]
+end
+case smart_quotes
+when Array
+  options[:smart_quotes] = smart_quotes
+when nil, true
+  # nothin
+else
+  warn "*** Can't deal with smart_quotes value #{smart_quotes.inspect}"
+end
+
+if target_coding
+  input = input.encode(Encoding.find(target_coding), fallback: FALLBACK)
+end
+
 # warn "options: #{options.inspect}"
 doc = Kramdown::Document.new(input, options)
 $stderr.puts doc.warnings.to_yaml unless doc.warnings.empty?
