@@ -1,0 +1,55 @@
+#!/usr/bin/env ruby
+require 'open-uri'
+require 'yaml'
+require 'json'
+
+ACCEPT_CITE_JSON = {"Accept" => "application/citeproc+json"}
+
+$verbose = false
+
+ARGV.each do |doi|
+  if doi == "-v"
+    $verbose = true
+    next
+  end
+  cite = JSON.parse(open("http://dx.doi.org/#{doi}", ACCEPT_CITE_JSON).read)
+  puts cite.to_yaml if $verbose
+  lit = {}
+  ser = lit["seriesinfo"] = {}
+  lit["title"] = cite["title"]
+  if authors = cite["author"]
+    lit["author"] = authors.map do |au|
+      lau = {}
+      if (g = au["given"]) && (f = au["family"])
+        lau["name"] = "#{g} #{f}"
+        lau["ins"] =  "#{g[0]}. #{f}"
+      end
+      lau
+    end
+  end
+  if i = cite["issued"]
+    if dp = i["date-parts"]
+      if dp = dp[0]
+        lit["date"] = ["%04d" % dp[0], *dp[1..-1].map {|p| "%02d" % p}].join("-")
+      end
+    end
+  end
+  if ct = cite["container-title"]
+    info = []
+    if v = cite["volume"]
+      info << "Vol. #{v}"
+    end
+    if p = cite["page"]
+      info << "pp. #{p}"
+    end
+    ser[ct] = info.join(", ")
+  elsif pub = cite["publisher"]
+    info = []
+    if t = cite["type"]
+      info << t
+    end
+    ser[pub] = info.join(", ")
+  end
+  lit["seriesinfo"]["DOI"] = cite["DOI"]
+  puts lit.to_yaml.gsub(/^/, "    ")
+end
