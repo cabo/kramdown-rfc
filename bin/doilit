@@ -3,14 +3,38 @@ require 'open-uri'
 require 'yaml'
 require 'json'
 
+# doilit -c 10.6028/NIST.SP.800-183 10.1016/j.adhoc.2015.04.007 10.1109/MIC.2012.29 10.1145/2507924.2507954
+
+
 ACCEPT_CITE_JSON = {"Accept" => "application/citeproc+json"}
 
 $verbose = false
+$handle = "a"
+$xml = false
 
+litent = {}
 ARGV.each do |doi|
-  if doi == "-v"
+  case doi
+  when "-c"
+    begin
+      require 'open-uri/cached'
+    rescue LoadError
+      warn '*** please install "open-uri-cached" gem to enable caching'
+    end
+    next
+  when "-v"
     $verbose = true
     next
+  when /\A-h=(.*)/
+    $handle = $1
+    next
+  when /\A-x=(.*)/
+    $handle = $1
+    $xml = true
+    next
+  when /\A-/
+    warn "*** Usage: doilit [-c] [-v] [-h=handle|-x=xmlhandle] doi..."
+    exit 1
   end
   cite = JSON.parse(open("http://dx.doi.org/#{doi}", ACCEPT_CITE_JSON).read)
   puts cite.to_yaml if $verbose
@@ -51,5 +75,13 @@ ARGV.each do |doi|
     ser[pub] = info.join(", ")
   end
   lit["seriesinfo"]["DOI"] = cite["DOI"]
-  puts lit.to_yaml.gsub(/^/, "    ")
+  while litent[$handle]
+    $handle.succ!
+  end
+  litent[$handle] = lit
+end
+if $xml
+  warn "** xml output not yet implemented"
+else
+  puts litent.to_yaml.gsub(/^/, "  ").lines[1..-1]
 end
