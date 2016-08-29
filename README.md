@@ -231,8 +231,20 @@ Most of the [kramdown syntax][kdsyntax] is supported and does
 something useful; with the exception of the math syntax (math has no
 special support in XML2RFC), and HTML syntax of course.
 
-A number of more esoteric features have recently been added.  
+A number of more esoteric features have recently been added.
 (The minimum required version for each full feature is indicated.)
+
+(1.0.35:)
+An experimental command `doilit` has been added.  It can be used to
+convert DOIs given on the command line into references entries for
+kramdown-rfc YAML, saving a lot of typing.  Note that the DOI database
+is not of very consistent quality, so you likely have to hand-edit the
+result before including it into the document (use `-v` to see raw JSON
+data from the DOI database, made somewhat readable by converting it
+into YAML).  Use `-c` to enable caching (requires `open-uri-cached`
+gem).  Use `-h=handle` in front of a DOI to set a handle different
+from the default `a`, `b`, etc.  Similarly, use `-x=handle` to
+generate XML2RFCv2 XML instead of kramdown-rfc YAML.
 
 (1.0.31:)
 The kramdown `smart_quotes` feature can be controlled better.
