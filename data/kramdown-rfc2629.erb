@@ -24,7 +24,7 @@
     <%= ps.ele("title", ps.attr("abbrev=titleabbrev")) %>
 
 <% ps.arr("author") do |au|
-   aups = authorps_from_hash(au)
+   aups = KramdownRFC::authorps_from_hash(au)
  -%>
     <author <%=aups.attrs("initials", "surname", "fullname=name", "role")%>>
       <%= aups.ele("organization=org", aups.attr("abbrev=orgabbrev"), "") %>
@@ -45,7 +45,7 @@
 <%   aups.warn_if_leftovers  -%>
 <% end -%>
 
-    <date <%= dateattrs(ps[:date]||Date.today) %>/>
+    <date <%= KramdownRFC::dateattrs(ps[:date]||Date.today) %>/>
 
     <%= ps.ele("area") %>
     <%= ps.ele("workgroup=wg") %>

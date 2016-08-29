@@ -2,6 +2,9 @@
 require 'open-uri'
 require 'yaml'
 require 'json'
+require 'kramdown-rfc2629'
+require 'kramdown-rfc/parameterset'
+require 'kramdown-rfc/refxml'
 
 # doilit -c 10.6028/NIST.SP.800-183 10.1016/j.adhoc.2015.04.007 10.1109/MIC.2012.29 10.1145/2507924.2507954
 
@@ -19,7 +22,7 @@ ARGV.each do |doi|
     begin
       require 'open-uri/cached'
     rescue LoadError
-      warn '*** please install "open-uri-cached" gem to enable caching'
+      warn '*** please "gem install open-uri-cached" to enable caching'
     end
     next
   when "-v"
@@ -51,9 +54,9 @@ ARGV.each do |doi|
       lau
     end
   end
-  if i = cite["issued"]
-    if dp = i["date-parts"]
-      if Integer === (dp = dp[0])
+  if iss = cite["issued"]
+    if dp = iss["date-parts"]
+      if Integer === (dp = dp[0])[0]
         lit["date"] = ["%04d" % dp[0], *dp[1..-1].map {|p| "%02d" % p}].join("-")
       end
     end
@@ -81,7 +84,9 @@ ARGV.each do |doi|
   litent[$handle] = lit
 end
 if $xml
-  warn "** xml output not yet implemented"
+  litent.each do |k, v|
+    puts KramdownRFC::ref_to_xml(k, v)
+  end
 else
   puts litent.to_yaml.gsub(/^/, "  ").lines[1..-1]
 end
