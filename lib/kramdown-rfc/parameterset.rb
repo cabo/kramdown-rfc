@@ -14,6 +14,9 @@ module KramdownRFC
     def has(pn)
       @f[pn.to_s]
     end
+    def escattr(str)
+      escape_html(str.to_s, :attribute)
+    end
     def van(pn)                   # pn is a parameter name, possibly with an =alias
       an, pn = pn.to_s.split("=")
       pn ||= an
@@ -21,7 +24,7 @@ module KramdownRFC
     end
     def attr(pn)
       val, an = van(pn)
-      %{#{an}="#{val}"}    if val
+      %{#{an}="#{escattr(val)}"}    if val
     end
     def attrs(*pns)
       pns.map{ |pn| attr(pn) }.compact.join(" ")
