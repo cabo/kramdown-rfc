@@ -88,5 +88,6 @@ if $xml
     puts KramdownRFC::ref_to_xml(k, v)
   end
 else
-  puts litent.to_yaml.gsub(/^/, "  ").lines[1..-1]
+  # 1.9 compat: s/lines/each_line.to_a/
+  puts litent.to_yaml.gsub(/^/, "  ").each_line.to_a[1..-1]
 end
