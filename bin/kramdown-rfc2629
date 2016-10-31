@@ -17,6 +17,14 @@ NMDTAGS = ["{:/nomarkdown}\n\n", "\n\n{::nomarkdown}\n"]
 NORMINFORM = { "!" => :normative, "?" => :informative }
 
 def xml_from_sections(input)
+
+  unless ENV["KRAMDOWN_NO_SOURCE"]
+    require 'kramdown-rfc/gzip-clone'
+    require 'base64'
+    compressed_input = Gzip.compress(input)
+    $source = Base64.encode64(compressed_input)
+  end
+
   sections = input.scan(RE_SECTION)
   # resulting in an array; each section is [section-label, nomarkdown-flag, section-text]
 
@@ -198,6 +206,7 @@ if input =~ /[\t]/
    warn "*** Input contains HT (\"tab\") characters. Undefined behavior will ensue."
    input = expand_tabs(input)
 end
+
 link_defs = {}
 if input =~ /\A---/        # this is a sectionized file
   input, target_coding, link_defs, smart_quotes = xml_from_sections(input)

@@ -1,0 +1,11 @@
+#!/usr/bin/env ruby -KU
+require 'kramdown-rfc/gzip-clone'
+require 'base64'
+
+EMBEDDED_RE = %r{<!-- ##markdown-source:\s*([A-Za-z0-9+/=\s]+)-->}
+embedded = ARGF.read.scan(EMBEDDED_RE)
+unless embedded.empty?
+  puts Gzip.decompress(Base64.decode64(embedded[0][0]))
+else
+  warn "*** No embedded markdown source found!"
+end
