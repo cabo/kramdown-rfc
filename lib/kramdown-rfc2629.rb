@@ -430,12 +430,18 @@ module Kramdown
             end
           else
             require 'open-uri'
+            require 'socket'
+            require 'openssl'
             require 'timeout'
             begin
               Timeout::timeout(fetch_timeout) do
-                open(url) do |f|
-                  s = f.read
-                  if f.status[0] != "200"
+                options = {}
+                if ENV["KRAMDOWN_DONT_VERIFY_HTTPS"]
+                  options[:ssl_verify_mode] = OpenSSL::SSL::VERIFY_NONE
+                end             # workaround for OpenSSL on Windows...
+                open(url, options) do |uf|
+                  s = uf.read
+                  if uf.status[0] != "200"
                     warn "*** Status code #{status} while fetching #{url}"
                   else
                     File.write(fn, s)
