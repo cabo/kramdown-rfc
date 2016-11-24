@@ -408,10 +408,10 @@ module Kramdown
       end
 
       REFCACHEDIR = ENV["KRAMDOWN_REFCACHEDIR"] || ".refcache"
-      def get_and_cache_resource(url, tn = Time.now, tvalid = 7200)
+      def get_and_cache_resource(url, tn = Time.now, tvalid = 0)
         Dir.mkdir(REFCACHEDIR) unless Dir.exists?(REFCACHEDIR)
         fn = "#{REFCACHEDIR}/#{File.basename(url)}"
-        f = File.stat(fn) rescue nil
+        f = File.stat(fn) rescue nil unless ENV["KRAMDOWN_NOCACHE"]
         if !f || tn - f.ctime >= tvalid
           if f
             message = "renewing (stale by #{"%.1f" % ((tn-f.ctime)/86400)} days)"
@@ -490,7 +490,9 @@ module Kramdown
             sub = XML_RESOURCE_ORG_MAP[t]
             puts "Huh: ${fn}" unless sub
             url = "#{XML_RESOURCE_ORG_PREFIX}/#{sub}/#{fn}"
-            to_insert = get_and_cache_resource(url)
+            # I-Ds are one hour, everything else a week
+            tvalid = ENV["KRAMDOWN_CACHETTL"] || (sub == "bibxml3") ? 3600 : 604800
+            to_insert = get_and_cache_resource(url, tvalid=tvalid)
             to_insert.scrub! rescue nil # only do this for Ruby >= 2.1
           end
           to_insert.gsub(/<\?xml version=["']1.0["'] encoding=["']UTF-8["']\?>/, '').
