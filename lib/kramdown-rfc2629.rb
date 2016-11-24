@@ -407,7 +407,7 @@ module Kramdown
         end
       end
 
-      REFCACHEDIR = ".refcache"
+      REFCACHEDIR = ENV["KRAMDOWN_REFCACHEDIR"] || ".refcache"
       def get_and_cache_resource(url, tn = Time.now, tvalid = 7200)
         Dir.mkdir(REFCACHEDIR) unless Dir.exists?(REFCACHEDIR)
         fn = "#{REFCACHEDIR}/#{File.basename(url)}"
