@@ -32,12 +32,10 @@ author:
     email: cabo@tzi.org
 
 normative:
-  RFC2119:
   RFC3986:
   RFC4086:
 
 informative:
-  I-D.ietf-behave-turn:
   STUNT:
     target: http://deusty.blogspot.com/2007/09/stunt-out-of-band-channels.html
     title: STUNT & out-of-band channels
@@ -46,7 +44,6 @@ informative:
       ins: R. Hanson
     date: 2007-09-17
   I-D.meyer-xmpp-e2e-encryption:
-  I-D.ietf-xmpp-3920bis:
 
 
 
@@ -71,7 +68,7 @@ Introduction        {#problems}
 
 NAT (Network Address Translator) Traversal may require TURN
 (Traversal Using Relays around NAT)
-{{I-D.ietf-behave-turn}}
+{{?I-D.ietf-behave-turn}}
 functionality in certain
 cases that are not unlikely to occur.  There is little
 incentive to deploy TURN servers, except by those who need
@@ -108,7 +105,7 @@ for optimized implementations.
 
 Finally, where STuPiD becomes part of a client standard
 (such as a potential extension to XMPP's in-band byte-stream
-protocol as hinted in {{xmpp}}), it is a good
+protocol {{! XMPP}} as hinted in {{xmpp}}), it is a good
 thing if STuPiD is already defined.
 
 Hence, this document focuses on the definition of the STuPiD
@@ -477,7 +474,7 @@ mysql_close();
 Using XMPP as Out-Of-Band Channel  {#xmpp}
 =================================
 
-XMPP {{I-D.ietf-xmpp-3920bis}} is a good choice for
+XMPP {{?I-D.ietf-xmpp-3920bis XMPP}} is a good choice for
 an out-of-band channel.
 
 The notification protocol is closely modeled after XMPP's
