@@ -71,21 +71,30 @@ def xml_from_sections(input)
   open_refs = ps[:ref] || { }       # consumed
 
   norm_ref = { }
+  label_ref = { }
 
   # convenience replacement of {{-coap}} with {{I-D.ietf-core-coap}}
   # collect normative/informative tagging {{!RFC2119}} {{?RFC4711}}
   sechash.each do |k, v|
     next if k == "fluff"
-    v.gsub!(/{{(?:([?!])(-)?|(-))([\w.\-]+)}}/) do |match|
+    v.gsub!(/{{(?:([?!])(-)?|(-))([\w.\/_\-]+(?: ([\w._\-]+))?)}}/) do |match|
       norminform = $1
       replacing = $2 || $3
       word = $4
+      label = $5
+      if label
+        if word && label_ref[label] && word != label_ref[label]
+          warn "*** conflicting definitions for xref #{label}"
+        else
+          label_ref[label] ||= word
+        end
+      end
       if replacing
         if new = ref_replacements[word]
           word = new
         else
-          warn "*** no alias replacement for {{-#{word}}}" 
-          word = "-#{word}"
+          warn "*** no alias replacement for {{#{replacing}#{word}}}"
+          word = "#{replacing}#{word}"
         end
       end
       # things can be normative in one place and informative in another -> normative
@@ -95,6 +104,10 @@ def xml_from_sections(input)
       end
       "{{#{word}}}"
     end
+  end
+
+  label_ref.each do |k, v|
+    warn "*** no definition for xref #{k}" unless v
   end
 
   [:normative, :informative].each do |k|
@@ -124,21 +137,22 @@ def xml_from_sections(input)
   [:normative, :informative].each do |sn|
     if refs = ps[sn]
       refs.each do |k, v|
-        href = k.gsub(/\A[0-9]/) { "_#{$&}" } # can't start an IDREF with a number
-        link_defs[k] = ["##{href}", nil]            # allow [RFC2119] in addition to {{RFC2119}}
-        if bts = bibtagsys(k)
+        href, label = Kramdown::Parser::RFC2629Kramdown.split_xref(k)
+        link_defs[label] = ["##{href}", nil]
+        if bts = bibtagsys(href)
           if v
             warn "*** redundant in #{k}: #{v.inspect}" unless v.respond_to? :to_str
           end
           if stand_alone
-            sechash[sn.to_s] << %{\n#{NMDTAGS[0]}\n![:include:](#{bts[0]})\n#{NMDTAGS[1]}\n}
+            lattr = %{{:label="#{label}"}}
+            sechash[sn.to_s] << %{\n#{NMDTAGS[0]}\n![:include:](#{bts[0]})#{lattr}\n#{NMDTAGS[1]}\n}
           else
             (ps.rest["bibxml"] ||= []) << k
             sechash[sn.to_s] << %{&#{bts[0]};\n}
           end
         else
           unless v && Hash === v
-            warn "*** don't know how to expand ref #{k}" 
+            warn "*** don't know how to expand ref #{k}"
             next
           end
           sechash[sn.to_s] << KramdownRFC::ref_to_xml(k, v)
@@ -170,16 +184,14 @@ def bibtagsys(bib)
      "#{XML_RESOURCE_ORG_PREFIX}/bibxml/reference.RFC.#{rfc4d}.xml"]
   elsif bib =~ /\A([-A-Z0-9]+)\./ &&
         (dir, = Kramdown::Converter::Rfc2629::XML_RESOURCE_ORG_MAP[$1])
-    bib1 = bib.gsub(/\A[0-9]/) { "_#{$&}" } # can't start an ID with a number
-    [bib1,
-     "#{XML_RESOURCE_ORG_PREFIX}/#{dir}/reference.#{bib}.xml"]
+    [bib, "#{XML_RESOURCE_ORG_PREFIX}/#{dir}/reference.#{bib}.xml"]
   end
 end
 
 def read_encodings
   encfilename = File.expand_path '../../data/encoding-fallbacks.txt', __FILE__
   encfile = File.read(encfilename, coding: "UTF-8")
-  Hash[encfile.lines.map{|l| 
+  Hash[encfile.lines.map{|l|
          l.chomp!;
          x, s = l.split(" ", 2)
          [x.hex.chr(Encoding::UTF_8), s || " "]}]

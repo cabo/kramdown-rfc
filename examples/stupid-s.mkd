@@ -35,10 +35,8 @@ normative:
   RFC2119:
   RFC3986:
   RFC4086:
-  RFC4648:
 
 informative:
-  RFC5389:
   I-D.ietf-behave-turn:
   STUNT:
     target: http://deusty.blogspot.com/2007/09/stunt-out-of-band-channels.html
@@ -84,7 +82,7 @@ deployment requirements as high as those of TURN.
 "STUN/TURN using PHP in Despair" is a highly deployable
 protocol for obtaining TURN-like functionality, while also
 providing the most important function of STUN
-{{RFC5389}}.
+{{?RFC5389 STUN}}.
 
 The high degree of deployability is achieved by making STuPiD
 a Web service, implementable in any Web application deployment
@@ -125,7 +123,7 @@ Basic Protocol Operation   {#ops}
 The STuPiD protocol will typically be used with application
 instances that first attempt to obtain connectivity using
 mechanisms similar to those described in the STUN
-specification {{RFC5389}}.  However, with STuPiD,
+specification {{?RFC5389 STUN}}.  However, with STuPiD,
 STUN is not really needed for TCP, as was demonstrated in
 previous STUN-like implementations {{STUNT}}.
 Instead, STuPiD (like {{STUNT}}) provides a
@@ -210,7 +208,7 @@ Terminology          {#Terminology}
 In this document, the key words "MUST", "MUST NOT", "REQUIRED",
 "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY",
 and "OPTIONAL" are to be interpreted as described in BCP 14, RFC 2119
-{{RFC2119}} and indicate requirement levels for compliant STuPiD
+{{!RFC2119 BCP14}} and indicate requirement levels for compliant STuPiD
 implementations.
 
 
@@ -237,7 +235,7 @@ as query-string:
 
 'chid':  A unique ID identifying the data chunk to be stored.
 The ID SHOULD be chosen from the characters of the base64url
-set {{RFC4648}}.
+set {{!RFC4648 BASE64}}.
 
 The payload of the POST request MUST be the data to be
 stored. The 'Content-Type' SHOULD be
