@@ -42,8 +42,8 @@ module Kramdown
       def self.split_xref(t)
         href, label = t.split(' ')
         label ||= href
-        label = label.gsub(/\A\d/) { "_#{$&}" } # can't start an IDREF with a number
-        label = label.gsub('DOI.', 'DOI_').gsub('/', '_') # DOIs are gross
+        label = label.sub(/\A\d/) { "_#{$&}" } # can't start an IDREF with a number
+        label = label.sub('DOI.', 'DOI_').gsub('/', '_') # DOIs are gross
         [href, label]
       end
 
