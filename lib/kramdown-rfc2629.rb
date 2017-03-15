@@ -408,11 +408,15 @@ module Kramdown
       end
 
       REFCACHEDIR = ENV["KRAMDOWN_REFCACHEDIR"] || ".refcache"
-      def get_and_cache_resource(url, tn = Time.now, tvalid = 7200)
+
+      KRAMDOWN_OFFLINE = ENV["KRAMDOWN_OFFLINE"]
+      KRAMDOWN_REFCACHE_REFETCH = ENV["KRAMDOWN_REFCACHE_REFETCH"]
+
+      def get_and_cache_resource(url, tvalid = 7200, tn = Time.now)
         Dir.mkdir(REFCACHEDIR) unless Dir.exists?(REFCACHEDIR)
         fn = "#{REFCACHEDIR}/#{File.basename(url)}"
-        f = File.stat(fn) rescue nil
-        if !f || tn - f.ctime >= tvalid
+        f = File.stat(fn) rescue nil unless KRAMDOWN_REFCACHE_REFETCH
+        if !KRAMDOWN_OFFLINE && (!f || tn - f.ctime >= tvalid)
           if f
             message = "renewing (stale by #{"%.1f" % ((tn-f.ctime)/86400)} days)"
             fetch_timeout = 10 # seconds, give up quickly if just renewing
@@ -457,23 +461,30 @@ module Kramdown
       end
 
       XML_RESOURCE_ORG_MAP = {
-        "RFC" => "bibxml", "I-D" => "bibxml3", "W3C" => "bibxml4", "3GPP" => "bibxml5",
+        "RFC" => ["bibxml", 86400*7], # these should change rarely
+        "I-D" => "bibxml3",
+        "W3C" => "bibxml4",
+        "3GPP" => "bibxml5",
         "ANSI" => "bibxml2",
         "CCITT" => "bibxml2",
         "FIPS" => "bibxml2",
-        "IANA" => "bibxml2",
-        "IEEE" => "bibxml2",
+        # "IANA" => "bibxml2",   overtaken by bibxml8
+        "IEEE" => "bibxml2",    # now, how about bibxml6?
         "ISO" => "bibxml2",
         "ITU" => "bibxml2",
         "NIST" => "bibxml2",
         "OASIS" => "bibxml2",
         "PKCS" => "bibxml2",
+        "DOI" => ["bibxml7", 86400], # 24 h cache at source anyway
+        "IANA" => ["bibxml8", 86400], # ditto
       }
 
       # XML_RESOURCE_ORG_HOST = ENV["XML_RESOURCE_ORG_HOST"] || "xml.resource.org"
       XML_RESOURCE_ORG_HOST = ENV["XML_RESOURCE_ORG_HOST"] || "xml2rfc.tools.ietf.org"
       XML_RESOURCE_ORG_PREFIX = ENV["XML_RESOURCE_ORG_PREFIX"] ||
                                 "https://#{XML_RESOURCE_ORG_HOST}/public/rfc"
+
+      KRAMDOWN_REFCACHETTL = (e = ENV["KRAMDOWN_REFCACHETTL"]) ? e.to_i : 3600
 
       def convert_img(el, indent, opts) # misuse the tag!
         if a = el.attr
@@ -487,10 +498,11 @@ module Kramdown
           to_insert = ""
           anchor.scan(/(W3C|3GPP|[A-Z-]+)[.]?([A-Za-z0-9.-]+)/) do |t, n|
             fn = "reference.#{t}.#{n}.xml"
-            sub = XML_RESOURCE_ORG_MAP[t]
+            sub, ttl = XML_RESOURCE_ORG_MAP[t]
+            ttl ||= KRAMDOWN_REFCACHETTL  # everything but RFCs might change a lot
             puts "Huh: ${fn}" unless sub
             url = "#{XML_RESOURCE_ORG_PREFIX}/#{sub}/#{fn}"
-            to_insert = get_and_cache_resource(url)
+            to_insert = get_and_cache_resource(url, ttl)
             to_insert.scrub! rescue nil # only do this for Ruby >= 2.1
           end
           to_insert.gsub(/<\?xml version=["']1.0["'] encoding=["']UTF-8["']\?>/, '').
