@@ -199,6 +199,10 @@ if input[0] == "\uFEFF"
    warn "*** There is a leading byte order mark. Ignored."
    input[0..0] = ''
 end
+if input[-1] != "\n"
+  # warn "*** added missing newline at end"
+  input << "\n"                 # fix #26
+end
 input.gsub!(/^\{::include\s+(.*?)\}/) {
   File.read($1).chomp
 } unless ENV["KRAMDOWN_SAFE"]
