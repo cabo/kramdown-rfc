@@ -79,7 +79,7 @@ deployment requirements as high as those of TURN.
 "STUN/TURN using PHP in Despair" is a highly deployable
 protocol for obtaining TURN-like functionality, while also
 providing the most important function of STUN
-{{?RFC5389 STUN}}.
+{{?STUN=RFC5389}}.
 
 The high degree of deployability is achieved by making STuPiD
 a Web service, implementable in any Web application deployment
@@ -105,7 +105,7 @@ for optimized implementations.
 
 Finally, where STuPiD becomes part of a client standard
 (such as a potential extension to XMPP's in-band byte-stream
-protocol {{! XMPP}} as hinted in {{xmpp}}), it is a good
+protocol {{XMPP}} as hinted in {{xmpp}}), it is a good
 thing if STuPiD is already defined.
 
 Hence, this document focuses on the definition of the STuPiD
@@ -120,7 +120,7 @@ Basic Protocol Operation   {#ops}
 The STuPiD protocol will typically be used with application
 instances that first attempt to obtain connectivity using
 mechanisms similar to those described in the STUN
-specification {{?RFC5389 STUN}}.  However, with STuPiD,
+specification {{STUN}}.  However, with STuPiD,
 STUN is not really needed for TCP, as was demonstrated in
 previous STUN-like implementations {{STUNT}}.
 Instead, STuPiD (like {{STUNT}}) provides a
@@ -205,7 +205,7 @@ Terminology          {#Terminology}
 In this document, the key words "MUST", "MUST NOT", "REQUIRED",
 "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY",
 and "OPTIONAL" are to be interpreted as described in BCP 14, RFC 2119
-{{!RFC2119 BCP14}} and indicate requirement levels for compliant STuPiD
+{{!BCP14=RFC2119}} and indicate requirement levels for compliant STuPiD
 implementations.
 
 
@@ -232,7 +232,7 @@ as query-string:
 
 'chid':  A unique ID identifying the data chunk to be stored.
 The ID SHOULD be chosen from the characters of the base64url
-set {{!RFC4648 BASE64}}.
+set {{!BASE64=RFC4648}}.
 
 The payload of the POST request MUST be the data to be
 stored. The 'Content-Type' SHOULD be
@@ -474,7 +474,7 @@ mysql_close();
 Using XMPP as Out-Of-Band Channel  {#xmpp}
 =================================
 
-XMPP {{?I-D.ietf-xmpp-3920bis XMPP}} is a good choice for
+XMPP {{?XMPP=I-D.ietf-xmpp-3920bis}} is a good choice for
 an out-of-band channel.
 
 The notification protocol is closely modeled after XMPP's

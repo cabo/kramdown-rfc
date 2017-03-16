@@ -40,11 +40,10 @@ module Kramdown
       XREF_START = /\{\{(.*?)\}\}/u
 
       def self.split_xref(t)
-        href, label = t.split(' ')
-        label ||= href
+        label, href = t.split('=')
         label = label.sub(/\A\d/) { "_#{$&}" } # can't start an IDREF with a number
         label = label.sub('DOI.', 'DOI_').gsub('/', '_') # DOIs are gross
-        [href, label]
+        [label, href]
       end
 
       # Introduce new {{target}} syntax for empty xrefs, which would
@@ -52,7 +51,7 @@ module Kramdown
       # (I'd rather use [[target]], but that somehow clashes with links.)
       def parse_xref
         @src.pos += @src.matched_size
-        href, label = RFC2629Kramdown.split_xref(@src[1])
+        label, = RFC2629Kramdown.split_xref(@src[1])
         el = Element.new(:xref, nil, {'target' => label})
         @tree.children << el
       end
@@ -63,7 +62,7 @@ module Kramdown
       # Introduce new (((target))) syntax for irefs
       def parse_iref
         @src.pos += @src.matched_size
-        href, label = RFC2629Kramdown.split_xref(@src[1])
+        label, = RFC2629Kramdown.split_xref(@src[1])
         el = Element.new(:iref, nil, {'target' => label}) # XXX
         @tree.children << el
       end

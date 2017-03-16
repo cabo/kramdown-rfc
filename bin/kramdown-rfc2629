@@ -77,32 +77,32 @@ def xml_from_sections(input)
   # collect normative/informative tagging {{!RFC2119}} {{?RFC4711}}
   sechash.each do |k, v|
     next if k == "fluff"
-    v.gsub!(/{{(?:([?!])(-)?|(-))([\w.\/_\-]+(?: ([\w._\-]+))?)}}/) do |match|
+    v.gsub!(/{{(?:([?!])(-)?|(-))([\w._\-]+)(?:=([\w.\/_\-]+))?}}/) do |match|
       norminform = $1
       replacing = $2 || $3
-      word = $4
-      label = $5
-      if label
-        if word && label_ref[label] && word != label_ref[label]
+      label = $4
+      href = $5
+      if href
+        if label_ref[label] && href != label_ref[label]
           warn "*** conflicting definitions for xref #{label}"
         else
-          label_ref[label] ||= word
+          label_ref[label] ||= href
         end
       end
       if replacing
-        if new = ref_replacements[word]
-          word = new
+        if new = ref_replacements[label]
+          label = new
         else
-          warn "*** no alias replacement for {{#{replacing}#{word}}}"
-          word = "#{replacing}#{word}"
+          warn "*** no alias replacement for {{#{replacing}#{label}}}"
+          label = "#{replacing}#{label}"
         end
       end
       # things can be normative in one place and informative in another -> normative
       # collect norm/inform above and assign it by priority here
       if norminform
-        norm_ref[word] ||= norminform == '!' # one normative ref is enough
+        norm_ref[label] ||= norminform == '!' # one normative ref is enough
       end
-      "{{#{word}}}"
+      "{{#{label}}}"
     end
   end
 
@@ -137,7 +137,9 @@ def xml_from_sections(input)
   [:normative, :informative].each do |sn|
     if refs = ps[sn]
       refs.each do |k, v|
-        href, label = Kramdown::Parser::RFC2629Kramdown.split_xref(k)
+        label, href = Kramdown::Parser::RFC2629Kramdown.split_xref(k)
+        href ||= label_ref[label]
+        href ||= label
         link_defs[label] = ["##{href}", nil]
         if bts = bibtagsys(href)
           if v
