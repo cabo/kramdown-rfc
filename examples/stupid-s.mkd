@@ -43,7 +43,7 @@ informative:
       name: Robbie Hanson
       ins: R. Hanson
     date: 2007-09-17
-  I-D.meyer-xmpp-e2e-encryption:
+  XMPP-E2E=I-D.meyer-xmpp-e2e-encryption:
 
 
 
@@ -317,7 +317,7 @@ NAT traversal had succeeded, i.e., an on-path attacker can
 overhear and fake messages, but an off-path attacker cannot.
 If a higher level of security is desired, it should be
 provided on top of the data relayed by STuPiD, e.g. by using
-XTLS {{I-D.meyer-xmpp-e2e-encryption}}.
+XTLS {{XMPP-E2E}}.
 
 Much of the security of STuPiD is based on the assumption that
 an off-path attacker cannot guess the chunk identifiers.  A

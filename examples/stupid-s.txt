@@ -328,7 +328,7 @@ Internet-Draft                   STuPiD                        July 2009
    traversal had succeeded, i.e., an on-path attacker can overhear and
    fake messages, but an off-path attacker cannot.  If a higher level of
    security is desired, it should be provided on top of the data relayed
-   by STuPiD, e.g. by using XTLS [I-D.meyer-xmpp-e2e-encryption].
+   by STuPiD, e.g. by using XTLS [XMPP-E2E].
 
 
 
@@ -382,10 +382,10 @@ Internet-Draft                   STuPiD                        July 2009
               Traversal Utilities for NAT (STUN)", draft-ietf-behave-
               turn-16 (work in progress), July 2009.
 
-
-
-
-
+   [STUN]     Rosenberg, J., Mahy, R., Matthews, P., and D. Wing,
+              "Session Traversal Utilities for NAT (STUN)", RFC 5389,
+              DOI 10.17487/RFC5389, October 2008,
+              <http://www.rfc-editor.org/info/rfc5389>.
 
 
 
@@ -394,17 +394,6 @@ Hartke & Bormann         Expires January 6, 2010                [Page 7]
 Internet-Draft                   STuPiD                        July 2009
 
 
-   [I-D.meyer-xmpp-e2e-encryption]
-              Meyer, D. and P. Saint-Andre, "XTLS: End-to-End Encryption
-              for the Extensible Messaging and Presence Protocol (XMPP)
-              Using Transport Layer Security (TLS)", draft-meyer-xmpp-
-              e2e-encryption-02 (work in progress), June 2009.
-
-   [STUN]     Rosenberg, J., Mahy, R., Matthews, P., and D. Wing,
-              "Session Traversal Utilities for NAT (STUN)", RFC 5389,
-              DOI 10.17487/RFC5389, October 2008,
-              <http://www.rfc-editor.org/info/rfc5389>.
-
    [STUNT]    Hanson, R., "STUNT & out-of-band channels", September
               2007, <http://deusty.blogspot.com/2007/09/
               stunt-out-of-band-channels.html>.
@@ -412,6 +401,12 @@ Internet-Draft                   STuPiD                        July 2009
    [XMPP]     Saint-Andre, P., "Extensible Messaging and Presence
               Protocol (XMPP): Core", draft-ietf-xmpp-3920bis-22 (work
               in progress), December 2010.
+
+   [XMPP-E2E]
+              Meyer, D. and P. Saint-Andre, "XTLS: End-to-End Encryption
+              for the Extensible Messaging and Presence Protocol (XMPP)
+              Using Transport Layer Security (TLS)", draft-meyer-xmpp-
+              e2e-encryption-02 (work in progress), June 2009.
 
 Appendix A.  Examples
 
@@ -442,6 +437,11 @@ Appendix A.  Examples
          192.0.2.239:36654
 
             Figure 2: Discovering External IP Address and Port
+
+
+
+
+
 
 
 

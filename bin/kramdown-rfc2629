@@ -52,10 +52,12 @@ def xml_from_sections(input)
   end
 
   ref_replacements = { }
+  label_ref = { }
 
   [:ref, :normative, :informative].each do |sn|
     if refs = ps.has(sn)
       warn "*** bad section #{sn}: #{refs.inspect}" unless refs.respond_to? :each
+      aliased_refs = { }
       refs.each do |k, v|
         if v.respond_to? :to_str
           ref_replacements[v.to_str] = k
@@ -65,13 +67,23 @@ def xml_from_sections(input)
             ref_replacements[aliasname] = k
           end
         end
+        k.match(/([\w._\-]+)=([\w.\/_\-]+)/) do |match|
+          if v && Hash === v
+            warn "a reference with a definition doesn't need a label"
+          end
+          aliased_refs[$1] = $2
+        end
+      end
+      refs.delete_if {|k, v| k.include?('=')}
+      aliased_refs.each do |k, v|
+        label_ref[k] = v
+        refs[k] = nil
       end
     end
   end
   open_refs = ps[:ref] || { }       # consumed
 
   norm_ref = { }
-  label_ref = { }
 
   # convenience replacement of {{-coap}} with {{I-D.ietf-core-coap}}
   # collect normative/informative tagging {{!RFC2119}} {{?RFC4711}}
