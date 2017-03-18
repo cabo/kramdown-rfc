@@ -14,7 +14,8 @@ their work in markdown.
 # Usage
 
 Start by installing the kramdown-rfc2629 gem (this automatically
-installs kramdown version 1.6.x as well):
+installs appropriate versions of referenced gems such as kramdown as
+well):
 
     gem install kramdown-rfc2629
 
@@ -32,6 +33,10 @@ To use kramdown-rfc2629, you'll need a Ruby 1.9 or 2.x, and maybe
 
     kramdown-rfc2629 mydraft.mkd >mydraft.xml
     xml2rfc mydraft.xml
+
+(The most popular file name extension that IETF people have for
+markdown is .md -- for those who tend to think about GNU machine
+descriptions here, any extension such as .mkd will do, too.)
 
 # Examples
 
