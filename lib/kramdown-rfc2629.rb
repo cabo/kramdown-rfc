@@ -457,7 +457,11 @@ module Kramdown
             end
           end
         end
-        File.read(fn) # this blows up if no cache available after fetch attempt
+        begin
+          File.read(fn) # this blows up if no cache available after fetch attempt
+        rescue Errno::ENOENT => e
+          warn "*** #{e} for ${fn}"
+        end
       end
 
       XML_RESOURCE_ORG_MAP = {
@@ -504,6 +508,12 @@ module Kramdown
             url = "#{XML_RESOURCE_ORG_PREFIX}/#{sub}/#{fn}"
             to_insert = get_and_cache_resource(url, ttl)
             to_insert.scrub! rescue nil # only do this for Ruby >= 2.1
+            # this may be a bit controversial: Don't break the build if reference is broken
+            if KRAMDOWN_OFFLINE
+              to_insert ||= "<reference anchor='#{anchor}'> <front> <title>*** BROKEN REFERENCE ***</title> <author> <organization/> </author> <date/> </front> </reference>"
+            else
+              exit 66 unless to_insert # EX_NOINPUT
+            end
           end
           to_insert.gsub(/<\?xml version=["']1.0["'] encoding=["']UTF-8["']\?>/, '').
             gsub(/(anchor=["'])([0-9])/) { "#{$1}_#{$2}"} # can't start an ID with a number
