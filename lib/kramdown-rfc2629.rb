@@ -496,7 +496,7 @@ module Kramdown
         end
         if alt == ":include:"   # Really bad misuse of tag...
           to_insert = ""
-          anchor.scan(/(W3C|3GPP|[A-Z-]+)[.]?([A-Za-z0-9.-]+)/) do |t, n|
+          anchor.scan(/(W3C|3GPP|[A-Z-]+)[.]?([A-Za-z_0-9.-]+)/) do |t, n|
             fn = "reference.#{t}.#{n}.xml"
             sub, ttl = XML_RESOURCE_ORG_MAP[t]
             ttl ||= KRAMDOWN_REFCACHETTL  # everything but RFCs might change a lot
