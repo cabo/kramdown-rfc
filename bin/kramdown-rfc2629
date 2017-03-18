@@ -169,7 +169,7 @@ def bibtagsys(bib)
     [bib.upcase,
      "#{XML_RESOURCE_ORG_PREFIX}/bibxml/reference.RFC.#{rfc4d}.xml"]
   elsif bib =~ /\A([-A-Z0-9]+)\./ &&
-        dir = Kramdown::Converter::Rfc2629::XML_RESOURCE_ORG_MAP[$1]
+        (dir, = Kramdown::Converter::Rfc2629::XML_RESOURCE_ORG_MAP[$1])
     bib1 = bib.gsub(/\A[0-9]/) { "_#{$&}" } # can't start an ID with a number
     [bib1,
      "#{XML_RESOURCE_ORG_PREFIX}/#{dir}/reference.#{bib}.xml"]
