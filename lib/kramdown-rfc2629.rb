@@ -506,7 +506,6 @@ module Kramdown
           end
         end
         if alt == ":include:"   # Really bad misuse of tag...
-<<<<<<< HEAD
           anchor = el.attr.delete('anchor') || (
             # not yet
             warn "*** missing anchor for '#{src}'"
@@ -515,12 +514,6 @@ module Kramdown
           anchor.sub!(/\A[0-9]/) { "_#{$&}" } # can't start an ID with a number
           to_insert = ""
           src.scan(/(W3C|3GPP|[A-Z-]+)[.]?([A-Za-z_0-9.\/\+-]+)/) do |t, n|
-=======
-          anchor = el.attr.delete('anchor')
-          warn "*** missing anchor for '#{src}'" unless anchor
-          to_insert = ""
-          src.scan(/(W3C|3GPP|[A-Z-]+)[.]?([A-Za-z0-9_.\/\+-]+)/) do |t, n|
->>>>>>> Updated based on review comments
             fn = "reference.#{t}.#{n}.xml"
             sub, ttl = XML_RESOURCE_ORG_MAP[t]
             ttl ||= KRAMDOWN_REFCACHETTL  # everything but RFCs might change a lot
