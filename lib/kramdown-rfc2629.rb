@@ -62,8 +62,7 @@ module Kramdown
       # Introduce new (((target))) syntax for irefs
       def parse_iref
         @src.pos += @src.matched_size
-        anchor, = RFC2629Kramdown.split_xref(@src[1])
-        el = Element.new(:iref, nil, {'target' => anchor}) # XXX
+        el = Element.new(:iref, nil, {'target' => @src[1]}) # XXX
         @tree.children << el
       end
       define_parser(:iref, IREF_START, '\(\(\(')
