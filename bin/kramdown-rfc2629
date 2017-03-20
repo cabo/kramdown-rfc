@@ -145,17 +145,26 @@ def xml_from_sections(input)
         href ||= anchor_names[anchor]
         href ||= anchor
         link_defs[anchor] = ["##{href}", nil]
-        if bts = bibtagsys(href)
+
+        if (target,rewrite = bibtagsys(href))
           if v && Hash === v && v.count > 0
             warn "*** redundant in #{k}: #{v.inspect}"
           end
           if stand_alone
-            lattr = %{{:anchor="#{anchor}"}}
-            sechash[sn.to_s] << %{\n#{NMDTAGS[0]}\n![:include:](#{bts[0]})#{lattr}\n#{NMDTAGS[1]}\n}
+            a = %{{:anchor="#{anchor}"}}
+            sechash[sn.to_s] << %{\n#{NMDTAGS[0]}\n![:include:](#{target})#{a}\n#{NMDTAGS[1]}\n}
           else
+            if anchor == href
+              a = ""
+            else
+              if !rewrite
+                warn "*** selecting a custom anchor for '#{anchor}' requires standalone mode"
+                exit 1
+              end
+              a = %{?anchor=#{anchor}}
+            end
             (ps.rest["bibxml"] ||= []) << k
-            # Assume that '?anchor=X' isn't ignore, though it is for most bibxml paths.
-            sechash[sn.to_s] << %{&#{bts[0]}?anchor=#{anchor};\n}
+            sechash[sn.to_s] << %{&#{target}#{a};\n}
           end
         else
           unless v && Hash === v
@@ -182,16 +191,14 @@ def xml_from_sections(input)
   [input, coding_override, link_defs, smart_quotes]
 end
 
-XML_RESOURCE_ORG_PREFIX = Kramdown::Converter::Rfc2629::XML_RESOURCE_ORG_PREFIX
-
 def bibtagsys(bib)
   if bib =~ /\Arfc(\d+)/i
-    rfc4d = "%04d" % $1.to_i
-    [bib.upcase,
-     "#{XML_RESOURCE_ORG_PREFIX}/bibxml/reference.RFC.#{rfc4d}.xml"]
-  elsif bib =~ /\A([-A-Z0-9]+)\./ &&
-        (dir, = Kramdown::Converter::Rfc2629::XML_RESOURCE_ORG_MAP[$1])
-    [bib, "#{XML_RESOURCE_ORG_PREFIX}/#{dir}/reference.#{bib}.xml"]
+    [bib.upcase, false]
+  elsif bib =~ /\A([-A-Z0-9]+)\./
+    dir,ttl,rewrite = Kramdown::Converter::Rfc2629::XML_RESOURCE_ORG_MAP[$1]
+    if dir
+      [bib, rewrite]
+    end
   end
 end
 

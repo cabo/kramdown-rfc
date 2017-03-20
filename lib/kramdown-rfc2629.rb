@@ -485,8 +485,8 @@ module Kramdown
         "NIST" => "bibxml2",
         "OASIS" => "bibxml2",
         "PKCS" => "bibxml2",
-        "DOI" => ["bibxml7", 86400], # 24 h cache at source anyway
-        "IANA" => ["bibxml8", 86400], # ditto
+        "DOI" => ["bibxml7", 86400, true], # 24 h cache at source anyway
+        "IANA" => ["bibxml8", 86400, true], # ditto
       }
 
       # XML_RESOURCE_ORG_HOST = ENV["XML_RESOURCE_ORG_HOST"] || "xml.resource.org"
