@@ -40,10 +40,10 @@ module Kramdown
       XREF_START = /\{\{(.*?)\}\}/u
 
       def self.split_xref(t)
-        label, href = t.split('=')
-        label = label.sub(/\A\d/) { "_#{$&}" } # can't start an IDREF with a number
-        label = label.sub('DOI.', 'DOI_').gsub('/', '_') # DOIs are gross
-        [label, href]
+        anchor, href = t.split('=')
+        anchor = anchor.sub(/\A\d/) { "_#{$&}" } # can't start an IDREF with a number
+        anchor = anchor.gsub('/', '_') # DOIs are gross
+        [anchor, href]
       end
 
       # Introduce new {{target}} syntax for empty xrefs, which would
@@ -51,8 +51,8 @@ module Kramdown
       # (I'd rather use [[target]], but that somehow clashes with links.)
       def parse_xref
         @src.pos += @src.matched_size
-        label, = RFC2629Kramdown.split_xref(@src[1])
-        el = Element.new(:xref, nil, {'target' => label})
+        anchor, = RFC2629Kramdown.split_xref(@src[1])
+        el = Element.new(:xref, nil, {'target' => anchor})
         @tree.children << el
       end
       define_parser(:xref, XREF_START, '{{')
@@ -62,8 +62,8 @@ module Kramdown
       # Introduce new (((target))) syntax for irefs
       def parse_iref
         @src.pos += @src.matched_size
-        label, = RFC2629Kramdown.split_xref(@src[1])
-        el = Element.new(:iref, nil, {'target' => label}) # XXX
+        anchor, = RFC2629Kramdown.split_xref(@src[1])
+        el = Element.new(:iref, nil, {'target' => anchor}) # XXX
         @tree.children << el
       end
       define_parser(:iref, IREF_START, '\(\(\(')
@@ -506,6 +506,7 @@ module Kramdown
           end
         end
         if alt == ":include:"   # Really bad misuse of tag...
+<<<<<<< HEAD
           anchor = el.attr.delete('anchor') || (
             # not yet
             warn "*** missing anchor for '#{src}'"
@@ -514,6 +515,12 @@ module Kramdown
           anchor.sub!(/\A[0-9]/) { "_#{$&}" } # can't start an ID with a number
           to_insert = ""
           src.scan(/(W3C|3GPP|[A-Z-]+)[.]?([A-Za-z_0-9.\/\+-]+)/) do |t, n|
+=======
+          anchor = el.attr.delete('anchor')
+          warn "*** missing anchor for '#{src}'" unless anchor
+          to_insert = ""
+          src.scan(/(W3C|3GPP|[A-Z-]+)[.]?([A-Za-z0-9_.\/\+-]+)/) do |t, n|
+>>>>>>> Updated based on review comments
             fn = "reference.#{t}.#{n}.xml"
             sub, ttl = XML_RESOURCE_ORG_MAP[t]
             ttl ||= KRAMDOWN_REFCACHETTL  # everything but RFCs might change a lot

@@ -52,7 +52,7 @@ def xml_from_sections(input)
   end
 
   ref_replacements = { }
-  label_ref = { }
+  anchor_names = { }
 
   [:ref, :normative, :informative].each do |sn|
     if refs = ps.has(sn)
@@ -66,18 +66,10 @@ def xml_from_sections(input)
           if aliasname = v.delete("-")
             ref_replacements[aliasname] = k
           end
-        end
-        k.match(/([\w._\-]+)=([\w.\/_\-]+)/) do |match|
-          if v && Hash === v
-            warn "a reference with a definition doesn't need a label"
+          if anchorname = v.delete("=")
+            anchor_names[k] = anchorname
           end
-          aliased_refs[$1] = $2
         end
-      end
-      refs.delete_if {|k, v| k.include?('=')}
-      aliased_refs.each do |k, v|
-        label_ref[k] = v
-        refs[k] = nil
       end
     end
   end
@@ -92,33 +84,33 @@ def xml_from_sections(input)
     v.gsub!(/{{(?:([?!])(-)?|(-))([\w._\-]+)(?:=([\w.\/_\-]+))?}}/) do |match|
       norminform = $1
       replacing = $2 || $3
-      label = $4
+      anchor = $4
       href = $5
       if href
-        if label_ref[label] && href != label_ref[label]
-          warn "*** conflicting definitions for xref #{label}"
+        if anchor_names[anchor] && href != anchor_names[anchor]
+          warn "*** conflicting definitions for xref #{anchor}"
         else
-          label_ref[label] ||= href
+          anchor_names[anchor] ||= href
         end
       end
       if replacing
-        if new = ref_replacements[label]
-          label = new
+        if new = ref_replacements[anchor]
+          anchor = new
         else
-          warn "*** no alias replacement for {{#{replacing}#{label}}}"
-          label = "#{replacing}#{label}"
+          warn "*** no alias replacement for {{#{replacing}#{anchor}}}"
+          anchor = "#{replacing}#{anchor}"
         end
       end
       # things can be normative in one place and informative in another -> normative
       # collect norm/inform above and assign it by priority here
       if norminform
-        norm_ref[label] ||= norminform == '!' # one normative ref is enough
+        norm_ref[anchor] ||= norminform == '!' # one normative ref is enough
       end
-      "{{#{label}}}"
+      "{{#{anchor}}}"
     end
   end
 
-  label_ref.each do |k, v|
+  anchor_names.each do |k, v|
     warn "*** no definition for xref #{k}" unless v
   end
 
@@ -149,20 +141,21 @@ def xml_from_sections(input)
   [:normative, :informative].each do |sn|
     if refs = ps[sn]
       refs.each do |k, v|
-        label, href = Kramdown::Parser::RFC2629Kramdown.split_xref(k)
-        href ||= label_ref[label]
-        href ||= label
-        link_defs[label] = ["##{href}", nil]
+        anchor, href = Kramdown::Parser::RFC2629Kramdown.split_xref(k)
+        href ||= anchor_names[anchor]
+        href ||= anchor
+        link_defs[anchor] = ["##{href}", nil]
         if bts = bibtagsys(href)
-          if v
-            warn "*** redundant in #{k}: #{v.inspect}" unless v.respond_to? :to_str
+          if v && Hash === v && v.count > 0
+            warn "*** redundant in #{k}: #{v.inspect}"
           end
           if stand_alone
-            lattr = %{{:label="#{label}"}}
+            lattr = %{{:anchor="#{anchor}"}}
             sechash[sn.to_s] << %{\n#{NMDTAGS[0]}\n![:include:](#{bts[0]})#{lattr}\n#{NMDTAGS[1]}\n}
           else
             (ps.rest["bibxml"] ||= []) << k
-            sechash[sn.to_s] << %{&#{bts[0]};\n}
+            # Assume that '?anchor=X' isn't ignore, though it is for most bibxml paths.
+            sechash[sn.to_s] << %{&#{bts[0]}?anchor=#{anchor};\n}
           end
         else
           unless v && Hash === v

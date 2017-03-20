@@ -33,17 +33,20 @@ author:
 
 normative:
   RFC3986:
+    -: url
   RFC4086:
 
 informative:
   STUNT:
+    -: stunt-oob
     target: http://deusty.blogspot.com/2007/09/stunt-out-of-band-channels.html
     title: STUNT & out-of-band channels
     author:
       name: Robbie Hanson
       ins: R. Hanson
     date: 2007-09-17
-  XMPP-E2E=I-D.meyer-xmpp-e2e-encryption:
+  XMPP-E2E:
+    =: I-D.meyer-xmpp-e2e-encryption
 
 
 
@@ -122,7 +125,7 @@ instances that first attempt to obtain connectivity using
 mechanisms similar to those described in the STUN
 specification {{STUN}}.  However, with STuPiD,
 STUN is not really needed for TCP, as was demonstrated in
-previous STUN-like implementations {{STUNT}}.
+previous STUN-like implementations {{-stunt-oob}}.
 Instead, STuPiD (like {{STUNT}}) provides a
 simple Web service that
 echoes the remote address and port of an incoming HTTP
@@ -220,7 +223,7 @@ format:
 
 host ":" port
 
-where 'host' and 'port' are defined as in {{RFC3986}}.
+where 'host' and 'port' are defined as in {{-url}}.
 
 
 Storing Data
