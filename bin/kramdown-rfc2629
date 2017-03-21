@@ -84,10 +84,10 @@ def xml_from_sections(input)
         if new = ref_replacements[word]
           word = new
         else
-          warn "*** no alias replacement for {{-#{word}}}" 
+          warn "*** no alias replacement for {{-#{word}}}"
           word = "-#{word}"
         end
-      end
+      end       # now, word is the anchor
       # things can be normative in one place and informative in another -> normative
       # collect norm/inform above and assign it by priority here
       if norminform
@@ -138,7 +138,7 @@ def xml_from_sections(input)
           end
         else
           unless v && Hash === v
-            warn "*** don't know how to expand ref #{k}" 
+            warn "*** don't know how to expand ref #{k}"
             next
           end
           sechash[sn.to_s] << KramdownRFC::ref_to_xml(k, v)
@@ -179,7 +179,7 @@ end
 def read_encodings
   encfilename = File.expand_path '../../data/encoding-fallbacks.txt', __FILE__
   encfile = File.read(encfilename, coding: "UTF-8")
-  Hash[encfile.lines.map{|l| 
+  Hash[encfile.lines.map{|l|
          l.chomp!;
          x, s = l.split(" ", 2)
          [x.hex.chr(Encoding::UTF_8), s || " "]}]
