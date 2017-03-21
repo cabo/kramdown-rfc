@@ -412,9 +412,10 @@ module Kramdown
       KRAMDOWN_OFFLINE = ENV["KRAMDOWN_OFFLINE"]
       KRAMDOWN_REFCACHE_REFETCH = ENV["KRAMDOWN_REFCACHE_REFETCH"]
 
-      def get_and_cache_resource(url, tvalid = 7200, tn = Time.now)
+      # this is now slightly dangerous as multiple urls could map to the same cachefile
+      def get_and_cache_resource(url, cachefile, tvalid = 7200, tn = Time.now)
+        fn = "#{REFCACHEDIR}/#{cachefile}"
         Dir.mkdir(REFCACHEDIR) unless Dir.exists?(REFCACHEDIR)
-        fn = "#{REFCACHEDIR}/#{File.basename(url)}"
         f = File.stat(fn) rescue nil unless KRAMDOWN_REFCACHE_REFETCH
         if !KRAMDOWN_OFFLINE && (!f || tn - f.ctime >= tvalid)
           if f
@@ -494,19 +495,25 @@ module Kramdown
         if a = el.attr
           alt = a.delete('alt').strip
           alt = '' if alt == '!' # work around re-wrap uglyness
-          if anchor = a.delete('src')
-            a['target'] = anchor
+          if src = a.delete('src')
+            a['target'] = src
           end
         end
         if alt == ":include:"   # Really bad misuse of tag...
+          anchor = el.attr.delete('anchor') || (
+            # not yet
+            warn "*** missing anchor for '#{src}'"
+            src
+          )
+          anchor.sub!(/\A[0-9]/) { "_#{$&}" } # can't start an ID with a number
           to_insert = ""
-          anchor.scan(/(W3C|3GPP|[A-Z-]+)[.]?([A-Za-z_0-9.-]+)/) do |t, n|
+          src.scan(/(W3C|3GPP|[A-Z-]+)[.]?([A-Za-z_0-9.\/\+-]+)/) do |t, n|
             fn = "reference.#{t}.#{n}.xml"
             sub, ttl = XML_RESOURCE_ORG_MAP[t]
             ttl ||= KRAMDOWN_REFCACHETTL  # everything but RFCs might change a lot
             puts "Huh: ${fn}" unless sub
             url = "#{XML_RESOURCE_ORG_PREFIX}/#{sub}/#{fn}"
-            to_insert = get_and_cache_resource(url, ttl)
+            to_insert = get_and_cache_resource(url, fn.gsub(/[\/+]/, '_'), ttl) # XXX negative list would be better
             to_insert.scrub! rescue nil # only do this for Ruby >= 2.1
             # this may be a bit controversial: Don't break the build if reference is broken
             if KRAMDOWN_OFFLINE
@@ -515,8 +522,8 @@ module Kramdown
               exit 66 unless to_insert # EX_NOINPUT
             end
           end
-          to_insert.gsub(/<\?xml version=["']1.0["'] encoding=["']UTF-8["']\?>/, '').
-            gsub(/(anchor=["'])([0-9])/) { "#{$1}_#{$2}"} # can't start an ID with a number
+          to_insert.sub(/<\?xml version=["']1.0["'] encoding=["']UTF-8["']\?>/, '')
+            .sub(/\banchor=(?:"[^"]+"|'[^']+')/, "anchor=\"#{anchor}\"")
         else
           "<xref#{el_html_attributes(el)}>#{alt}</xref>"
         end
