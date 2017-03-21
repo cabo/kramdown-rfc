@@ -154,14 +154,14 @@ def xml_from_sections(input)
             a = %{{:anchor="#{anchor}"}}
             sechash[sn.to_s] << %{\n#{NMDTAGS[0]}\n![:include:](#{target})#{a}\n#{NMDTAGS[1]}\n}
           else
-            if anchor == href
-              a = ""
-            else
-              if !rewrite
+            a = ""
+            if anchor != href
+              if rewrite
+                a = %{?anchor=#{anchor}}
+              else
                 warn "*** selecting a custom anchor for '#{anchor}' requires standalone mode"
-                exit 1
+                warn "    the output will need manual editing to correct this"
               end
-              a = %{?anchor=#{anchor}}
             end
             (ps.rest["bibxml"] ||= []) << k
             sechash[sn.to_s] << %{&#{target}#{a};\n}
