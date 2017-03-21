@@ -57,7 +57,6 @@ def xml_from_sections(input)
   [:ref, :normative, :informative].each do |sn|
     if refs = ps.has(sn)
       warn "*** bad section #{sn}: #{refs.inspect}" unless refs.respond_to? :each
-      aliased_refs = { }
       refs.each do |k, v|
         if v.respond_to? :to_str
           ref_replacements[v.to_str] = k
