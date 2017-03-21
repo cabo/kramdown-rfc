@@ -513,7 +513,7 @@ module Kramdown
             ttl ||= KRAMDOWN_REFCACHETTL  # everything but RFCs might change a lot
             puts "Huh: ${fn}" unless sub
             url = "#{XML_RESOURCE_ORG_PREFIX}/#{sub}/#{fn}"
-            to_insert = get_and_cache_resource(url, fn.gsub(/[\/+]/, '_'), ttl) # XXX negative list would be better
+            to_insert = get_and_cache_resource(url, fn.gsub('/', '_'), ttl)
             to_insert.scrub! rescue nil # only do this for Ruby >= 2.1
             # this may be a bit controversial: Don't break the build if reference is broken
             if KRAMDOWN_OFFLINE
