@@ -52,7 +52,7 @@ def xml_from_sections(input)
   end
 
   ref_replacements = { }
-  anchor_names = { }
+  anchor_targets = { }
 
   [:ref, :normative, :informative].each do |sn|
     if refs = ps.has(sn)
@@ -65,8 +65,8 @@ def xml_from_sections(input)
           if aliasname = v.delete("-")
             ref_replacements[aliasname] = k
           end
-          if anchorname = v.delete("=")
-            anchor_names[k] = anchorname
+          if target = v.delete("=")
+            anchor_targets[k] = target
           end
         end
       end
@@ -86,10 +86,10 @@ def xml_from_sections(input)
       anchor = $4
       href = $5
       if href
-        if anchor_names[anchor] && href != anchor_names[anchor]
+        if anchor_targets[anchor] && href != anchor_targets[anchor]
           warn "*** conflicting definitions for xref #{anchor}"
         else
-          anchor_names[anchor] ||= href
+          anchor_targets[anchor] ||= href
         end
       end
       if replacing
@@ -109,8 +109,8 @@ def xml_from_sections(input)
     end
   end
 
-  anchor_names.each do |k, v|
-    warn "*** no definition for xref #{k}" unless v
+  anchor_targets.each do |k, v|
+    warn "*** no target for anchor #{k}" unless v
   end
 
   [:normative, :informative].each do |k|
@@ -141,8 +141,7 @@ def xml_from_sections(input)
     if refs = ps[sn]
       refs.each do |k, v|
         anchor, href = Kramdown::Parser::RFC2629Kramdown.split_xref(k)
-        href ||= anchor_names[anchor]
-        href ||= anchor
+        href ||= anchor_targets[anchor] || anchor
         link_defs[anchor] = ["##{href}", nil]
 
         if (target,rewrite = bibtagsys(href))
