@@ -1,9 +1,15 @@
 module KramdownRFC
 
+  extend Kramdown::Utils::Html
+
+  def self.escattr(str)
+    escape_html(str.to_s, :attribute)
+  end
+
   def self.ref_to_xml(k, v)
     vps = KramdownRFC::ParameterSet.new(v)
     erb = ERB.new <<-REFERB, nil, '-'
-<reference anchor="<%= k %>" <%= vps.attr("target") %>>
+<reference anchor="<%= escattr(k) %>" <%= vps.attr("target") %>>
   <front>
     <%= vps.ele("title") -%>
 
@@ -18,10 +24,10 @@ module KramdownRFC
     <date <%= dateattrs(vps[:date]) %>/>
   </front>
 <% vps.arr("seriesinfo", false) do |k, v| -%>
-  <seriesInfo name="<%=k%>" value="<%=v%>"/>
+  <seriesInfo name="<%=escattr(k)%>" value="<%=escattr(v)%>"/>
 <% end -%>
 <% vps.arr("format", false) do |k, v| -%>
-  <format type="<%=k%>" target="<%=v%>"/>
+  <format type="<%=escattr(k)%>" target="<%=escattr(v)%>"/>
 <% end -%>
 <%= vps.ele("annotation=ann") -%>
 </reference>
