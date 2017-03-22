@@ -480,8 +480,8 @@ module Kramdown
         "NIST" => "bibxml2",
         "OASIS" => "bibxml2",
         "PKCS" => "bibxml2",
-        "DOI" => ["bibxml7", 86400], # 24 h cache at source anyway
-        "IANA" => ["bibxml8", 86400], # ditto
+        "DOI" => ["bibxml7", 86400, true], # 24 h cache at source anyway
+        "IANA" => ["bibxml8", 86400, true], # ditto
       }
 
       # XML_RESOURCE_ORG_HOST = ENV["XML_RESOURCE_ORG_HOST"] || "xml.resource.org"
@@ -506,6 +506,7 @@ module Kramdown
             src
           )
           anchor.sub!(/\A[0-9]/) { "_#{$&}" } # can't start an ID with a number
+          anchor.gsub!('/', '_')              # should take out all illegals
           to_insert = ""
           src.scan(/(W3C|3GPP|[A-Z-]+)[.]?([A-Za-z_0-9.\/\+-]+)/) do |t, n|
             fn = "reference.#{t}.#{n}.xml"

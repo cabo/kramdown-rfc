@@ -52,17 +52,24 @@ def xml_from_sections(input)
   end
 
   ref_replacements = { }
+  anchor_to_bibref = { }
 
   [:ref, :normative, :informative].each do |sn|
     if refs = ps.has(sn)
       warn "*** bad section #{sn}: #{refs.inspect}" unless refs.respond_to? :each
       refs.each do |k, v|
         if v.respond_to? :to_str
+          if bibtagsys(v)       # enable "foo: RFC4711" as a custom anchor definition
+            anchor_to_bibref[k] = v.to_str
+          end
           ref_replacements[v.to_str] = k
         end
         if v.respond_to? :[]
           if aliasname = v.delete("-")
             ref_replacements[aliasname] = k
+          end
+          if bibref = v.delete("=")
+            anchor_to_bibref[k] = bibref
           end
         end
       end
@@ -76,10 +83,11 @@ def xml_from_sections(input)
   # collect normative/informative tagging {{!RFC2119}} {{?RFC4711}}
   sechash.each do |k, v|
     next if k == "fluff"
-    v.gsub!(/{{(?:([?!])(-)?|(-))([\w.\-]+)}}/) do |match|
+    v.gsub!(/{{(?:([?!])(-)?|(-))([\w._\-]+)(?:=([\w.\/_\-]+))?}}/) do |match|
       norminform = $1
       replacing = $2 || $3
       word = $4
+      bibref = $5
       if replacing
         if new = ref_replacements[word]
           word = new
@@ -88,6 +96,16 @@ def xml_from_sections(input)
           word = "-#{word}"
         end
       end       # now, word is the anchor
+      if bibref
+        if old = anchor_to_bibref[word]
+          if bibref != old
+            warn "*** conflicting definitions for xref #{anchor}: #{old} != #{bibref}"
+          end
+        else
+          anchor_to_bibref[word] = bibref
+        end
+      end
+
       # things can be normative in one place and informative in another -> normative
       # collect norm/inform above and assign it by priority here
       if norminform
@@ -126,15 +144,20 @@ def xml_from_sections(input)
       refs.each do |k, v|
         href = k.gsub(/\A[0-9]/) { "_#{$&}" } # can't start an IDREF with a number
         link_defs[k] = ["##{href}", nil]            # allow [RFC2119] in addition to {{RFC2119}}
-        if bts = bibtagsys(k)
-          if v
+
+        bibref = anchor_to_bibref[k] || k
+        bts, url = bibtagsys(bibref, k, stand_alone)
+        if bts
+          if v && v != {}
             warn "*** redundant in #{k}: #{v.inspect}" unless v.respond_to? :to_str
           end
           if stand_alone
-            sechash[sn.to_s] << %{\n#{NMDTAGS[0]}\n![:include:](#{bts[0]})\n#{NMDTAGS[1]}\n}
+            a = %{{: anchor="#{k}"}}
+            sechash[sn.to_s] << %{\n#{NMDTAGS[0]}\n![:include:](#{bts})#{a}\n#{NMDTAGS[1]}\n}
           else
-            (ps.rest["bibxml"] ||= []) << k
-            sechash[sn.to_s] << %{&#{bts[0]};\n}
+            bts.gsub!('/', '_')
+            (ps.rest["bibxml"] ||= []) << [bts, url]
+            sechash[sn.to_s] << %{&#{bts};\n} # ???
           end
         else
           unless v && Hash === v
@@ -163,16 +186,27 @@ end
 
 XML_RESOURCE_ORG_PREFIX = Kramdown::Converter::Rfc2629::XML_RESOURCE_ORG_PREFIX
 
-def bibtagsys(bib)
+# return XML entity name, url, rewrite_anchor flag
+def bibtagsys(bib, anchor=nil, stand_alone=true)
   if bib =~ /\Arfc(\d+)/i
     rfc4d = "%04d" % $1.to_i
     [bib.upcase,
      "#{XML_RESOURCE_ORG_PREFIX}/bibxml/reference.RFC.#{rfc4d}.xml"]
   elsif bib =~ /\A([-A-Z0-9]+)\./ &&
-        (dir, = Kramdown::Converter::Rfc2629::XML_RESOURCE_ORG_MAP[$1])
+        (dir, _ttl, rewrite_anchor = Kramdown::Converter::Rfc2629::XML_RESOURCE_ORG_MAP[$1])
     bib1 = bib.gsub(/\A[0-9]/) { "_#{$&}" } # can't start an ID with a number
+    if anchor && bib1 != anchor
+      if rewrite_anchor
+        a = %{?anchor=#{anchor}}
+      else
+        if !stand_alone
+          warn "*** selecting a custom anchor '#{anchor}' for '#{bib1}' requires stand_alone mode"
+          warn "    the output will need manual editing to correct this"
+        end
+      end
+    end
     [bib1,
-     "#{XML_RESOURCE_ORG_PREFIX}/#{dir}/reference.#{bib}.xml"]
+     "#{XML_RESOURCE_ORG_PREFIX}/#{dir}/reference.#{bib}.xml#{a}"]
   end
 end
 
