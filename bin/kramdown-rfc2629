@@ -52,6 +52,7 @@ def xml_from_sections(input)
   end
 
   ref_replacements = { }
+  anchor_targets = { }
 
   [:ref, :normative, :informative].each do |sn|
     if refs = ps.has(sn)
@@ -63,6 +64,9 @@ def xml_from_sections(input)
         if v.respond_to? :[]
           if aliasname = v.delete("-")
             ref_replacements[aliasname] = k
+          end
+          if target = v.delete("=")
+            anchor_targets[k] = target
           end
         end
       end
@@ -76,25 +80,37 @@ def xml_from_sections(input)
   # collect normative/informative tagging {{!RFC2119}} {{?RFC4711}}
   sechash.each do |k, v|
     next if k == "fluff"
-    v.gsub!(/{{(?:([?!])(-)?|(-))([\w.\-]+)}}/) do |match|
+    v.gsub!(/{{(?:([?!])(-)?|(-))([\w._\-]+)(?:=([\w.\/_\-]+))?}}/) do |match|
       norminform = $1
       replacing = $2 || $3
-      word = $4
-      if replacing
-        if new = ref_replacements[word]
-          word = new
+      anchor = $4
+      href = $5
+      if href
+        if anchor_targets[anchor] && href != anchor_targets[anchor]
+          warn "*** conflicting definitions for xref #{anchor}"
         else
-          warn "*** no alias replacement for {{-#{word}}}" 
-          word = "-#{word}"
+          anchor_targets[anchor] ||= href
+        end
+      end
+      if replacing
+        if new = ref_replacements[anchor]
+          anchor = new
+        else
+          warn "*** no alias replacement for {{#{replacing}#{anchor}}}"
+          anchor = "#{replacing}#{anchor}"
         end
       end
       # things can be normative in one place and informative in another -> normative
       # collect norm/inform above and assign it by priority here
       if norminform
-        norm_ref[word] ||= norminform == '!' # one normative ref is enough
+        norm_ref[anchor] ||= norminform == '!' # one normative ref is enough
       end
-      "{{#{word}}}"
+      "{{#{anchor}}}"
     end
+  end
+
+  anchor_targets.each do |k, v|
+    warn "*** no target for anchor #{k}" unless v
   end
 
   [:normative, :informative].each do |k|
@@ -124,21 +140,33 @@ def xml_from_sections(input)
   [:normative, :informative].each do |sn|
     if refs = ps[sn]
       refs.each do |k, v|
-        href = k.gsub(/\A[0-9]/) { "_#{$&}" } # can't start an IDREF with a number
-        link_defs[k] = ["##{href}", nil]            # allow [RFC2119] in addition to {{RFC2119}}
-        if bts = bibtagsys(k)
-          if v
-            warn "*** redundant in #{k}: #{v.inspect}" unless v.respond_to? :to_str
+        anchor, href = Kramdown::Parser::RFC2629Kramdown.split_xref(k)
+        href ||= anchor_targets[anchor] || anchor
+        link_defs[anchor] = ["##{href}", nil]
+
+        if (target,rewrite = bibtagsys(href))
+          if v && Hash === v && v.count > 0
+            warn "*** redundant in #{k}: #{v.inspect}"
           end
           if stand_alone
-            sechash[sn.to_s] << %{\n#{NMDTAGS[0]}\n![:include:](#{bts[0]})\n#{NMDTAGS[1]}\n}
+            a = %{{:anchor="#{anchor}"}}
+            sechash[sn.to_s] << %{\n#{NMDTAGS[0]}\n![:include:](#{target})#{a}\n#{NMDTAGS[1]}\n}
           else
+            a = ""
+            if anchor != href
+              if rewrite
+                a = %{?anchor=#{anchor}}
+              else
+                warn "*** selecting a custom anchor for '#{anchor}' requires standalone mode"
+                warn "    the output will need manual editing to correct this"
+              end
+            end
             (ps.rest["bibxml"] ||= []) << k
-            sechash[sn.to_s] << %{&#{bts[0]};\n}
+            sechash[sn.to_s] << %{&#{target}#{a};\n}
           end
         else
           unless v && Hash === v
-            warn "*** don't know how to expand ref #{k}" 
+            warn "*** don't know how to expand ref #{k}"
             next
           end
           sechash[sn.to_s] << KramdownRFC::ref_to_xml(k, v)
@@ -161,25 +189,21 @@ def xml_from_sections(input)
   [input, coding_override, link_defs, smart_quotes]
 end
 
-XML_RESOURCE_ORG_PREFIX = Kramdown::Converter::Rfc2629::XML_RESOURCE_ORG_PREFIX
-
 def bibtagsys(bib)
   if bib =~ /\Arfc(\d+)/i
-    rfc4d = "%04d" % $1.to_i
-    [bib.upcase,
-     "#{XML_RESOURCE_ORG_PREFIX}/bibxml/reference.RFC.#{rfc4d}.xml"]
-  elsif bib =~ /\A([-A-Z0-9]+)\./ &&
-        (dir, = Kramdown::Converter::Rfc2629::XML_RESOURCE_ORG_MAP[$1])
-    bib1 = bib.gsub(/\A[0-9]/) { "_#{$&}" } # can't start an ID with a number
-    [bib1,
-     "#{XML_RESOURCE_ORG_PREFIX}/#{dir}/reference.#{bib}.xml"]
+    [bib.upcase, false]
+  elsif bib =~ /\A([-A-Z0-9]+)\./
+    dir,ttl,rewrite = Kramdown::Converter::Rfc2629::XML_RESOURCE_ORG_MAP[$1]
+    if dir
+      [bib, rewrite]
+    end
   end
 end
 
 def read_encodings
   encfilename = File.expand_path '../../data/encoding-fallbacks.txt', __FILE__
   encfile = File.read(encfilename, coding: "UTF-8")
-  Hash[encfile.lines.map{|l| 
+  Hash[encfile.lines.map{|l|
          l.chomp!;
          x, s = l.split(" ", 2)
          [x.hex.chr(Encoding::UTF_8), s || " "]}]

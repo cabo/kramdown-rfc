@@ -32,23 +32,21 @@ author:
     email: cabo@tzi.org
 
 normative:
-  RFC2119:
   RFC3986:
+    -: url
   RFC4086:
-  RFC4648:
 
 informative:
-  RFC5389:
-  I-D.ietf-behave-turn:
   STUNT:
+    -: stunt-oob
     target: http://deusty.blogspot.com/2007/09/stunt-out-of-band-channels.html
     title: STUNT & out-of-band channels
     author:
       name: Robbie Hanson
       ins: R. Hanson
     date: 2007-09-17
-  I-D.meyer-xmpp-e2e-encryption:
-  I-D.ietf-xmpp-3920bis:
+  XMPP-E2E:
+    =: I-D.meyer-xmpp-e2e-encryption
 
 
 
@@ -73,7 +71,7 @@ Introduction        {#problems}
 
 NAT (Network Address Translator) Traversal may require TURN
 (Traversal Using Relays around NAT)
-{{I-D.ietf-behave-turn}}
+{{?I-D.ietf-behave-turn}}
 functionality in certain
 cases that are not unlikely to occur.  There is little
 incentive to deploy TURN servers, except by those who need
@@ -84,7 +82,7 @@ deployment requirements as high as those of TURN.
 "STUN/TURN using PHP in Despair" is a highly deployable
 protocol for obtaining TURN-like functionality, while also
 providing the most important function of STUN
-{{RFC5389}}.
+{{?STUN=RFC5389}}.
 
 The high degree of deployability is achieved by making STuPiD
 a Web service, implementable in any Web application deployment
@@ -110,7 +108,7 @@ for optimized implementations.
 
 Finally, where STuPiD becomes part of a client standard
 (such as a potential extension to XMPP's in-band byte-stream
-protocol as hinted in {{xmpp}}), it is a good
+protocol {{XMPP}} as hinted in {{xmpp}}), it is a good
 thing if STuPiD is already defined.
 
 Hence, this document focuses on the definition of the STuPiD
@@ -125,9 +123,9 @@ Basic Protocol Operation   {#ops}
 The STuPiD protocol will typically be used with application
 instances that first attempt to obtain connectivity using
 mechanisms similar to those described in the STUN
-specification {{RFC5389}}.  However, with STuPiD,
+specification {{STUN}}.  However, with STuPiD,
 STUN is not really needed for TCP, as was demonstrated in
-previous STUN-like implementations {{STUNT}}.
+previous STUN-like implementations {{-stunt-oob}}.
 Instead, STuPiD (like {{STUNT}}) provides a
 simple Web service that
 echoes the remote address and port of an incoming HTTP
@@ -210,7 +208,7 @@ Terminology          {#Terminology}
 In this document, the key words "MUST", "MUST NOT", "REQUIRED",
 "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY",
 and "OPTIONAL" are to be interpreted as described in BCP 14, RFC 2119
-{{RFC2119}} and indicate requirement levels for compliant STuPiD
+{{!BCP14=RFC2119}} and indicate requirement levels for compliant STuPiD
 implementations.
 
 
@@ -225,7 +223,7 @@ format:
 
 host ":" port
 
-where 'host' and 'port' are defined as in {{RFC3986}}.
+where 'host' and 'port' are defined as in {{-url}}.
 
 
 Storing Data
@@ -237,7 +235,7 @@ as query-string:
 
 'chid':  A unique ID identifying the data chunk to be stored.
 The ID SHOULD be chosen from the characters of the base64url
-set {{RFC4648}}.
+set {{!BASE64=RFC4648}}.
 
 The payload of the POST request MUST be the data to be
 stored. The 'Content-Type' SHOULD be
@@ -322,7 +320,7 @@ NAT traversal had succeeded, i.e., an on-path attacker can
 overhear and fake messages, but an off-path attacker cannot.
 If a higher level of security is desired, it should be
 provided on top of the data relayed by STuPiD, e.g. by using
-XTLS {{I-D.meyer-xmpp-e2e-encryption}}.
+XTLS {{XMPP-E2E}}.
 
 Much of the security of STuPiD is based on the assumption that
 an off-path attacker cannot guess the chunk identifiers.  A
@@ -479,7 +477,7 @@ mysql_close();
 Using XMPP as Out-Of-Band Channel  {#xmpp}
 =================================
 
-XMPP {{I-D.ietf-xmpp-3920bis}} is a good choice for
+XMPP {{?XMPP=I-D.ietf-xmpp-3920bis}} is a good choice for
 an out-of-band channel.
 
 The notification protocol is closely modeled after XMPP's

@@ -39,14 +39,20 @@ module Kramdown
 
       XREF_START = /\{\{(.*?)\}\}/u
 
+      def self.split_xref(t)
+        anchor, href = t.split('=')
+        anchor = anchor.sub(/\A\d/) { "_#{$&}" } # can't start an IDREF with a number
+        anchor = anchor.gsub('/', '_') # DOIs are gross
+        [anchor, href]
+      end
+
       # Introduce new {{target}} syntax for empty xrefs, which would
       # otherwise be an ugly ![!](target) or ![ ](target)
       # (I'd rather use [[target]], but that somehow clashes with links.)
       def parse_xref
         @src.pos += @src.matched_size
-        href = @src[1]
-        href = href.gsub(/\A[0-9]/) { "_#{$&}" } # can't start an IDREF with a number
-        el = Element.new(:xref, nil, {'target' => href})
+        anchor, = RFC2629Kramdown.split_xref(@src[1])
+        el = Element.new(:xref, nil, {'target' => anchor})
         @tree.children << el
       end
       define_parser(:xref, XREF_START, '{{')
@@ -56,8 +62,7 @@ module Kramdown
       # Introduce new (((target))) syntax for irefs
       def parse_iref
         @src.pos += @src.matched_size
-        href = @src[1]
-        el = Element.new(:iref, nil, {'target' => href}) # XXX
+        el = Element.new(:iref, nil, {'target' => @src[1]}) # XXX
         @tree.children << el
       end
       define_parser(:iref, IREF_START, '\(\(\(')
@@ -480,8 +485,8 @@ module Kramdown
         "NIST" => "bibxml2",
         "OASIS" => "bibxml2",
         "PKCS" => "bibxml2",
-        "DOI" => ["bibxml7", 86400], # 24 h cache at source anyway
-        "IANA" => ["bibxml8", 86400], # ditto
+        "DOI" => ["bibxml7", 86400, true], # 24 h cache at source anyway
+        "IANA" => ["bibxml8", 86400, true], # ditto
       }
 
       # XML_RESOURCE_ORG_HOST = ENV["XML_RESOURCE_ORG_HOST"] || "xml.resource.org"

@@ -1,61 +1,15 @@
 
 
 
+
 XMPP Working Group                                             K. Hartke
 Internet-Draft                                                C. Bormann
 Intended status: Informational                   Universitaet Bremen TZI
-Expires: January 6, 2010                                    July 5, 2009
+Expires: January 6, 2010                                   July 05, 2009
 
 
                      STUN/TURN using PHP in Despair
                       draft-hartke-xmpp-stupid-00
-
-Status of this Memo
-
-   This Internet-Draft is submitted to IETF in full conformance with the
-   provisions of BCP 78 and BCP 79.
-
-   Internet-Drafts are working documents of the Internet Engineering
-   Task Force (IETF), its areas, and its working groups.  Note that
-   other groups may also distribute working documents as Internet-
-   Drafts.
-
-   Internet-Drafts are draft documents valid for a maximum of six months
-   and may be updated, replaced, or obsoleted by other documents at any
-   time.  It is inappropriate to use Internet-Drafts as reference
-   material or to cite them other than as "work in progress."
-
-   The list of current Internet-Drafts can be accessed at
-   http://www.ietf.org/ietf/1id-abstracts.txt.
-
-   The list of Internet-Draft Shadow Directories can be accessed at
-   http://www.ietf.org/shadow.html.
-
-   This Internet-Draft will expire on January 6, 2010.
-
-Copyright Notice
-
-   Copyright (c) 2009 IETF Trust and the persons identified as the
-   document authors.  All rights reserved.
-
-   This document is subject to BCP 78 and the IETF Trust's Legal
-   Provisions Relating to IETF Documents in effect on the date of
-   publication of this document (http://trustee.ietf.org/license-info).
-   Please review these documents carefully, as they describe your rights
-   and restrictions with respect to this document.
-
-
-
-
-
-
-
-
-
-Hartke & Bormann         Expires January 6, 2010                [Page 1]
-
-Internet-Draft                   STuPiD                        July 2009
-
 
 Abstract
 
@@ -71,47 +25,66 @@ Abstract
    obtaining TURN-like functionality, while also providing the most
    important function of STUN.
 
+Status of This Memo
 
-Table of Contents
+   This Internet-Draft is submitted in full conformance with the
+   provisions of BCP 78 and BCP 79.
 
-   1.  Introduction . . . . . . . . . . . . . . . . . . . . . . . . .  3
-     1.1.  The Need for Standardization . . . . . . . . . . . . . . .  3
-   2.  Basic Protocol Operation . . . . . . . . . . . . . . . . . . .  4
-   3.  Protocol Definition  . . . . . . . . . . . . . . . . . . . . .  6
-     3.1.  Terminology  . . . . . . . . . . . . . . . . . . . . . . .  6
-     3.2.  Discovering External IP Address and Port . . . . . . . . .  6
-     3.3.  Storing Data . . . . . . . . . . . . . . . . . . . . . . .  6
-     3.4.  Notification . . . . . . . . . . . . . . . . . . . . . . .  7
-     3.5.  Retrieving Data  . . . . . . . . . . . . . . . . . . . . .  7
-   4.  Implementation Notes . . . . . . . . . . . . . . . . . . . . .  8
-   5.  Security Considerations  . . . . . . . . . . . . . . . . . . .  9
-   6.  References . . . . . . . . . . . . . . . . . . . . . . . . . . 10
-     6.1.  Normative References . . . . . . . . . . . . . . . . . . . 10
-     6.2.  Informative References . . . . . . . . . . . . . . . . . . 10
-   Appendix A.  Examples  . . . . . . . . . . . . . . . . . . . . . . 11
-   Appendix B.  Sample Implementation . . . . . . . . . . . . . . . . 14
-   Appendix C.  Using XMPP as Out-Of-Band Channel . . . . . . . . . . 15
-   Authors' Addresses . . . . . . . . . . . . . . . . . . . . . . . . 17
+   Internet-Drafts are working documents of the Internet Engineering
+   Task Force (IETF).  Note that other groups may also distribute
+   working documents as Internet-Drafts.  The list of current Internet-
+   Drafts is at http://datatracker.ietf.org/drafts/current/.
 
+   Internet-Drafts are draft documents valid for a maximum of six months
+   and may be updated, replaced, or obsoleted by other documents at any
+   time.  It is inappropriate to use Internet-Drafts as reference
+   material or to cite them other than as "work in progress."
 
+   This Internet-Draft will expire on January 6, 2010.
 
+Copyright Notice
 
+   Copyright (c) 2009 IETF Trust and the persons identified as the
+   document authors.  All rights reserved.
 
-
+   This document is subject to BCP 78 and the IETF Trust's Legal
+   Provisions Relating to IETF Documents
+   (http://trustee.ietf.org/license-info) in effect on the date of
 
 
 
-
-
-
-
-
-
-
-Hartke & Bormann         Expires January 6, 2010                [Page 2]
+Hartke & Bormann         Expires January 6, 2010                [Page 1]
 
 Internet-Draft                   STuPiD                        July 2009
 
+
+   publication of this document.  Please review these documents
+   carefully, as they describe your rights and restrictions with respect
+   to this document.  Code Components extracted from this document must
+   include Simplified BSD License text as described in Section 4.e of
+   the Trust Legal Provisions and are provided without warranty as
+   described in the Simplified BSD License.
+
+Table of Contents
+
+   1.  Introduction  . . . . . . . . . . . . . . . . . . . . . . . .   2
+     1.1.  The Need for Standardization  . . . . . . . . . . . . . .   3
+   2.  Basic Protocol Operation  . . . . . . . . . . . . . . . . . .   3
+   3.  Protocol Definition . . . . . . . . . . . . . . . . . . . . .   5
+     3.1.  Terminology . . . . . . . . . . . . . . . . . . . . . . .   5
+     3.2.  Discovering External IP Address and Port  . . . . . . . .   5
+     3.3.  Storing Data  . . . . . . . . . . . . . . . . . . . . . .   5
+     3.4.  Notification  . . . . . . . . . . . . . . . . . . . . . .   6
+     3.5.  Retrieving Data . . . . . . . . . . . . . . . . . . . . .   6
+   4.  Implementation Notes  . . . . . . . . . . . . . . . . . . . .   6
+   5.  Security Considerations . . . . . . . . . . . . . . . . . . .   6
+   6.  References  . . . . . . . . . . . . . . . . . . . . . . . . .   7
+     6.1.  Normative References  . . . . . . . . . . . . . . . . . .   7
+     6.2.  Informative References  . . . . . . . . . . . . . . . . .   7
+   Appendix A.  Examples . . . . . . . . . . . . . . . . . . . . . .   8
+   Appendix B.  Sample Implementation  . . . . . . . . . . . . . . .  10
+   Appendix C.  Using XMPP as Out-Of-Band Channel  . . . . . . . . .  12
+   Authors' Addresses  . . . . . . . . . . . . . . . . . . . . . . .  13
 
 1.  Introduction
 
@@ -125,13 +98,22 @@ Internet-Draft                   STuPiD                        July 2009
 
    "STUN/TURN using PHP in Despair" is a highly deployable protocol for
    obtaining TURN-like functionality, while also providing the most
-   important function of STUN [RFC5389].
+   important function of STUN [STUN].
 
    The high degree of deployability is achieved by making STuPiD a Web
    service, implementable in any Web application deployment scheme.  As
    PHP appears to be the solution of choice for avoiding deployment
    problems in the Web world, a PHP-based sample implementation of
    STuPiD is presented in Figure 5 in Appendix B.  (This single-page
+
+
+
+
+Hartke & Bormann         Expires January 6, 2010                [Page 2]
+
+Internet-Draft                   STuPiD                        July 2009
+
+
    script has been tested with a free-of-charge web hoster, so it should
    be deployable by literally everyone.)
 
@@ -148,32 +130,20 @@ Internet-Draft                   STuPiD                        July 2009
    implementations.
 
    Finally, where STuPiD becomes part of a client standard (such as a
-   potential extension to XMPP's in-band byte-stream protocol as hinted
-   in Appendix C), it is a good thing if STuPiD is already defined.
+   potential extension to XMPP's in-band byte-stream protocol [XMPP] as
+   hinted in Appendix C), it is a good thing if STuPiD is already
+   defined.
 
    Hence, this document focuses on the definition of the STuPiD service
    itself, tries to make this as general as possible without increasing
    complexity or cost and leaves the details of any client standards to
    future documents.
 
-
-
-
-
-
-
-
-
-Hartke & Bormann         Expires January 6, 2010                [Page 3]
-
-Internet-Draft                   STuPiD                        July 2009
-
-
 2.  Basic Protocol Operation
 
    The STuPiD protocol will typically be used with application instances
    that first attempt to obtain connectivity using mechanisms similar to
-   those described in the STUN specification [RFC5389].  However, with
+   those described in the STUN specification [STUN].  However, with
    STuPiD, STUN is not really needed for TCP, as was demonstrated in
    previous STUN-like implementations [STUNT].  Instead, STuPiD (like
    [STUNT]) provides a simple Web service that echoes the remote address
@@ -191,6 +161,14 @@ Internet-Draft                   STuPiD                        July 2009
    case in the example provided in Appendix C, where the out-of-band
    channel is typically throughput-limited to on the order of a few
    kilobits per second.)
+
+
+
+
+Hartke & Bormann         Expires January 6, 2010                [Page 3]
+
+Internet-Draft                   STuPiD                        July 2009
+
 
    By designing the STuPiD web service in such a way that it can be
    implemented by a simple PHP script such as that presented in
@@ -215,15 +193,6 @@ Internet-Draft                   STuPiD                        July 2009
        varying part such as a sequence number in each notification --
        this is something to be decided in the client-client notification
        protocol.)
-
-
-
-
-
-Hartke & Bormann         Expires January 6, 2010                [Page 4]
-
-Internet-Draft                   STuPiD                        July 2009
-
 
    3.  Peer B retrieves the data from the STuPiD server using the URI
        provided by Peer A.
@@ -252,31 +221,7 @@ Internet-Draft                   STuPiD                        July 2009
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Hartke & Bormann         Expires January 6, 2010                [Page 5]
+Hartke & Bormann         Expires January 6, 2010                [Page 4]
 
 Internet-Draft                   STuPiD                        July 2009
 
@@ -288,7 +233,7 @@ Internet-Draft                   STuPiD                        July 2009
    In this document, the key words "MUST", "MUST NOT", "REQUIRED",
    "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY",
    and "OPTIONAL" are to be interpreted as described in BCP 14, RFC 2119
-   [RFC2119] and indicate requirement levels for compliant STuPiD
+   [BCP14] and indicate requirement levels for compliant STuPiD
    implementations.
 
 3.2.  Discovering External IP Address and Port
@@ -309,7 +254,7 @@ Internet-Draft                   STuPiD                        July 2009
    string:
 
    'chid': A unique ID identifying the data chunk to be stored.  The ID
-   SHOULD be chosen from the characters of the base64url set [RFC4648].
+   SHOULD be chosen from the characters of the base64url set [BASE64].
 
    The payload of the POST request MUST be the data to be stored.  The
    'Content-Type' SHOULD be 'application/octet-stream', although a
@@ -332,7 +277,7 @@ Internet-Draft                   STuPiD                        July 2009
 
 
 
-Hartke & Bormann         Expires January 6, 2010                [Page 6]
+Hartke & Bormann         Expires January 6, 2010                [Page 5]
 
 Internet-Draft                   STuPiD                        July 2009
 
@@ -356,43 +301,6 @@ Internet-Draft                   STuPiD                        July 2009
    the URL supplied by the sender.  The STuPiD server MUST set the
    'Content-Type' of the returned body to 'application/octet-stream'.
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Hartke & Bormann         Expires January 6, 2010                [Page 7]
-
-Internet-Draft                   STuPiD                        July 2009
-
-
 4.  Implementation Notes
 
    A STuPiD server implementation SHOULD delete stored data some time
@@ -414,48 +322,21 @@ Internet-Draft                   STuPiD                        July 2009
    are actually stored.  A sufficiently silly STuPiD server
    implementation might for instance use a MySQL database.
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Hartke & Bormann         Expires January 6, 2010                [Page 8]
-
-Internet-Draft                   STuPiD                        July 2009
-
-
 5.  Security Considerations
 
    The security objectives of STuPiD are to be as secure as if NAT
    traversal had succeeded, i.e., an on-path attacker can overhear and
    fake messages, but an off-path attacker cannot.  If a higher level of
    security is desired, it should be provided on top of the data relayed
-   by STuPiD, e.g. by using XTLS [I-D.meyer-xmpp-e2e-encryption].
+   by STuPiD, e.g. by using XTLS [XMPP-E2E].
+
+
+
+
+Hartke & Bormann         Expires January 6, 2010                [Page 6]
+
+Internet-Draft                   STuPiD                        July 2009
+
 
    Much of the security of STuPiD is based on the assumption that an
    off-path attacker cannot guess the chunk identifiers.  A suitable
@@ -470,96 +351,62 @@ Internet-Draft                   STuPiD                        July 2009
    as HTTP authentication.  There is little need to protect the GET
    side.
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Hartke & Bormann         Expires January 6, 2010                [Page 9]
-
-Internet-Draft                   STuPiD                        July 2009
-
-
 6.  References
 
 6.1.  Normative References
 
-   [RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
-              Requirement Levels", BCP 14, RFC 2119, March 1997.
+   [BASE64]   Josefsson, S., "The Base16, Base32, and Base64 Data
+              Encodings", RFC 4648, DOI 10.17487/RFC4648, October 2006,
+              <http://www.rfc-editor.org/info/rfc4648>.
+
+   [BCP14]    Bradner, S., "Key words for use in RFCs to Indicate
+              Requirement Levels", BCP 14, RFC 2119,
+              DOI 10.17487/RFC2119, March 1997,
+              <http://www.rfc-editor.org/info/rfc2119>.
 
    [RFC3986]  Berners-Lee, T., Fielding, R., and L. Masinter, "Uniform
               Resource Identifier (URI): Generic Syntax", STD 66,
-              RFC 3986, January 2005.
+              RFC 3986, DOI 10.17487/RFC3986, January 2005,
+              <http://www.rfc-editor.org/info/rfc3986>.
 
-   [RFC4086]  Eastlake, D., Schiller, J., and S. Crocker, "Randomness
-              Requirements for Security", BCP 106, RFC 4086, June 2005.
-
-   [RFC4648]  Josefsson, S., "The Base16, Base32, and Base64 Data
-              Encodings", RFC 4648, October 2006.
+   [RFC4086]  Eastlake 3rd, D., Schiller, J., and S. Crocker,
+              "Randomness Requirements for Security", BCP 106, RFC 4086,
+              DOI 10.17487/RFC4086, June 2005,
+              <http://www.rfc-editor.org/info/rfc4086>.
 
 6.2.  Informative References
 
    [I-D.ietf-behave-turn]
               Rosenberg, J., Mahy, R., and P. Matthews, "Traversal Using
               Relays around NAT (TURN): Relay Extensions to Session
-              Traversal Utilities for NAT (STUN)",
-              draft-ietf-behave-turn-16 (work in progress), July 2009.
+              Traversal Utilities for NAT (STUN)", draft-ietf-behave-
+              turn-16 (work in progress), July 2009.
 
-   [I-D.ietf-xmpp-3920bis]
-              Saint-Andre, P., "Extensible Messaging and Presence
-              Protocol (XMPP): Core", draft-ietf-xmpp-3920bis-22 (work
-              in progress), December 2010.
-
-   [I-D.meyer-xmpp-e2e-encryption]
-              Meyer, D. and P. Saint-Andre, "XTLS: End-to-End Encryption
-              for the Extensible Messaging and Presence Protocol (XMPP)
-              Using Transport Layer Security (TLS)",
-              draft-meyer-xmpp-e2e-encryption-02 (work in progress),
-              June 2009.
-
-   [RFC5389]  Rosenberg, J., Mahy, R., Matthews, P., and D. Wing,
+   [STUN]     Rosenberg, J., Mahy, R., Matthews, P., and D. Wing,
               "Session Traversal Utilities for NAT (STUN)", RFC 5389,
-              October 2008.
-
-   [STUNT]    Hanson, R., "STUNT & out-of-band channels",
-              September 2007, <http://deusty.blogspot.com/2007/09/
-              stunt-out-of-band-channels.html>.
+              DOI 10.17487/RFC5389, October 2008,
+              <http://www.rfc-editor.org/info/rfc5389>.
 
 
 
-
-
-
-
-Hartke & Bormann         Expires January 6, 2010               [Page 10]
+Hartke & Bormann         Expires January 6, 2010                [Page 7]
 
 Internet-Draft                   STuPiD                        July 2009
 
+
+   [STUNT]    Hanson, R., "STUNT & out-of-band channels", September
+              2007, <http://deusty.blogspot.com/2007/09/
+              stunt-out-of-band-channels.html>.
+
+   [XMPP]     Saint-Andre, P., "Extensible Messaging and Presence
+              Protocol (XMPP): Core", draft-ietf-xmpp-3920bis-22 (work
+              in progress), December 2010.
+
+   [XMPP-E2E]
+              Meyer, D. and P. Saint-Andre, "XTLS: End-to-End Encryption
+              for the Extensible Messaging and Presence Protocol (XMPP)
+              Using Transport Layer Security (TLS)", draft-meyer-xmpp-
+              e2e-encryption-02 (work in progress), June 2009.
 
 Appendix A.  Examples
 
@@ -598,21 +445,7 @@ Appendix A.  Examples
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Hartke & Bormann         Expires January 6, 2010               [Page 11]
+Hartke & Bormann         Expires January 6, 2010                [Page 8]
 
 Internet-Draft                   STuPiD                        July 2009
 
@@ -668,7 +501,7 @@ Internet-Draft                   STuPiD                        July 2009
 
 
 
-Hartke & Bormann         Expires January 6, 2010               [Page 12]
+Hartke & Bormann         Expires January 6, 2010                [Page 9]
 
 Internet-Draft                   STuPiD                        July 2009
 
@@ -698,6 +531,7 @@ Internet-Draft                   STuPiD                        July 2009
 
                          Figure 4: Retrieving Data
 
+Appendix B.  Sample Implementation
 
 
 
@@ -723,13 +557,10 @@ Internet-Draft                   STuPiD                        July 2009
 
 
 
-
-Hartke & Bormann         Expires January 6, 2010               [Page 13]
+Hartke & Bormann         Expires January 6, 2010               [Page 10]
 
 Internet-Draft                   STuPiD                        July 2009
 
-
-Appendix B.  Sample Implementation
 
 <?php
 header("Cache-Control: no-cache, must-revalidate");
@@ -780,15 +611,16 @@ mysql_close();
 
 
 
-Hartke & Bormann         Expires January 6, 2010               [Page 14]
+
+
+Hartke & Bormann         Expires January 6, 2010               [Page 11]
 
 Internet-Draft                   STuPiD                        July 2009
 
 
 Appendix C.  Using XMPP as Out-Of-Band Channel
 
-   XMPP [I-D.ietf-xmpp-3920bis] is a good choice for an out-of-band
-   channel.
+   XMPP [XMPP] is a good choice for an out-of-band channel.
 
    The notification protocol is closely modeled after XMPP's In-Band
    Bytestreams (IBB, see http://xmpp.org/extensions/xep-0047.html).
@@ -805,8 +637,8 @@ Appendix C.  Using XMPP as Out-Of-Band Channel
    that a notification has been lost.  The recipient MUST NOT process
    such an out-of-sequence notification, nor any that follow it within
    the same session; instead, the recipient MUST consider the session
-   invalid.  (Adapted from
-   http://xmpp.org/extensions/xep-0047.html#send)
+   invalid.  (Adapted from http://xmpp.org/extensions/xep-
+   0047.html#send)
 
    Of course, other methods can be used for setup and teardown, such as
    Jingle (see http://xmpp.org/extensions/xep-0261.html).
@@ -823,7 +655,6 @@ Appendix C.  Using XMPP as Out-Of-Band Channel
 
         Figure 6: Creating a Bytestream: Initiator requests session
 
-
          <iq from='juliet@capulet.com/balcony'
              id='jn3h8g65'
              to='romeo@montague.net/orchard'
@@ -836,7 +667,9 @@ Appendix C.  Using XMPP as Out-Of-Band Channel
 
 
 
-Hartke & Bormann         Expires January 6, 2010               [Page 15]
+
+
+Hartke & Bormann         Expires January 6, 2010               [Page 12]
 
 Internet-Draft                   STuPiD                        July 2009
 
@@ -853,14 +686,12 @@ Internet-Draft                   STuPiD                        July 2009
 
        Figure 8: Sending Notifications: Notification in an IQ stanza
 
-
          <iq from='juliet@capulet.com/balcony'
              id='kr91n475'
              to='romeo@montague.net/orchard'
              type='result'/>
 
    Figure 9: Sending Notifications: Acknowledging notification using IQ
-
 
          <iq from='romeo@montague.net/orchard'
              id='us71g45j'
@@ -872,7 +703,6 @@ Internet-Draft                   STuPiD                        July 2009
 
                 Figure 10: Closing the Bytestream: Request
 
-
          <iq from='juliet@capulet.com/balcony'
              id='us71g45j'
              to='romeo@montague.net/orchard'
@@ -880,29 +710,24 @@ Internet-Draft                   STuPiD                        July 2009
 
             Figure 11: Closing the Bytestream: Success response
 
-
-
-
-
-
-
-
-
-
-
-
-
-Hartke & Bormann         Expires January 6, 2010               [Page 16]
-
-Internet-Draft                   STuPiD                        July 2009
-
-
 Authors' Addresses
 
    Klaus Hartke
    Universitaet Bremen TZI
 
    Email: hartke@tzi.org
+
+
+
+
+
+
+
+
+
+Hartke & Bormann         Expires January 6, 2010               [Page 13]
+
+Internet-Draft                   STuPiD                        July 2009
 
 
    Carsten Bormann
@@ -948,5 +773,12 @@ Authors' Addresses
 
 
 
-Hartke & Bormann         Expires January 6, 2010               [Page 17]
-
+
+
+
+
+
+
+
+
+Hartke & Bormann         Expires January 6, 2010               [Page 14]
