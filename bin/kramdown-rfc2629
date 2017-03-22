@@ -64,7 +64,7 @@ def xml_from_sections(input)
           end
           ref_replacements[v.to_str] = k
         end
-        if v.respond_to? :[]
+        if Hash === v
           if aliasname = v.delete("-")
             ref_replacements[aliasname] = k
           end

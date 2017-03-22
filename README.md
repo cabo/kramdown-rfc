@@ -154,8 +154,36 @@ and then just write `{{RFC2119}}` or `{{RFC1925}}`.  (Yes, there is a
 colon in the YAML, because this is a hash that could provide other
 information.)
 
-If your references are not in the [XML2RFC][] databases, you need to
-spell it out like this:
+Since version 1.1, references imported from the [XML2RFC][] databases
+can be supplied with a replacement label (anchor name).  E.g., RFC 793
+could be referenced as `{{!TCP=RFC0793}}, further references then just
+can say `{{TCP}}`; both will get `[TCP]` as the label.  In the
+YAML, the same replacement can be expressed as in the first example:
+
+     normative:
+       TCP: RFC0793
+     informative:
+       SST: DOI.10.1145/1282427.1282421
+
+Notes about this feature:
+
+* At the time of writing, the DOI and IANA repositories are
+  slightly unstable.
+* Thank you, Martin Thomson, for supplying an implementation and
+  insisting this be done.
+* While this feature is now available, you are not forced to use it
+  for everything: readers of documents often benefit from not having
+  to look up references, so continuing to use the draft names and RFC
+  numbers as labels may be the preferrable style in many cases.
+* As a final caveat, renaming anchors does not work in the
+  `stand_alone: no` mode (except for IANA and DOI), as there is no
+  such mechanism in XML entity referencing; exporting to XML while
+  maintaining live references then may require some manual editing to
+  get rid of the custom anchors.
+
+If your references are not in the [XML2RFC][] databases and do not
+have a DOI (that also happens to have correct data) either, you need
+to spell it out like in the examples below:
 
     informative:
       RFC1925:
