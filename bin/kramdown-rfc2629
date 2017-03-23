@@ -193,7 +193,8 @@ def bibtagsys(bib, anchor=nil, stand_alone=true)
     [bib.upcase,
      "#{XML_RESOURCE_ORG_PREFIX}/bibxml/reference.RFC.#{rfc4d}.xml"]
   elsif bib =~ /\A([-A-Z0-9]+)\./ &&
-        (dir, _ttl, rewrite_anchor = Kramdown::Converter::Rfc2629::XML_RESOURCE_ORG_MAP[$1])
+        (xro = Kramdown::Converter::Rfc2629::XML_RESOURCE_ORG_MAP[$1])
+    dir, _ttl, rewrite_anchor = xro
     bib1 = bib.gsub(/\A[0-9]/) { "_#{$&}" } # can't start an ID with a number
     if anchor && bib1 != anchor
       if rewrite_anchor

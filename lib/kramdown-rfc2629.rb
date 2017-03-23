@@ -465,6 +465,7 @@ module Kramdown
         end
       end
 
+      # [subdirectory name, cache ttl in seconds, does it provide for ?anchor=]
       XML_RESOURCE_ORG_MAP = {
         "RFC" => ["bibxml", 86400*7], # these should change rarely
         "I-D" => "bibxml3",
