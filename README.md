@@ -156,7 +156,7 @@ information.)
 
 Since version 1.1, references imported from the [XML2RFC][] databases
 can be supplied with a replacement label (anchor name).  E.g., RFC 793
-could be referenced as `{{!TCP=RFC0793}}, further references then just
+could be referenced as `{{!TCP=RFC0793}}`, further references then just
 can say `{{TCP}}`; both will get `[TCP]` as the label.  In the
 YAML, the same replacement can be expressed as in the first example:
 
@@ -167,8 +167,6 @@ YAML, the same replacement can be expressed as in the first example:
 
 Notes about this feature:
 
-* At the time of writing, the DOI and IANA repositories are
-  slightly unstable.
 * Thank you, Martin Thomson, for supplying an implementation and
   insisting this be done.
 * While this feature is now available, you are not forced to use it
