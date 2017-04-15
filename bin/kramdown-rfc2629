@@ -9,6 +9,17 @@ require 'date'
 
 Encoding.default_external = "UTF-8" # wake up, smell the coffee
 
+def do_the_tls_dance
+  begin
+    require 'openssl'
+    File.open(OpenSSL::X509::DEFAULT_CERT_FILE) do end
+  rescue
+    warn "** Configuration problem with OpenSSL certificate store at #{OpenSSL::X509::DEFAULT_CERT_FILE}."
+    warn "**   Activating workaround.  Occasionally run `certified-update`."
+    require 'certified'
+  end
+end
+
 RE_NL = /(?:\n|\r|\r\n)/
 RE_SECTION = /---(?:\s+(\w+)(-?))?\s*#{RE_NL}(.*?#{RE_NL})(?=---(?:\s+\w+-?)?\s*#{RE_NL}|\Z)/m
 
@@ -248,6 +259,7 @@ end
 
 link_defs = {}
 if input =~ /\A---/        # this is a sectionized file
+  do_the_tls_dance
   input, target_coding, link_defs, smart_quotes = xml_from_sections(input)
 end
 if input =~ /\A<\?xml/          # if this is a whole XML file, protect it
