@@ -259,7 +259,7 @@ end
 
 link_defs = {}
 if input =~ /\A---/        # this is a sectionized file
-  do_the_tls_dance
+  do_the_tls_dance unless ENV["KRAMDOWN_DONT_VERIFY_HTTPS"]
   input, target_coding, link_defs, smart_quotes = xml_from_sections(input)
 end
 if input =~ /\A<\?xml/          # if this is a whole XML file, protect it
