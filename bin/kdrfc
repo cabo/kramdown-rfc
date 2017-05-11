@@ -1,0 +1,118 @@
+#!/usr/bin/env ruby -KU
+require 'uri'
+require 'net/http'
+require 'open3'
+
+def process_mkd(input, output)
+  warn "* converting locally from markdown #{input} to xml #{output}" if $options.verbose
+  o, s = Open3.capture2("kramdown-rfc2629", input)
+  if s.success?
+    File.open(output, "w") do |fo|
+      fo.print(o)
+    end
+    warn "* #{output} written" if $options.verbose
+  else
+    warn "*** kramdown-rfc failed, status #{s.exitstatus}"
+    exit 1
+  end
+end
+
+def process_xml(*args)
+  if $options.remote
+    process_xml_remotely(*args)
+  else
+    process_xml_locally(*args)
+  end
+end
+
+def process_xml_locally(input, output)
+  warn "* converting locally from xml #{input} to txt #{output}" if $options.verbose
+  begin
+    o, s = Open3.capture2("xml2rfc", input)
+    puts o
+    if s.success?
+      warn "* #{output} written" if $options.verbose
+    else
+      warn "*** xml2rfc failed, status #{s.exitstatus} (possibly try with -r)"
+      exit 1
+    end
+  rescue Errno::ENOENT
+    warn "*** falling back to remote processing" if $options.verbose
+    process_xml_remotely(input, output)
+  end
+end
+
+def process_xml_remotely(input, output)
+  warn "* converting remotely from xml #{input} to txt #{output}" if $options.verbose
+  url = URI('http://xml2rfc.tools.ietf.org/cgi-bin/xml2rfc.cgi')
+  req = Net::HTTP::Post.new(url)
+  req.set_form([["modeAsFormat", "txt/ascii"],
+                ["type", "binary"],
+                ["input", File.open(input),
+                 {filename: "input.xml",
+                  content_type: "text/plain"}]],
+               'multipart/form-data')
+  res = Net::HTTP::start(url.hostname, url.port,
+                         :use_ssl => url.scheme == 'https' ) {|http|
+    http.request(req)
+  }
+  case res
+  when Net::HTTPOK
+    case res.content_type
+    when 'application/octet-stream'
+      File.open(output, "w") do |fo|
+        fo.print(res.body)
+      end
+      warn "* #{output} written" if $options.verbose
+    else
+      warn "*** HTTP response has unexpected content_type #{res.content_type} with status #{res.code}"
+      warn res.body
+      exit 1
+    end
+  else
+    warn "*** HTTP response: #{res.code}"
+    exit 1
+  end
+end
+
+require 'optparse'
+require 'ostruct'
+
+$options = OpenStruct.new
+op = OptionParser.new do |opts|
+  opts.banner = "Usage: kdrfc [options] file.md|file.mkd|file.xml"
+
+  opts.on("-v", "--[no-]verbose", "Run verbosely") do |v|
+    $options.verbose = v
+  end
+  opts.on("-r", "--[no-]remote", "Run xml2rfc remotely even if there is a local one") do |v|
+    $options.remote = v
+  end
+  opts.on("-x", "--[no-]xml", "Convert to xml only") do |v|
+    $options.xml_only = v
+  end
+end
+op.parse!
+
+case ARGV.size
+when 1
+  fn = ARGV[0]
+  case fn
+  when /(.*)\.xml\z/
+    if $options.xml_only
+      warn "*** You already have XML"
+    else
+      process_xml(fn, "#$1.txt")
+    end
+  when /(.*)\.mk?d\z/
+    xml = "#$1.xml"
+    process_mkd(fn, xml)
+    process_xml(xml, "#$1.txt") unless $options.xml_only
+  else
+    warn "Unknown file type: #{fn}"
+    exit 1
+  end
+else
+  puts op
+  exit 1
+end
