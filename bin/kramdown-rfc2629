@@ -175,6 +175,8 @@ def xml_from_sections(input)
           if bts && !v.delete("override")
             warn "*** warning: explicit settings completely override canned bibxml in reference #{k}"
           end
+          options = {input: 'RFC2629Kramdown', entity_output: coding_override, link_defs: link_defs}
+          $global_markdown_options = options # For recursive calls in bibref annotation processing.
           sechash[sn.to_s] << KramdownRFC::ref_to_xml(k, v)
         end
       end

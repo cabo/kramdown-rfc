@@ -29,11 +29,19 @@ module KramdownRFC
     def attrs(*pns)
       pns.map{ |pn| attr(pn) }.compact.join(" ")
     end
-    def ele(pn, attr=nil, defcontent=nil)
+    def ele(pn, attr=nil, defcontent=nil, markdown=false)
       val, an = van(pn)
       val ||= defcontent
       Array(val).map do |val1|
-        %{<#{[an, *Array(attr).map(&:to_s)].join(" ").strip}>#{escape_html(val1.to_s.strip)}</#{an}>}
+        v = val1.to_s.strip
+        if markdown             # Uuh.  Heavy coupling.
+          doc = Kramdown::Document.new(v, $global_markdown_options)
+          $stderr.puts doc.warnings.to_yaml unless doc.warnings.empty?
+          contents = doc.to_rfc2629[3..-6] # skip <t>...</t>\n
+        else
+          contents = escape_html(v)
+        end
+        %{<#{[an, *Array(attr).map(&:to_s)].join(" ").strip}>#{contents}</#{an}>}
       end.join(" ")
     end
     def arr(an, converthash=true, must_have_one=false, &block)
