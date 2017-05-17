@@ -158,10 +158,7 @@ def xml_from_sections(input)
 
         bibref = anchor_to_bibref[k] || k
         bts, url = bibtagsys(bibref, k, stand_alone)
-        if bts
-          if v && v != {}
-            warn "*** redundant in #{k}: #{v.inspect}" unless v.respond_to? :to_str
-          end
+        if bts && (!v || v == {} || v.respond_to?(:to_str))
           if stand_alone
             a = %{{: anchor="#{k}"}}
             sechash[sn.to_s] << %{\n#{NMDTAGS[0]}\n![:include:](#{bts})#{a}\n#{NMDTAGS[1]}\n}
@@ -174,6 +171,9 @@ def xml_from_sections(input)
           unless v && Hash === v
             warn "*** don't know how to expand ref #{k}"
             next
+          end
+          if bts && !v.delete("override")
+            warn "*** warning: explicit settings completely override canned bibxml in reference #{k}"
           end
           sechash[sn.to_s] << KramdownRFC::ref_to_xml(k, v)
         end
