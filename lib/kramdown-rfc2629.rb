@@ -383,6 +383,7 @@ module Kramdown
       end
 
       def convert_a(el, indent, opts)
+        gi = el.attr.delete('gi')
         res = inner(el, indent, opts)
         target = el.attr['target']
         if target[0] == "#"     # handle [](#foo) as xref as in RFC 7328
@@ -390,20 +391,25 @@ module Kramdown
           if target.downcase == res.downcase
             res = ''            # get rid of raw anchors leaking through
           end
-          "<xref#{el_html_attributes(el)}>#{res}</xref>"
+          gi ||= "xref"
         else
-          "<eref#{el_html_attributes(el)}>#{res}</eref>"
+          gi ||= "eref"
         end
+        "<#{gi}#{el_html_attributes(el)}>#{res}</#{gi}>"
       end
 
       def convert_xref(el, indent, opts)
+        gi = el.attr.delete('gi')
         target = el.attr['target']
         if target[0] == "&"
           "#{target};"
-        elsif target =~ %r{\A\w+:(?://|.*@)}
-          "<eref#{el_html_attributes(el)}/>"
         else
-          "<xref#{el_html_attributes(el)}/>"
+          if target =~ %r{\A\w+:(?://|.*@)}
+            gi ||= "eref"
+          else
+            gi ||= "xref"
+          end
+          "<#{gi}#{el_html_attributes(el)}/>"
         end
       end
 
