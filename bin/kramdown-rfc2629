@@ -42,7 +42,7 @@ def xml_from_sections(input)
   # the first section is a YAML with front matter parameters (don't put a label here)
   # We put back the "---" plus gratuitous blank lines to hack the line number in errors
   yaml_in = input[/---\s*/] << sections.shift[2]
-  ps = KramdownRFC::ParameterSet.new(YAML.load(yaml_in))
+  ps = KramdownRFC::ParameterSet.new(YAML.safe_load(yaml_in, [Date], [], true))
   coding_override = ps.has(:coding)
   smart_quotes = ps[:smart_quotes]
 
