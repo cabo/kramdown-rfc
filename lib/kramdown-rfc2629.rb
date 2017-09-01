@@ -182,7 +182,7 @@ module Kramdown
               end
             end
           end
-          # compensate for XML2RFC idiosyncracy by insisting on a blank line
+          # compensate for XML2RFC idiosyncrasy by insisting on a blank line
           unless el.attr.delete('tight')
             result[0,0] = "\n" unless result[0,1] == "\n"
           end
