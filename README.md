@@ -172,7 +172,7 @@ Notes about this feature:
 * While this feature is now available, you are not forced to use it
   for everything: readers of documents often benefit from not having
   to look up references, so continuing to use the draft names and RFC
-  numbers as labels may be the preferrable style in many cases.
+  numbers as labels may be the preferable style in many cases.
 * As a final caveat, renaming anchors does not work in the
   `stand_alone: no` mode (except for IANA and DOI), as there is no
   such mechanism in XML entity referencing; exporting to XML while
