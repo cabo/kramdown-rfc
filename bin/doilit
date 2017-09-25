@@ -61,7 +61,7 @@ ARGV.each do |doi|
       end
     end
   end
-  if ct = cite["container-title"]
+  if (ct = cite["container-title"]) && ct != []
     info = []
     if v = cite["volume"]
       info << "Vol. #{v}"
@@ -69,13 +69,25 @@ ARGV.each do |doi|
     if p = cite["page"]
       info << "pp. #{p}"
     end
-    ser[ct] = info.join(", ")
+    rhs = info.join(", ")
+    if info != []
+      ser[ct] = rhs
+    else
+      spl = ct.split(" ")
+      ser[spl[0..-2].join(" ")] = spl[-1]
+    end
   elsif pub = cite["publisher"]
     info = []
     if t = cite["type"]
       info << t
     end
-    ser[pub] = info.join(", ")
+    rhs = info.join(", ")
+    if info != []
+      ser[pub] = rhs
+    else
+      spl = pub.split(" ")
+      ser[spl[0..-2].join(" ")] = spl[-1]
+    end
   end
   lit["seriesinfo"]["DOI"] = cite["DOI"]
   while litent[$handle]
