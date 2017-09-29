@@ -10,11 +10,11 @@ require 'date'
 Encoding.default_external = "UTF-8" # wake up, smell the coffee
 
 def do_the_tls_dance
-  begin
-    require 'openssl'
-    File.open(OpenSSL::X509::DEFAULT_CERT_FILE) do end
-  rescue
-    warn "** Configuration problem with OpenSSL certificate store at #{OpenSSL::X509::DEFAULT_CERT_FILE}."
+  require 'openssl'
+  if !File.exist?(OpenSSL::X509::DEFAULT_CERT_FILE) &&
+     (!Dir.exist?(OpenSSL::X509::DEFAULT_CERT_DIR) ||
+      Dir[File.join(OpenSSL::X509::DEFAULT_CERT_DIR, "*.pem")].none?)
+    warn "** Configuration problem with OpenSSL certificate store."
     warn "**   Activating workaround.  Occasionally run `certified-update`."
     require 'certified'
   end
