@@ -27,6 +27,14 @@ NMDTAGS = ["{:/nomarkdown}\n\n", "\n\n{::nomarkdown}\n"]
 
 NORMINFORM = { "!" => :normative, "?" => :informative }
 
+def yaml_load(input, *args)
+  if YAML.respond_to?(:safe_load)
+    YAML.safe_load(input, *args)
+  else
+    YAML.load(input)
+ end
+end
+
 def xml_from_sections(input)
 
   unless ENV["KRAMDOWN_NO_SOURCE"]
@@ -42,7 +50,7 @@ def xml_from_sections(input)
   # the first section is a YAML with front matter parameters (don't put a label here)
   # We put back the "---" plus gratuitous blank lines to hack the line number in errors
   yaml_in = input[/---\s*/] << sections.shift[2]
-  ps = KramdownRFC::ParameterSet.new(YAML.safe_load(yaml_in, [Date], [], true))
+  ps = KramdownRFC::ParameterSet.new(yaml_load(yaml_in, [Date], [], true))
   coding_override = ps.has(:coding)
   smart_quotes = ps[:smart_quotes]
 
