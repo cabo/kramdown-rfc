@@ -28,7 +28,7 @@ structure provided by kramdown.  `bin/kramdown-rfc2629` started out as
 a simple command-line program showing how to use this, but can now do
 much more (see below).
 
-To use kramdown-rfc2629, you'll need a Ruby 1.9 or 2.x, and maybe
+To use kramdown-rfc2629, you'll need a Ruby 2.x, and maybe
 [XML2RFC][] if you want to see the fruits of your work.
 
     kramdown-rfc2629 mydraft.mkd >mydraft.xml
@@ -37,6 +37,15 @@ To use kramdown-rfc2629, you'll need a Ruby 1.9 or 2.x, and maybe
 (The most popular file name extension that IETF people have for
 markdown is .md -- for those who tend to think about GNU machine
 descriptions here, any extension such as .mkd will do, too.)
+
+A more brief interface for both calling kramdown-rfc2629 and XML2RFC
+is provided by `kdrfc`:
+
+    kdrfc mydraft.mkd
+
+`kdrfc` can also use a remote installation of XML2RFC if needed:
+
+    kdrfc -r mydraft.mkd
 
 # Examples
 
