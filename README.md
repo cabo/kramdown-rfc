@@ -265,6 +265,22 @@ special support in XML2RFC), and HTML syntax of course.
 A number of more esoteric features have recently been added.
 (The minimum required version for each full feature is indicated.)
 
+(1.2.8:)
+An experimental feature was added to include [BCP 14] boilerplate:
+
+```markdown
+{::boilerplate bcp14}
+```
+
+which saves some typing.  Saying "bcp14+" instead of "bcp14" adds some
+random clarifications at the end of the [standard boilerplate text][] that
+you may or may not want to have.  (Do we need other boilerplate items
+beyond BCP14?)
+
+[BCP 14]: https://www.rfc-editor.org/info/bcp14
+
+[standard boilerplate text]: https://tools.ietf.org/html/rfc8174#page-3
+
 (1.0.35:)
 An experimental command `doilit` has been added.  It can be used to
 convert DOIs given on the command line into references entries for
@@ -453,6 +469,20 @@ skim [RFC 7749][] if you want to write an Internet-Draft, but you
 don't really need to understand XML very much.  Knowing the basics of
 YAML helps with the metadata (but you'll understand it from the
 examples).
+
+Occasionally, you do need to reach through to the XML arcana, e.g. by
+setting attribute values using kramdown's ["IAL" syntax][IAL].
+This can for instance be used to obtain unnumbered appendices:
+
+```markdown
+Acknowledgements
+================
+{: numbered="no"}
+
+John Mattsson was nice enough to point out the need for this being documented.
+```
+
+[IAL]: https://kramdown.gettalong.org/syntax.html#inline-attribute-lists
 
 # Upconversion
 
