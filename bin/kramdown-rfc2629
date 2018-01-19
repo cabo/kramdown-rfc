@@ -9,6 +9,29 @@ require 'date'
 
 Encoding.default_external = "UTF-8" # wake up, smell the coffee
 
+def boilerplate(key)
+  case key.downcase
+  when /\Abcp14(\+)?\z/i
+    ret = <<RFC8174
+The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL
+NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED",
+"MAY", and "OPTIONAL" in this document are to be interpreted as
+described in BCP 14 {{!RFC2119}} {{!RFC8174}} when, and only when, they
+appear in all capitals, as shown here.
+RFC8174
+    if $1
+      ret << <<PLUS
+These words may also appear in this document in
+lower case as plain English words, absent their normative meanings.
+PLUS
+    end
+    ret
+  else
+    warn "** Unknwon boilerplate key: #{key}"
+    "{::boilerplate #{key}}"
+  end
+end
+
 def do_the_tls_dance
   begin
     require 'openssl'
@@ -262,6 +285,9 @@ end
 input.gsub!(/^\{::include\s+(.*?)\}/) {
   File.read($1).chomp
 } unless ENV["KRAMDOWN_SAFE"]
+input.gsub!(/^\{::boilerplate\s+(.*?)\}/) {
+  boilerplate($1)
+}
 if input =~ /[\t]/
    warn "*** Input contains HT (\"tab\") characters. Undefined behavior will ensue."
    input = expand_tabs(input)
