@@ -84,6 +84,7 @@ def xml_from_sections(input)
   ps = KramdownRFC::ParameterSet.new(yaml_load(yaml_in, [Date], [], true))
   coding_override = ps.has(:coding)
   smart_quotes = ps[:smart_quotes]
+  kramdown_options = ps[:kramdown_options]
 
   # all the other sections are put in a Hash, possibly concatenated from parts there
   sechash = Hash.new{ |h,k| h[k] = ""}
@@ -233,7 +234,7 @@ def xml_from_sections(input)
     warn "*** sections left #{sechash.keys.inspect}!"
   end
 
-  [input, coding_override, link_defs, smart_quotes]
+  [input, coding_override, link_defs, smart_quotes, kramdown_options]
 end
 
 XML_RESOURCE_ORG_PREFIX = Kramdown::Converter::Rfc2629::XML_RESOURCE_ORG_PREFIX
@@ -304,7 +305,7 @@ end
 link_defs = {}
 if input =~ /\A---/        # this is a sectionized file
   do_the_tls_dance unless ENV["KRAMDOWN_DONT_VERIFY_HTTPS"]
-  input, target_coding, link_defs, smart_quotes = xml_from_sections(input)
+  input, target_coding, link_defs, smart_quotes, kramdown_options = xml_from_sections(input)
 end
 if input =~ /\A<\?xml/          # if this is a whole XML file, protect it
   input = "{::nomarkdown}\n#{input}\n{:/nomarkdown}\n"
@@ -323,6 +324,9 @@ when nil, true
   # nothin
 else
   warn "*** Can't deal with smart_quotes value #{smart_quotes.inspect}"
+end
+if kramdown_options
+  options.merge! kramdown_options
 end
 
 if target_coding
