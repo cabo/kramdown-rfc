@@ -274,6 +274,20 @@ special support in XML2RFC), and HTML syntax of course.
 A number of more esoteric features have recently been added.
 (The minimum required version for each full feature is indicated.)
 
+(1.2.9:)
+The YAML header now allows specifying [kramdown_options][].
+
+[kramdown_options]: https://kramdown.gettalong.org/options.html
+
+This was added specifically to provide easier access to the kramdown
+`auto_id_prefix` feature, which prefixes by some distinguishing string
+the anchors that are auto-generated for sections, avoiding conflicts:
+
+```yaml
+kramdown_options:
+  auto_id_prefix: sec-
+```
+
 (1.2.8:)
 An experimental feature was added to include [BCP 14] boilerplate:
 
