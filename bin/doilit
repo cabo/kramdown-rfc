@@ -47,9 +47,14 @@ ARGV.each do |doi|
   if authors = cite["author"]
     lit["author"] = authors.map do |au|
       lau = {}
-      if (g = au["given"]) && (f = au["family"])
-        lau["name"] = "#{g} #{f}"
-        lau["ins"] =  "#{g[0]}. #{f}"
+      if (f = au["family"])
+        if (g = au["given"])
+          lau["name"] = "#{g} #{f}"
+          lau["ins"] =  "#{g[0]}. #{f}"
+        else
+          lau["name"] = "#{f}"
+#          lau["ins"] =  "#{g[0]}. #{f}"
+        end
       end
       lau
     end
