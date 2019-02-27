@@ -483,7 +483,7 @@ module Kramdown
         "CCITT" => "bibxml2",
         "FIPS" => "bibxml2",
         # "IANA" => "bibxml2",   overtaken by bibxml8
-        "IEEE" => "bibxml2",    # now, how about bibxml6?
+        "IEEE" => "bibxml6",    # copied over to bibxml6 2019-02-27
         "ISO" => "bibxml2",
         "ITU" => "bibxml2",
         "NIST" => "bibxml2",
