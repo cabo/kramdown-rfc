@@ -552,7 +552,12 @@ the markdown document.  He also uses a slightly different referencing
 syntax, which is closer to what markdown does elsewhere but more
 verbose (this syntax is now also supported in kramdown-rfc2629).
 (Miek now also has a new thing going on with mostly different syntax,
-see [mmark][].)
+see [mmark][] and its [github repository][mmark-git].)
+
+Other human-oriented markup input languages that are being used for authoring RFCXML include:
+
+* [asciidoc][], with the [asciidoctor-rfc][] tool, as documented in [draft-ribose-asciirfc][].
+* [orgmode][] (please help supply a more specific link here).
 
 # License
 
@@ -571,5 +576,10 @@ made it possible to license kramdown-rfc2629 under the same license.
 [pandoc2rfc]: https://github.com/miekg/pandoc2rfc/
 [XML2RFC]: http://xml.resource.org
 [RFC 7328]: http://tools.ietf.org/html/rfc7328
-[mmark]: https://github.com/miekg/mmark
+[mmark-git]: https://github.com/miekg/mmark
+[mmark]: https://mmark.nl
 [YAML]: http://www.yaml.org/spec/1.2/spec.html
+[draft-ribose-asciirfc]: https://tools.ietf.org/html/draft-ribose-asciirfc
+[asciidoctor-rfc]: https://github.com/metanorma/asciidoctor-rfc
+[asciidoc]: http://www.methods.co.nz/asciidoc/
+[orgmode]: http://orgmode.org
