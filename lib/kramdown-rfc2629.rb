@@ -519,10 +519,14 @@ module Kramdown
           to_insert = ""
           src.scan(/(W3C|3GPP|[A-Z-]+)[.]?([A-Za-z_0-9.\/\+-]+)/) do |t, n|
             fn = "reference.#{t}.#{n}.xml"
-            sub, ttl = XML_RESOURCE_ORG_MAP[t]
+            sub, ttl, can_anchor = XML_RESOURCE_ORG_MAP[t]
             ttl ||= KRAMDOWN_REFCACHETTL  # everything but RFCs might change a lot
             puts "Huh: ${fn}" unless sub
             url = "#{XML_RESOURCE_ORG_PREFIX}/#{sub}/#{fn}"
+            if can_anchor # create anchor server-side for stand_alone: false
+              url << "?anchor=#{anchor}"
+              fn[/.xml$/] = "--anchor=#{anchor}.xml"
+            end
             to_insert = get_and_cache_resource(url, fn.gsub('/', '_'), ttl)
             to_insert.scrub! rescue nil # only do this for Ruby >= 2.1
             # this may be a bit controversial: Don't break the build if reference is broken
