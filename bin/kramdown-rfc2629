@@ -281,6 +281,27 @@ def expand_tabs(s, tab_stops = 8)
   end
 end
 
+
+require 'optparse'
+require 'ostruct'
+
+$options = OpenStruct.new
+op = OptionParser.new do |opts|
+  opts.banner = "Usage: kramdown-rfc2629 [options] file.md|file.mkd > file.xml"
+
+  opts.on("-v", "--[no-]verbose", "Run verbosely") do |v|
+    $options.verbose = v
+  end
+  opts.on("-3", "--[no-]v3", "Use RFCXML v3 processing rules") do |v|
+    $options.v3 = v
+  end
+end
+op.parse!
+
+if $options.verbose && $options.v3
+  warn "*** not much RFCXMLv3 stuff implemented yet"
+end
+
 coding_override = :as_char
 input = ARGF.read
 if input[0] == "\uFEFF"

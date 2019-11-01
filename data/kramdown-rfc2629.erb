@@ -27,7 +27,8 @@
    aups = KramdownRFC::authorps_from_hash(au)
  -%>
     <author <%=aups.attrs("initials", "surname", "fullname=name", "role")%>>
-      <%= aups.ele("organization=org", aups.attr("abbrev=orgabbrev"), "") %>
+      <%= aups.ele("organization=org", aups.attrs("abbrev=orgabbrev",
+                                                  *[$options.v3 && "ascii=orgascii"]), "") %>
       <address>
 <% postal = %w{street city region code country}.select{|gi| aups.has(gi)}
    if postal != [] -%>

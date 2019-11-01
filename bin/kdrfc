@@ -3,9 +3,13 @@ require 'uri'
 require 'net/http'
 require 'open3'
 
+def v3_flag?
+  $options.v3 ? ["--v3"] : []
+end
+
 def process_mkd(input, output)
   warn "* converting locally from markdown #{input} to xml #{output}" if $options.verbose
-  o, s = Open3.capture2("kramdown-rfc2629", input)
+  o, s = Open3.capture2("kramdown-rfc2629", *v3_flag?, input)
   if s.success?
     File.open(output, "w") do |fo|
       fo.print(o)
@@ -28,7 +32,7 @@ end
 def process_xml_locally(input, output)
   warn "* converting locally from xml #{input} to txt #{output}" if $options.verbose
   begin
-    o, s = Open3.capture2("xml2rfc", input)
+    o, s = Open3.capture2("xml2rfc", *v3_flag?, input)
     puts o
     if s.success?
       warn "* #{output} written" if $options.verbose
@@ -46,7 +50,7 @@ def process_xml_remotely(input, output)
   warn "* converting remotely from xml #{input} to txt #{output}" if $options.verbose
   url = URI('http://xml2rfc.tools.ietf.org/cgi-bin/xml2rfc.cgi')
   req = Net::HTTP::Post.new(url)
-  req.set_form([["modeAsFormat", "txt/ascii"],
+  req.set_form([["modeAsFormat", "txt/#{"v3" if $options.v3}ascii"],
                 ["type", "binary"],
                 ["input", File.open(input),
                  {filename: "input.xml",
@@ -90,6 +94,9 @@ op = OptionParser.new do |opts|
   end
   opts.on("-x", "--[no-]xml", "Convert to xml only") do |v|
     $options.xml_only = v
+  end
+  opts.on("-3", "--[no-]v3", "Use RFCXML v3 processing rules") do |v|
+    $options.v3 = v
   end
 end
 op.parse!

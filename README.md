@@ -246,6 +246,13 @@ to spell it out like in the examples below:
           -
             ins: Z. Shelby
             name: Zach Shelby
+      IPSO:
+        title: IP for Smart Objects (IPSO)
+        author:
+        - org:
+        date: false
+        seriesinfo:
+          Web: http://ipso-alliance.github.io/pub/
     normative:
       ECMA262:
         author:
