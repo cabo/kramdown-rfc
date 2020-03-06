@@ -425,9 +425,9 @@ module Kramdown
         fn = "#{REFCACHEDIR}/#{cachefile}"
         Dir.mkdir(REFCACHEDIR) unless Dir.exists?(REFCACHEDIR)
         f = File.stat(fn) rescue nil unless KRAMDOWN_REFCACHE_REFETCH
-        if !KRAMDOWN_OFFLINE && (!f || tn - f.ctime >= tvalid)
+        if !KRAMDOWN_OFFLINE && (!f || tn - f.mtime >= tvalid)
           if f
-            message = "renewing (stale by #{"%.1f" % ((tn-f.ctime)/86400)} days)"
+            message = "renewing (stale by #{"%.1f" % ((tn-f.mtime)/86400)} days)"
             fetch_timeout = 10 # seconds, give up quickly if just renewing
           else
             message = "fetching"
