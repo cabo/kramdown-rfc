@@ -452,7 +452,8 @@ module Kramdown
                 if ENV["KRAMDOWN_DONT_VERIFY_HTTPS"]
                   options[:ssl_verify_mode] = OpenSSL::SSL::VERIFY_NONE
                 end             # workaround for OpenSSL on Windows...
-                open(url, options) do |uf|
+#               URI.open(url, **options) do |uf|          # not portable to older versions
+                OpenURI.open_uri(url, **options) do |uf|
                   s = uf.read
                   if uf.status[0] != "200"
                     warn "*** Status code #{status} while fetching #{url}"
