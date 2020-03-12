@@ -172,11 +172,12 @@ module Kramdown
           "#{' '*indent}<t>#{result}</t>\n"
         else
           artwork_attr = {}
+          t = nil
           if blockclass
             classes = blockclass.split(' ')
             classes.each do |cl|
               if md = cl.match(/\Alanguage-(.*)/)
-                artwork_attr["type"] = md[1] # XXX overwrite
+                t = artwork_attr["type"] = md[1] # XXX overwrite
               else
                 $stderr.puts "*** Unimplemented block class: #{cl}"
               end
@@ -192,7 +193,21 @@ module Kramdown
               artwork_attr[md[1]] = v
             end
           end
-          "#{' '*indent}<figure#{el_html_attributes(el)}><artwork#{html_attributes(artwork_attr)}><![CDATA[#{result}#{result =~ /\n\Z/ ? '' : "\n"}]]></artwork></figure>\n"
+          case t
+          when "goat"
+            require 'tempfile'
+            file = Tempfile.new("kramdown-rfc")
+            file.write(result)
+            file.close
+            result1, _s = Open3.capture2("goat #{file.path}", stdin_data: result);
+            # warn ["goat:", result1.inspect]
+            file.unlink
+            result1, _s = Open3.capture2("svgcheck -qa", stdin_data: result1);
+            # warn ["svgcheck:", result1.inspect]
+            "#{' '*indent}<figure#{el_html_attributes(el)}><artset><artwork #{html_attributes(artwork_attr.merge("type"=> "svg"))}>#{result1.sub(/.*?<svg/m, "<svg")}</artwork><artwork #{html_attributes(artwork_attr.merge("type"=> "ascii-art"))}><![CDATA[#{result}#{result =~ /\n\Z/ ? '' : "\n"}]]></artwork></artset></figure>\n"
+          else
+            "#{' '*indent}<figure#{el_html_attributes(el)}><artwork#{html_attributes(artwork_attr)}><![CDATA[#{result}#{result =~ /\n\Z/ ? '' : "\n"}]]></artwork></figure>\n"
+          end
         end
       end
 
