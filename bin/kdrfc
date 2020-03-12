@@ -29,10 +29,10 @@ def process_xml(*args)
   end
 end
 
-def process_xml_locally(input, output)
+def process_xml_locally(input, output, *flags)
   warn "* converting locally from xml #{input} to txt #{output}" if $options.verbose
   begin
-    o, s = Open3.capture2("xml2rfc", *v3_flag?, input)
+    o, s = Open3.capture2("xml2rfc", *v3_flag?, *flags, input)
     puts o
     if s.success?
       warn "* #{output} written" if $options.verbose
@@ -83,6 +83,7 @@ require 'optparse'
 require 'ostruct'
 
 $options = OpenStruct.new
+$options.txt = true             # default
 op = OptionParser.new do |opts|
   opts.banner = "Usage: kdrfc [options] file.md|file.mkd|file.xml"
 
@@ -94,6 +95,12 @@ op = OptionParser.new do |opts|
   end
   opts.on("-x", "--[no-]xml", "Convert to xml only") do |v|
     $options.xml_only = v
+  end
+  opts.on("-h", "--[no-]html", "Convert to html as well") do |v|
+    $options.html = v
+  end
+  opts.on("-t", "--[no-]txt", "Convert to txt as well") do |v|
+    $options.txt = v
   end
   opts.on("-3", "--[no-]v3", "Use RFCXML v3 processing rules") do |v|
     $options.v3 = v
@@ -108,13 +115,15 @@ when 1
   when /(.*)\.xml\z/
     if $options.xml_only
       warn "*** You already have XML"
-    else
-      process_xml(fn, "#$1.txt")
+    else                        # FIXME: copy/paste
+      process_xml(fn, "#$1.txt") unless $options.xml_only or not $options.txt
+      process_xml(fn, "#$1.html", "--html") unless $options.xml_only or not $options.html
     end
   when /(.*)\.mk?d\z/
     xml = "#$1.xml"
     process_mkd(fn, xml)
-    process_xml(xml, "#$1.txt") unless $options.xml_only
+    process_xml(xml, "#$1.txt") unless $options.xml_only or not $options.txt
+    process_xml(xml, "#$1.html", "--html") unless $options.xml_only or not $options.html
   else
     warn "Unknown file type: #{fn}"
     exit 1
