@@ -54,6 +54,31 @@ module KramdownRFC
     aups
   end
 
+  PERSON_ERB = <<~ERB
+    <<%= element_name%> <%=aups.attrs("initials", "surname", "fullname=name", "role")%>>
+      <%= aups.ele("organization=org", aups.attrs("abbrev=orgabbrev",
+                                                  *[$options.v3 && "ascii=orgascii"]), "") %>
+      <address>
+<% postal = %w{street city region code country}.select{|gi| aups.has(gi)}
+   if postal != [] -%>
+        <postal>
+<%   postal.each do |gi| -%>
+          <%= aups.ele(gi) %>
+<%   end -%>
+        </postal>
+<% end -%>
+<% %w{phone facsimile email uri}.select{|gi| aups.has(gi)}.each do |gi| -%>
+        <%= aups.ele(gi) %>
+<% end -%>
+      </address>
+    </<%= element_name%>>
+  ERB
+
+  def self.person_element_from_aups(element_name, aups)
+    erb = ERB.new(PERSON_ERB, nil, '-')
+    erb.result(binding)
+  end
+
   def self.dateattrs(date)
     begin
       case date

@@ -26,23 +26,7 @@
 <% ps.arr("author") do |au|
    aups = KramdownRFC::authorps_from_hash(au)
  -%>
-    <author <%=aups.attrs("initials", "surname", "fullname=name", "role")%>>
-      <%= aups.ele("organization=org", aups.attrs("abbrev=orgabbrev",
-                                                  *[$options.v3 && "ascii=orgascii"]), "") %>
-      <address>
-<% postal = %w{street city region code country}.select{|gi| aups.has(gi)}
-   if postal != [] -%>
-        <postal>
-<%   postal.each do |gi| -%>
-          <%= aups.ele(gi) %>
-<%   end -%>
-        </postal>
-<% end -%>
-<% %w{phone facsimile email uri}.select{|gi| aups.has(gi)}.each do |gi| -%>
-        <%= aups.ele(gi) %>
-<% end -%>
-      </address>
-    </author>
+<%= KramdownRFC::person_element_from_aups("author", aups) -%>
 <%   aups.warn_if_leftovers  -%>
 <% end -%>
 
