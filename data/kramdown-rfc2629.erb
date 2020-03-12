@@ -81,6 +81,27 @@
 <% end -%>
 
 <%= sechash.delete("back") %>
+<% sh = sechash.delete("contributor") -%>
+<% consec = ps.has("contributor") -%>
+<% if sh || consec -%>
+<%   if $options.v3 -%>
+    <section anchor="contributors" numbered="false" toc="include" removeInRFC="false">
+        <name>Contributors</name>
+<%   else -%>
+    <section anchor="contributors" numbered="false" title="Contributors">
+<%     warn "*** Cannot process YAML contributors under V2 rules" if consec -%>
+<%   end -%>
+<%= sh -%>
+<% if $options.v3 && consec
+     ps.arr("contributor") do |au|
+       aups = KramdownRFC::authorps_from_hash(au)
+   -%>
+<%= KramdownRFC::person_element_from_aups("contact", aups) -%>
+<%   aups.warn_if_leftovers  -%>
+<%   end -%>
+<% end -%>
+    </section>
+<% end -%>
 
   </back>
 
