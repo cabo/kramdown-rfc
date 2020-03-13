@@ -96,6 +96,9 @@ op = OptionParser.new do |opts|
   opts.on("-x", "--[no-]xml", "Convert to xml only") do |v|
     $options.xml_only = v
   end
+  opts.on("-p", "--[no-]prep", "Convert xml to prepped xml") do |v|
+    $options.prep = v
+  end
   opts.on("-h", "--[no-]html", "Convert to html as well") do |v|
     $options.html = v
   end
@@ -108,6 +111,12 @@ op = OptionParser.new do |opts|
 end
 op.parse!
 
+def process_the_xml(fn, base)
+  process_xml(fn, "#{base}.prepped.xml", "--preptool") if $options.prep
+  process_xml(fn, "#{base}.txt") if $options.txt
+  process_xml(fn, "#{base}.html", "--html") if $options.html
+end
+
 case ARGV.size
 when 1
   fn = ARGV[0]
@@ -116,14 +125,12 @@ when 1
     if $options.xml_only
       warn "*** You already have XML"
     else                        # FIXME: copy/paste
-      process_xml(fn, "#$1.txt") unless $options.xml_only or not $options.txt
-      process_xml(fn, "#$1.html", "--html") unless $options.xml_only or not $options.html
+      process_the_xml(fn, $1)
     end
   when /(.*)\.mk?d\z/
     xml = "#$1.xml"
     process_mkd(fn, xml)
-    process_xml(xml, "#$1.txt") unless $options.xml_only or not $options.txt
-    process_xml(xml, "#$1.html", "--html") unless $options.xml_only or not $options.html
+    process_the_xml(xml, $1) unless $options.xml_only
   else
     warn "Unknown file type: #{fn}"
     exit 1
