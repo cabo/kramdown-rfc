@@ -477,7 +477,8 @@ module Kramdown
                   end
                 end
               end
-            rescue OpenURI::HTTPError, SocketError, Timeout::Error => e
+            rescue OpenURI::HTTPError, Errno::EHOSTUNREACH, Errno::ECONNREFUSED,
+                   SocketError, Timeout::Error => e
               warn "*** #{e} while fetching #{url}"
             end
           end
