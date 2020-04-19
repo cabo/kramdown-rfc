@@ -43,9 +43,20 @@
     </abstract>
 
 <% sechash.keys.each do |k| -%>
-<%   if k =~ /\Anote_(.*)/ -%>
+<%   if k =~ /\A(to_be_removed_)?note_(.*)/ -%>
 
-    <note title="<%= $1.gsub("_", " ")%>">
+<% option = ""
+       text = ""
+       if $1
+         if $options.v3
+           option = " removeInRFC=\"true\""
+         else
+           text = "      <t>[This note is to be removed before publishing as an RFC.]</t>\n"
+         end
+       end
+    -%>
+    <note title="<%= $2.gsub("_", " ")%>"<%= option %>>
+<%= text -%>
 
 <%= sechash.delete(k) -%>
 
