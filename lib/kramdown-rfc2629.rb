@@ -486,7 +486,7 @@ module Kramdown
         begin
           File.read(fn) # this blows up if no cache available after fetch attempt
         rescue Errno::ENOENT => e
-          warn "*** #{e} for ${fn}"
+          warn "*** #{e} for #{fn}"
         end
       end
 
@@ -538,7 +538,7 @@ module Kramdown
             fn = "reference.#{t}.#{n}.xml"
             sub, ttl, can_anchor = XML_RESOURCE_ORG_MAP[t]
             ttl ||= KRAMDOWN_REFCACHETTL  # everything but RFCs might change a lot
-            puts "Huh: ${fn}" unless sub
+            puts "*** Huh: #{fn}" unless sub
             url = "#{XML_RESOURCE_ORG_PREFIX}/#{sub}/#{fn}"
             if can_anchor # create anchor server-side for stand_alone: false
               url << "?anchor=#{anchor}"
@@ -548,7 +548,10 @@ module Kramdown
             to_insert.scrub! rescue nil # only do this for Ruby >= 2.1
             # this may be a bit controversial: Don't break the build if reference is broken
             if KRAMDOWN_OFFLINE
-              to_insert ||= "<reference anchor='#{anchor}'> <front> <title>*** BROKEN REFERENCE ***</title> <author> <organization/> </author> <date/> </front> </reference>"
+              unless to_insert
+                to_insert = "<reference anchor='#{anchor}'> <front> <title>*** BROKEN REFERENCE ***</title> <author> <organization/> </author> <date/> </front> </reference>"
+                warn "*** KRAMDOWN_OFFLINE: Inserting broken reference for #{fn}"
+              end
             else
               exit 66 unless to_insert # EX_NOINPUT
             end
