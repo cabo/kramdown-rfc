@@ -150,6 +150,16 @@ module Kramdown
         generate_id(value).gsub(/-+/, '-')
       end
 
+      def svg_clean(s)          # expensive, risky
+        require "rexml/document"
+        d = REXML::Document.new(s)
+        REXML::XPath.each(d.root, "//*[@shape-rendering]") { |x| x.attributes["shape-rendering"] = nil }  #; warn x.inspect }
+        REXML::XPath.each(d.root, "//*[@text-rendering]") { |x| x.attributes["text-rendering"] = nil }  #; warn x.inspect  }
+        REXML::XPath.each(d.root, "//*[@stroke='#000000']") { |x| x.attributes["stroke"] = "black" } #; warn x.inspect }
+        REXML::XPath.each(d.root, "//*[@stroke='none']") { |x| x.attributes["stroke"] = nil }  #; warn x.inspect }
+        d.to_s
+      end
+
       def convert_codeblock(el, indent, opts)
         # el.attr['anchor'] ||= saner_generate_id(el.value) -- no longer in 1.0.6
         result = el.value
@@ -194,12 +204,21 @@ module Kramdown
             end
           end
           case t
-          when "goat"
+          when "goat", "ditaa", "mscgen"
             require 'tempfile'
             file = Tempfile.new("kramdown-rfc")
             file.write(result)
             file.close
-            result1, _s = Open3.capture2("goat #{file.path}", stdin_data: result);
+            case t
+            when "goat"
+              result1, _s = Open3.capture2("goat #{file.path}", stdin_data: result);
+            when "ditaa"        # XXX: This needs some form of option-setting
+              result1, _s = Open3.capture2("ditaa #{file.path} --svg -o -", stdin_data: result);
+              result1 = svg_clean(result1)
+            when "mscgen"
+              result1, _s = Open3.capture2("mscgen -T svg -i #{file.path} -o -", stdin_data: result);
+              result1 = svg_clean(result1)
+            end
             # warn ["goat:", result1.inspect]
             file.unlink
             result1, _s = Open3.capture2("svgcheck -qa", stdin_data: result1);
