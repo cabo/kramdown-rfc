@@ -150,7 +150,28 @@ module Kramdown
         generate_id(value).gsub(/-+/, '-')
       end
 
+      SVG_COLORS = Hash.new {|h, k| k}
+      <<COLORS.each_line {|l| k, v = l.chomp.split; SVG_COLORS[k] = v}
+black	#000000
+silver	#C0C0C0
+gray	#808080
+white	#FFFFFF
+maroon	#800000
+red	#FF0000
+purple	#800080
+fuchsia	#FF00FF
+green	#008000
+lime	#00FF00
+olive	#808000
+yellow	#FFFF00
+navy	#000080
+blue	#0000FF
+teal	#008080
+aqua	#00FFFF
+COLORS
+
       def svg_munch_color(c, fill)
+        c = SVG_COLORS[c]
         case c
         when /\A#(..)(..)(..)\z/
           if [$1, $2, $3].map {|x| x.to_i(16)}.sum >= 300 # arbitrary
