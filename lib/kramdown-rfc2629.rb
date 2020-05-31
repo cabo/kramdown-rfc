@@ -150,13 +150,28 @@ module Kramdown
         generate_id(value).gsub(/-+/, '-')
       end
 
+      def svg_munch_color(c, fill)
+        case c
+        when /\A#(..)(..)(..)\z/
+          if [$1, $2, $3].map {|x| x.to_i(16)}.sum >= 300 # arbitrary
+            'white'
+          else
+            'black'
+          end
+        when 'none'
+          'none' if fill        # delete for stroke
+        else
+          c
+        end
+      end
+
       def svg_clean(s)          # expensive, risky
         require "rexml/document"
         d = REXML::Document.new(s)
         REXML::XPath.each(d.root, "//*[@shape-rendering]") { |x| x.attributes["shape-rendering"] = nil }  #; warn x.inspect }
         REXML::XPath.each(d.root, "//*[@text-rendering]") { |x| x.attributes["text-rendering"] = nil }  #; warn x.inspect  }
-        REXML::XPath.each(d.root, "//*[@stroke='#000000']") { |x| x.attributes["stroke"] = "black" } #; warn x.inspect }
-        REXML::XPath.each(d.root, "//*[@stroke='none']") { |x| x.attributes["stroke"] = nil }  #; warn x.inspect }
+        REXML::XPath.each(d.root, "//*[@stroke]") { |x| x.attributes["stroke"] = svg_munch_color(x.attributes["stroke"], false) }
+        REXML::XPath.each(d.root, "//*[@fill]") { |x| x.attributes["fill"] = svg_munch_color(x.attributes["fill"], true) }
         d.to_s
       end
 
@@ -204,7 +219,7 @@ module Kramdown
             end
           end
           case t
-          when "goat", "ditaa", "mscgen"
+          when "goat", "ditaa", "mscgen", "plantuml", "plantuml-utxt"
             require 'tempfile'
             file = Tempfile.new("kramdown-rfc")
             file.write(result)
@@ -218,6 +233,11 @@ module Kramdown
             when "mscgen"
               result1, _s = Open3.capture2("mscgen -T svg -i #{file.path} -o -", stdin_data: result);
               result1 = svg_clean(result1)
+            when "plantuml", "plantuml-utxt"
+              plantuml = "@startuml\n#{result}\n@enduml"
+              result1, _s = Open3.capture2("plantuml -pipe -tsvg", stdin_data: plantuml);
+              result1 = svg_clean(result1)
+              result, _s = Open3.capture2("plantuml -pipe -tutxt", stdin_data: plantuml) if t == "plantuml-utxt"
             end
             # warn ["goat:", result1.inspect]
             file.unlink
