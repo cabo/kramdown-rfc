@@ -218,20 +218,18 @@ COLORS
           result1, _s = Open3.capture2("goat #{file.path}", stdin_data: result);
         when "ditaa"        # XXX: This needs some form of option-setting
           result1, _s = Open3.capture2("ditaa #{file.path} --svg -o -", stdin_data: result);
-          result1 = svg_clean(result1)
         when "mscgen"
           result1, _s = Open3.capture2("mscgen -T svg -i #{file.path} -o -", stdin_data: result);
-          result1 = svg_clean(result1)
         when "plantuml", "plantuml-utxt"
           plantuml = "@startuml\n#{result}\n@enduml"
           result1, _s = Open3.capture2("plantuml -pipe -tsvg", stdin_data: plantuml);
-          result1 = svg_clean(result1)
           result, _s = Open3.capture2("plantuml -pipe -tutxt", stdin_data: plantuml) if t == "plantuml-utxt"
         end
         # warn ["goat:", result1.inspect]
         file.unlink
+        result1 = svg_clean(result1) unless t == "goat"
         result1, _s = Open3.capture2("svgcheck -qa", stdin_data: result1);
-        # warn ["svgcheck:", result1.inspect]a
+        # warn ["svgcheck:", result1.inspect]
         [result, result1]
       end
 
