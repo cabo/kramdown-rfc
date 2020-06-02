@@ -208,22 +208,22 @@ COLORS
         d.to_s
       end
 
-      def svg_tool_process(*args)
+      def memoize(meth, *args)
         require 'digest'
         Dir.mkdir(REFCACHEDIR) unless Dir.exists?(REFCACHEDIR)
-        kramdown_version = Gem.loaded_specs["kramdown-rfc2629"].version.to_s.gsub('.', '_') # rescue "UNKNOWN"
-        fn = "#{REFCACHEDIR}/kdrfc-#{kramdown_version}-#{Digest::SHA256.hexdigest(Marshal.dump(args))}.cache"
+        kdrfc_version = Gem.loaded_specs["kramdown-rfc2629"].version.to_s.gsub('.', '_') rescue "UNKNOWN"
+        fn = "#{REFCACHEDIR}/kdrfc-#{kdrfc_version}-#{meth}-#{Digest::SHA256.hexdigest(Marshal.dump(args))[0...40]}.cache"
         begin
           out = Marshal.load(File.binread(fn))
         rescue StandardError => e
           # warn e.inspect
-          out = svg_tool_process1(*args)
+          out = method(meth).call(*args)
           File.binwrite(fn, Marshal.dump(out))
         end
         out
       end
 
-      def svg_tool_process1(t, result)
+      def svg_tool_process(t, result)
         require 'tempfile'
         file = Tempfile.new("kramdown-rfc")
         file.write(result)
@@ -293,7 +293,7 @@ COLORS
           end
           case t
           when "goat", "ditaa", "mscgen", "plantuml", "plantuml-utxt"
-            result, result1 = svg_tool_process(t, result)
+            result, result1 = memoize(:svg_tool_process, t, result)
             "#{' '*indent}<figure#{el_html_attributes(el)}><artset><artwork #{html_attributes(artwork_attr.merge("type"=> "svg"))}>#{result1.sub(/.*?<svg/m, "<svg")}</artwork><artwork #{html_attributes(artwork_attr.merge("type"=> "ascii-art"))}><![CDATA[#{result}#{result =~ /\n\Z/ ? '' : "\n"}]]></artwork></artset></figure>\n"
           else
             "#{' '*indent}<figure#{el_html_attributes(el)}><artwork#{html_attributes(artwork_attr)}><![CDATA[#{result}#{result =~ /\n\Z/ ? '' : "\n"}]]></artwork></figure>\n"
