@@ -174,11 +174,18 @@ COLORS
         id.gsub(/[^-._A-Za-z0-9]/) {|x| "_%02X" % x.ord}
       end
 
+      def self.hex_to_lin(h)
+        h.to_i(16)**2.22        # approximating sRGB gamma
+      end
+      define_method :hex_to_lin, &method(:hex_to_lin)
+
+      B_W_THRESHOLD = hex_to_lin("a4") # a little brighter than 1/2 0xFF -> white
+
       def svg_munch_color(c, fill)
         c = SVG_COLORS[c]
         case c
         when /\A#(..)(..)(..)\z/
-          if [$1, $2, $3].map {|x| x.to_i(16)}.sum >= 300 # arbitrary
+          if hex_to_lin($1)*0.2126 + hex_to_lin($2)*0.7152 + hex_to_lin($3)*0.0722 >= B_W_THRESHOLD
             'white'
           else
             'black'
