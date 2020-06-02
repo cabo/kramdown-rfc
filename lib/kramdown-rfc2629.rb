@@ -208,6 +208,33 @@ COLORS
         d.to_s
       end
 
+      def svg_tool_process(t, result)
+        require 'tempfile'
+        file = Tempfile.new("kramdown-rfc")
+        file.write(result)
+        file.close
+        case t
+        when "goat"
+          result1, _s = Open3.capture2("goat #{file.path}", stdin_data: result);
+        when "ditaa"        # XXX: This needs some form of option-setting
+          result1, _s = Open3.capture2("ditaa #{file.path} --svg -o -", stdin_data: result);
+          result1 = svg_clean(result1)
+        when "mscgen"
+          result1, _s = Open3.capture2("mscgen -T svg -i #{file.path} -o -", stdin_data: result);
+          result1 = svg_clean(result1)
+        when "plantuml", "plantuml-utxt"
+          plantuml = "@startuml\n#{result}\n@enduml"
+          result1, _s = Open3.capture2("plantuml -pipe -tsvg", stdin_data: plantuml);
+          result1 = svg_clean(result1)
+          result, _s = Open3.capture2("plantuml -pipe -tutxt", stdin_data: plantuml) if t == "plantuml-utxt"
+        end
+        # warn ["goat:", result1.inspect]
+        file.unlink
+        result1, _s = Open3.capture2("svgcheck -qa", stdin_data: result1);
+        # warn ["svgcheck:", result1.inspect]a
+        [result, result1]
+      end
+
       def convert_codeblock(el, indent, opts)
         # el.attr['anchor'] ||= saner_generate_id(el.value) -- no longer in 1.0.6
         result = el.value
@@ -253,29 +280,7 @@ COLORS
           end
           case t
           when "goat", "ditaa", "mscgen", "plantuml", "plantuml-utxt"
-            require 'tempfile'
-            file = Tempfile.new("kramdown-rfc")
-            file.write(result)
-            file.close
-            case t
-            when "goat"
-              result1, _s = Open3.capture2("goat #{file.path}", stdin_data: result);
-            when "ditaa"        # XXX: This needs some form of option-setting
-              result1, _s = Open3.capture2("ditaa #{file.path} --svg -o -", stdin_data: result);
-              result1 = svg_clean(result1)
-            when "mscgen"
-              result1, _s = Open3.capture2("mscgen -T svg -i #{file.path} -o -", stdin_data: result);
-              result1 = svg_clean(result1)
-            when "plantuml", "plantuml-utxt"
-              plantuml = "@startuml\n#{result}\n@enduml"
-              result1, _s = Open3.capture2("plantuml -pipe -tsvg", stdin_data: plantuml);
-              result1 = svg_clean(result1)
-              result, _s = Open3.capture2("plantuml -pipe -tutxt", stdin_data: plantuml) if t == "plantuml-utxt"
-            end
-            # warn ["goat:", result1.inspect]
-            file.unlink
-            result1, _s = Open3.capture2("svgcheck -qa", stdin_data: result1);
-            # warn ["svgcheck:", result1.inspect]
+            result, result1 = svg_tool_process(t, result)
             "#{' '*indent}<figure#{el_html_attributes(el)}><artset><artwork #{html_attributes(artwork_attr.merge("type"=> "svg"))}>#{result1.sub(/.*?<svg/m, "<svg")}</artwork><artwork #{html_attributes(artwork_attr.merge("type"=> "ascii-art"))}><![CDATA[#{result}#{result =~ /\n\Z/ ? '' : "\n"}]]></artwork></artset></figure>\n"
           else
             "#{' '*indent}<figure#{el_html_attributes(el)}><artwork#{html_attributes(artwork_attr)}><![CDATA[#{result}#{result =~ /\n\Z/ ? '' : "\n"}]]></artwork></figure>\n"
