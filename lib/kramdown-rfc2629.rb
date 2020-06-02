@@ -208,7 +208,22 @@ COLORS
         d.to_s
       end
 
-      def svg_tool_process(t, result)
+      def svg_tool_process(*args)
+        require 'digest'
+        Dir.mkdir(REFCACHEDIR) unless Dir.exists?(REFCACHEDIR)
+        kramdown_version = Gem.loaded_specs["kramdown-rfc2629"].version.to_s.gsub('.', '_') # rescue "UNKNOWN"
+        fn = "#{REFCACHEDIR}/kdrfc-#{kramdown_version}-#{Digest::SHA256.hexdigest(Marshal.dump(args))}.cache"
+        begin
+          out = Marshal.load(File.binread(fn))
+        rescue StandardError => e
+          # warn e.inspect
+          out = svg_tool_process1(*args)
+          File.binwrite(fn, Marshal.dump(out))
+        end
+        out
+      end
+
+      def svg_tool_process1(t, result)
         require 'tempfile'
         file = Tempfile.new("kramdown-rfc")
         file.write(result)
