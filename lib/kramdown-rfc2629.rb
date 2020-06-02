@@ -170,6 +170,10 @@ teal	#008080
 aqua	#00FFFF
 COLORS
 
+      def svg_munch_id(id)
+        id.gsub(/[^-._A-Za-z0-9]/) {|x| "_%02X" % x.ord}
+      end
+
       def svg_munch_color(c, fill)
         c = SVG_COLORS[c]
         case c
@@ -193,6 +197,7 @@ COLORS
         REXML::XPath.each(d.root, "//*[@text-rendering]") { |x| x.attributes["text-rendering"] = nil }  #; warn x.inspect  }
         REXML::XPath.each(d.root, "//*[@stroke]") { |x| x.attributes["stroke"] = svg_munch_color(x.attributes["stroke"], false) }
         REXML::XPath.each(d.root, "//*[@fill]") { |x| x.attributes["fill"] = svg_munch_color(x.attributes["fill"], true) }
+        REXML::XPath.each(d.root, "//*[@id]") { |x| x.attributes["id"] = svg_munch_id(x.attributes["id"]) }
         d.to_s
       end
 
