@@ -39,7 +39,7 @@ ARGV.each do |doi|
     warn "*** Usage: doilit [-c] [-v] [-h=handle|-x=xmlhandle] doi..."
     exit 1
   end
-  cite = JSON.parse(open("https://dx.doi.org/#{doi}", ACCEPT_CITE_JSON).read)
+  cite = JSON.parse(URI("https://dx.doi.org/#{doi}").open(ACCEPT_CITE_JSON).read)
   puts cite.to_yaml if $verbose
   lit = {}
   ser = lit["seriesinfo"] = {}
