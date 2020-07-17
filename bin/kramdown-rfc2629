@@ -7,6 +7,9 @@ require 'yaml'
 require 'erb'
 require 'date'
 
+# not sure how to get this from gemspec.
+VERSION="1.3.8-mcr"
+
 Encoding.default_external = "UTF-8" # wake up, smell the coffee
 
 def boilerplate(key)
@@ -287,8 +290,16 @@ require 'ostruct'
 
 $options = OpenStruct.new
 op = OptionParser.new do |opts|
-  opts.banner = "Usage: kramdown-rfc2629 [options] file.md|file.mkd > file.xml"
+  opts.banner = "Usage: kramdown-rfc2629 [options] file.md|file.mkd > file.xml (#{VERSION})"
 
+  opts.on("-V", "--version", "Show version and exit") do |v|
+    puts "kramdown-rfc2629 #{VERSION}"
+    exit
+  end
+  opts.on("-h", "--help", "Show option summary and exit") do |v|
+    puts opts
+    exit
+  end
   opts.on("-v", "--[no-]verbose", "Run verbosely") do |v|
     $options.verbose = v
   end
