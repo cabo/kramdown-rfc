@@ -205,6 +205,7 @@ COLORS
         REXML::XPath.each(d.root, "//*[@stroke]") { |x| x.attributes["stroke"] = svg_munch_color(x.attributes["stroke"], false) }
         REXML::XPath.each(d.root, "//*[@fill]") { |x| x.attributes["fill"] = svg_munch_color(x.attributes["fill"], true) }
         REXML::XPath.each(d.root, "//*[@id]") { |x| x.attributes["id"] = svg_munch_id(x.attributes["id"]) }
+##      REXML::XPath.each(d.root, "//rect") { |x| x.attributes["style"] = "fill:none;stroke:black;stroke-width:1" unless x.attributes["style"] }
         d.to_s
       end
 
@@ -235,6 +236,11 @@ COLORS
           result1, _s = Open3.capture2("ditaa #{file.path} --svg -o -", stdin_data: result);
         when "mscgen"
           result1, _s = Open3.capture2("mscgen -T svg -i #{file.path} -o -", stdin_data: result);
+        when "mermaid"
+          result1, _s = Open3.capture2("mmdc -i #{file.path}", stdin_data: result); #  -b transparent
+          outpath = file.path + ".svg"
+          result1 = File.read(outpath)
+          File.unlink(outpath)
         when "plantuml", "plantuml-utxt"
           plantuml = "@startuml\n#{result}\n@enduml"
           result1, _s = Open3.capture2("plantuml -pipe -tsvg", stdin_data: plantuml);
@@ -292,7 +298,7 @@ COLORS
             end
           end
           case t
-          when "goat", "ditaa", "mscgen", "plantuml", "plantuml-utxt"
+          when "goat", "ditaa", "mscgen", "plantuml", "plantuml-utxt", "mermaid"
             result, result1 = memoize(:svg_tool_process, t, result)
             "#{' '*indent}<figure#{el_html_attributes(el)}><artset><artwork #{html_attributes(artwork_attr.merge("type"=> "svg"))}>#{result1.sub(/.*?<svg/m, "<svg")}</artwork><artwork #{html_attributes(artwork_attr.merge("type"=> "ascii-art"))}><![CDATA[#{result}#{result =~ /\n\Z/ ? '' : "\n"}]]></artwork></artset></figure>\n"
           else
