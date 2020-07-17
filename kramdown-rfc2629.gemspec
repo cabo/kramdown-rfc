@@ -9,7 +9,6 @@ spec = Gem::Specification.new do |s|
   s.files = Dir['lib/**/*.rb'] + %w(README.md LICENSE kramdown-rfc2629.gemspec bin/kdrfc bin/kramdown-rfc2629 bin/doilit bin/kramdown-rfc-extract-markdown data/kramdown-rfc2629.erb data/encoding-fallbacks.txt)
   s.require_path = 'lib'
   s.executables = ['kramdown-rfc2629', 'doilit', 'kramdown-rfc-extract-markdown', 'kdrfc']
-  s.default_executable = 'kramdown-rfc2629'
   s.required_ruby_version = '>= 2.3.0'
   # s.requirements = 'wget'
   #  s.has_rdoc = true
