@@ -7,8 +7,8 @@ require 'yaml'
 require 'erb'
 require 'date'
 
-# not sure how to get this from gemspec.
-VERSION="1.3.8-mcr"
+# try to get this from gemspec.
+VERSION=Gem.loaded_specs["kramdown-rfc2629"].version rescue "unknown-version"
 
 Encoding.default_external = "UTF-8" # wake up, smell the coffee
 
