@@ -3,6 +3,9 @@ require 'uri'
 require 'net/http'
 require 'open3'
 
+# try to get this from gemspec.
+KDRFC_VERSION=Gem.loaded_specs["kramdown-rfc2629"].version rescue "unknown-version"
+
 def v3_flag?
   $options.v3 ? ["--v3"] : []
 end
@@ -85,8 +88,18 @@ require 'ostruct'
 $options = OpenStruct.new
 $options.txt = true             # default
 op = OptionParser.new do |opts|
-  opts.banner = "Usage: kdrfc [options] file.md|file.mkd|file.xml"
-
+  opts.banner = <<BANNER
+Usage: kdrfc [options] file.md|file.mkd|file.xml
+Version: #{KDRFC_VERSION}
+BANNER
+  opts.on("-V", "--version", "Show version and exit") do |v|
+    puts "kdrfc, from kramdown-rfc2629 #{KDRFC_VERSION}"
+    exit
+  end
+  opts.on("-H", "--help", "Show option summary and exit") do |v|
+    puts opts
+    exit
+  end
   opts.on("-v", "--[no-]verbose", "Run verbosely") do |v|
     $options.verbose = v
   end

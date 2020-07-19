@@ -1,4 +1,4 @@
-#!/usr/bin/env ruby2.1
+#!/usr/bin/env ruby
 # -*- coding: utf-8 -*-
 require 'kramdown-rfc2629'
 require 'kramdown-rfc/parameterset'
@@ -8,7 +8,7 @@ require 'erb'
 require 'date'
 
 # try to get this from gemspec.
-VERSION=Gem.loaded_specs["kramdown-rfc2629"].version rescue "unknown-version"
+KDRFC_VERSION=Gem.loaded_specs["kramdown-rfc2629"].version rescue "unknown-version"
 
 Encoding.default_external = "UTF-8" # wake up, smell the coffee
 
@@ -290,13 +290,15 @@ require 'ostruct'
 
 $options = OpenStruct.new
 op = OptionParser.new do |opts|
-  opts.banner = "Usage: kramdown-rfc2629 [options] file.md|file.mkd > file.xml (#{VERSION})"
-
+  opts.banner = <<BANNER
+Usage: kramdown-rfc2629 [options] file.md|file.mkd > file.xml
+Version: #{KDRFC_VERSION}
+BANNER
   opts.on("-V", "--version", "Show version and exit") do |v|
-    puts "kramdown-rfc2629 #{VERSION}"
+    puts "kramdown-rfc2629 #{KDRFC_VERSION}"
     exit
   end
-  opts.on("-h", "--help", "Show option summary and exit") do |v|
+  opts.on("-H", "--help", "Show option summary and exit") do |v|
     puts opts
     exit
   end
