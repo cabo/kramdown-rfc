@@ -49,16 +49,21 @@ def process_xml_locally(input, output, *flags)
   end
 end
 
+XML2RFC_WEBSERVICE = ENV["KRAMDOWN_XML2RFC_WEBSERVICE"] ||
+                     'http://xml2rfc.tools.ietf.org/cgi-bin/xml2rfc-dev.cgi'
+
+
 def process_xml_remotely(input, output)
   warn "* converting remotely from xml #{input} to txt #{output}" if $options.verbose
-  url = URI('http://xml2rfc.tools.ietf.org/cgi-bin/xml2rfc.cgi')
+  url = URI(XML2RFC_WEBSERVICE)
   req = Net::HTTP::Post.new(url)
-  req.set_form([["modeAsFormat", "txt/#{"v3" if $options.v3}ascii"],
-                ["type", "binary"],
-                ["input", File.open(input),
-                 {filename: "input.xml",
-                  content_type: "text/plain"}]],
-               'multipart/form-data')
+  form = [["modeAsFormat", "txt/#{"v3" if $options.v3}ascii"],
+          ["type", "binary"],
+          ["input", File.open(input),
+           {filename: "input.xml",
+            content_type: "text/plain"}]]
+  diag = ["url/form: ", url, form].inspect
+  req.set_form(form, 'multipart/form-data')
   res = Net::HTTP::start(url.hostname, url.port,
                          :use_ssl => url.scheme == 'https' ) {|http|
     http.request(req)
@@ -72,12 +77,12 @@ def process_xml_remotely(input, output)
       end
       warn "* #{output} written" if $options.verbose
     else
-      warn "*** HTTP response has unexpected content_type #{res.content_type} with status #{res.code}"
+      warn "*** HTTP response has unexpected content_type #{res.content_type} with status #{res.code}, #{diag}"
       warn res.body
       exit 1
     end
   else
-    warn "*** HTTP response: #{res.code}"
+    warn "*** HTTP response: #{res.code}, #{diag}"
     exit 1
   end
 end
