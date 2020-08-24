@@ -44,6 +44,12 @@ ARGV.each do |doi|
   lit = {}
   ser = lit["seriesinfo"] = {}
   lit["title"] = cite["title"]
+  if (st = cite["subtitle"]) && Array === st # defensive
+    st.delete('')
+    if st != []
+      lit["title"] << ": " << st.join("; ")
+    end
+  end
   if authors = cite["author"]
     lit["author"] = authors.map do |au|
       lau = {}
