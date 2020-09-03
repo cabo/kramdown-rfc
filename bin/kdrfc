@@ -72,6 +72,10 @@ def process_xml_remotely(input, output)
   when Net::HTTPOK
     case res.content_type
     when 'application/octet-stream'
+      if res.body == ''
+        warn "*** HTTP response is empty with status #{res.code}, not written"
+        exit 1
+      end
       File.open(output, "w") do |fo|
         fo.print(res.body)
       end
