@@ -37,16 +37,27 @@ module Kramdown
         @span_parsers.unshift(:iref)
       end
 
-      XREF_START = /\{\{(.*?)\}\}/u
+      XREF_START = /\{\{(?:(?:\{(.*?)\}(?:\{(.*?)\})?)|(.*?))((?:\}\})|\})/u
 
       # Introduce new {{target}} syntax for empty xrefs, which would
       # otherwise be an ugly ![!](target) or ![ ](target)
       # (I'd rather use [[target]], but that somehow clashes with links.)
       def parse_xref
         @src.pos += @src.matched_size
-        href = @src[1]
-        href = href.gsub(/\A[0-9]/) { "_#{$&}" } # can't start an IDREF with a number
-        el = Element.new(:xref, nil, {'target' => href})
+        unless @src[4] == "}}"
+          warn "*** #{@src[0]}: unmatched braces #{@src[4].inspect}"
+        end
+        if contact_name = @src[1]
+          attr = {'fullname' => contact_name}
+          if ascii_name = @src[2]
+            attr["asciiFullname"] = ascii_name
+          end
+          el = Element.new(:contact, nil, attr)
+        else
+          href = @src[3]
+          href = href.gsub(/\A[0-9]/) { "_#{$&}" } # can't start an IDREF with a number
+          el = Element.new(:xref, nil, {'target' => href})
+        end
         @tree.children << el
       end
       define_parser(:xref, XREF_START, '{{')
@@ -522,6 +533,10 @@ COLORS
           end
           "<#{gi}#{el_html_attributes(el)}/>"
         end
+      end
+
+      def convert_contact(el, indent, opts)
+        "<contact#{el_html_attributes(el)}/>"
       end
 
       REFCACHEDIR = ENV["KRAMDOWN_REFCACHEDIR"] || ".refcache"
