@@ -351,7 +351,7 @@ generate XML2RFCv2 XML instead of kramdown-rfc YAML.
 (1.0.31:)
 The kramdown `smart_quotes` feature can be controlled better.
 By default, it is on (with default kramdown settings), unless `coding:
-us-ascii` is in effect, when it is off by default.
+us-ascii` is in effect (1.3.14: or --v3 is given), in which case it is off by default.
 It also can be explicitly set on (`true`) or off (`false`) in the YAML
 header, or to a specific value (an array of four kramdown entity names
 or character numbers).  E.g., for a German text (that is not intended

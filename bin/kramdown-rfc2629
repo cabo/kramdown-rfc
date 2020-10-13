@@ -345,8 +345,10 @@ if input =~ /\A<\?xml/          # if this is a whole XML file, protect it
   input = "{::nomarkdown}\n#{input}\n{:/nomarkdown}\n"
 end
 options = {input: 'RFC2629Kramdown', entity_output: coding_override, link_defs: link_defs}
-if target_coding && target_coding =~ /ascii/ && smart_quotes.nil?
-  smart_quotes = false
+if smart_quotes.nil?
+  if (target_coding && target_coding =~ /ascii/) || $options.v3
+     smart_quotes = false
+  end
 end
 if smart_quotes == false
   smart_quotes = ["'".ord, "'".ord, '"'.ord, '"'.ord]
