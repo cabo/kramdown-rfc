@@ -87,6 +87,7 @@ def xml_from_sections(input)
   ps = KramdownRFC::ParameterSet.new(yaml_load(yaml_in, [Date], [], true))
   coding_override = ps.has(:coding)
   smart_quotes = ps[:smart_quotes]
+  typographic_symbols = ps[:typographic_symbols]
   kramdown_options = ps[:kramdown_options]
 
   # all the other sections are put in a Hash, possibly concatenated from parts there
@@ -237,7 +238,7 @@ def xml_from_sections(input)
     warn "*** sections left #{sechash.keys.inspect}!"
   end
 
-  [input, coding_override, link_defs, smart_quotes, kramdown_options]
+  [input, coding_override, link_defs, smart_quotes, typographic_symbols, kramdown_options]
 end
 
 XML_RESOURCE_ORG_PREFIX = Kramdown::Converter::Rfc2629::XML_RESOURCE_ORG_PREFIX
@@ -339,7 +340,7 @@ end
 link_defs = {}
 if input =~ /\A---/        # this is a sectionized file
   do_the_tls_dance unless ENV["KRAMDOWN_DONT_VERIFY_HTTPS"]
-  input, target_coding, link_defs, smart_quotes, kramdown_options = xml_from_sections(input)
+  input, target_coding, link_defs, smart_quotes, typographic_symbols, kramdown_options = xml_from_sections(input)
 end
 if input =~ /\A<\?xml/          # if this is a whole XML file, protect it
   input = "{::nomarkdown}\n#{input}\n{:/nomarkdown}\n"
@@ -361,6 +362,28 @@ when nil, true
 else
   warn "*** Can't deal with smart_quotes value #{smart_quotes.inspect}"
 end
+if typographic_symbols.nil?
+  if (target_coding && target_coding =~ /ascii/) || $options.v3
+     typographic_symbols = false
+  end
+end
+if typographic_symbols == false
+  typographic_symbols = Hash[::Kramdown::Parser::Kramdown::TYPOGRAPHIC_SYMS.map { |k, v|
+                               if Symbol === v
+                                 [v.intern, k]
+                               end
+                             }.compact]
+end
+# warn [:TYPOGRAPHIC_SYMBOLS, typographic_symbols].to_yaml
+case typographic_symbols
+when Hash
+  options[:typographic_symbols] = typographic_symbols
+when nil, true
+  # nothin
+else
+  warn "*** Can't deal with typographic_symbols value #{typographic_symbols.inspect}"
+end
+
 if kramdown_options
   options.merge! kramdown_options
 end
