@@ -8,6 +8,7 @@
 # This derived work is also licensed under the MIT license, see LICENSE.
 #++
 #
+require 'shellwords'
 
 raise "sorry, 1.8 was last decade" unless RUBY_VERSION >= '1.9'
 
@@ -256,13 +257,16 @@ COLORS
           plantuml = "@startuml\n#{result}\n@enduml"
           result1, _s = Open3.capture2("plantuml -pipe -tsvg", stdin_data: plantuml);
           result, _s = Open3.capture2("plantuml -pipe -tutxt", stdin_data: plantuml) if t == "plantuml-utxt"
+        when "math"
+          result1, _s = Open3.capture2("tex2svg --font STIX #{Shellwords.escape(' ' << result)}");
+          result, _s = Open3.capture2("asciitex -f #{file.path}")
         end
         # warn ["goat:", result1.inspect]
         file.unlink
         result1 = svg_clean(result1) unless t == "goat"
         result1, _s = Open3.capture2("svgcheck -qa", stdin_data: result1);
         # warn ["svgcheck:", result1.inspect]
-        [result, result1]
+        [result, result1]       # text, svg
       end
 
       def convert_codeblock(el, indent, opts)
@@ -309,7 +313,7 @@ COLORS
             end
           end
           case t
-          when "goat", "ditaa", "mscgen", "plantuml", "plantuml-utxt", "mermaid"
+          when "goat", "ditaa", "mscgen", "plantuml", "plantuml-utxt", "mermaid", "math"
             result, result1 = memoize(:svg_tool_process, t, result)
             "#{' '*indent}<figure#{el_html_attributes(el)}><artset><artwork #{html_attributes(artwork_attr.merge("type"=> "svg"))}>#{result1.sub(/.*?<svg/m, "<svg")}</artwork><artwork #{html_attributes(artwork_attr.merge("type"=> "ascii-art"))}><![CDATA[#{result}#{result =~ /\n\Z/ ? '' : "\n"}]]></artwork></artset></figure>\n"
           else
