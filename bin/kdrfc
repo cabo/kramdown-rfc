@@ -121,6 +121,9 @@ BANNER
   opts.on("-p", "--[no-]prep", "Convert xml to prepped xml") do |v|
     $options.prep = v
   end
+  opts.on("-c", "--[no-]convert", "Convert xml to v3 xml") do |v|
+    $options.v2v3 = v
+  end
   opts.on("-h", "--[no-]html", "Convert to html as well") do |v|
     $options.html = v
   end
@@ -135,6 +138,7 @@ op.parse!
 
 def process_the_xml(fn, base)
   process_xml(fn, "#{base}.prepped.xml", "--preptool") if $options.prep
+  process_xml(fn, "#{base}.v2v3.xml", "--v2v3") if $options.v2v3
   process_xml(fn, "#{base}.txt") if $options.txt
   process_xml(fn, "#{base}.html", "--html") if $options.html
 end
