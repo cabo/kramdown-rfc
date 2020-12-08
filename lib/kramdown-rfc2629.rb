@@ -237,6 +237,14 @@ COLORS
         out
       end
 
+      def capture_croak(t, err)
+        if err != ''
+          err.lines do |l|
+            warn "*** [#{t}:] #{l.chomp}"
+          end
+        end
+      end
+
       def svg_tool_process(t, result)
         require 'tempfile'
         file = Tempfile.new("kramdown-rfc")
@@ -244,28 +252,32 @@ COLORS
         file.close
         case t
         when "goat"
-          result1, _s = Open3.capture2("goat #{file.path}", stdin_data: result);
+          result1, err, _s = Open3.capture3("goat #{file.path}", stdin_data: result);
         when "ditaa"        # XXX: This needs some form of option-setting
-          result1, _s = Open3.capture2("ditaa #{file.path} --svg -o -", stdin_data: result);
+          result1, err, _s = Open3.capture3("ditaa #{file.path} --svg -o -", stdin_data: result);
         when "mscgen"
-          result1, _s = Open3.capture2("mscgen -T svg -i #{file.path} -o -", stdin_data: result);
+          result1, err, _s = Open3.capture3("mscgen -T svg -i #{file.path} -o -", stdin_data: result);
         when "mermaid"
-          result1, _s = Open3.capture2("mmdc -i #{file.path}", stdin_data: result); #  -b transparent
+          result1, err, _s = Open3.capture3("mmdc -i #{file.path}", stdin_data: result); #  -b transparent
           outpath = file.path + ".svg"
           result1 = File.read(outpath)
           File.unlink(outpath)
         when "plantuml", "plantuml-utxt"
           plantuml = "@startuml\n#{result}\n@enduml"
-          result1, _s = Open3.capture2("plantuml -pipe -tsvg", stdin_data: plantuml);
-          result, _s = Open3.capture2("plantuml -pipe -tutxt", stdin_data: plantuml) if t == "plantuml-utxt"
+          result1, err, _s = Open3.capture3("plantuml -pipe -tsvg", stdin_data: plantuml);
+          result, err1, _s = Open3.capture3("plantuml -pipe -tutxt", stdin_data: plantuml) if t == "plantuml-utxt"
+          err << err1
         when "math"
-          result1, _s = Open3.capture2("tex2svg --font STIX #{Shellwords.escape(' ' << result)}");
-          result, _s = Open3.capture2("asciitex -f #{file.path}")
+          result1, err, _s = Open3.capture3("tex2svg --font STIX --speech=false #{Shellwords.escape(' ' << result)}");
+          result, err1, _s = Open3.capture3("asciitex -f #{file.path}")
+          err << err1
         end
+        capture_croak(t, err)
         # warn ["goat:", result1.inspect]
         file.unlink
         result1 = svg_clean(result1) unless t == "goat"
-        result1, _s = Open3.capture2("svgcheck -qa", stdin_data: result1);
+        result1, err, _s = Open3.capture3("svgcheck -qa", stdin_data: result1);
+        capture_croak("svgcheck", err)
         # warn ["svgcheck:", result1.inspect]
         [result, result1]       # text, svg
       end
@@ -770,8 +782,9 @@ COLORS
               artwork_attr[md[1]] = v
             end
           end
-          result, _s = Open3.capture2("tex2mail -noindent -ragged -by_par -linelength=69", stdin_data: el.value);
+          result, err, _s = Open3.capture3("tex2mail -noindent -ragged -by_par -linelength=69", stdin_data: el.value);
           # warn "*** tex2mail not in path?" unless s.success? -- doesn't have useful status
+          capture_croak("tex2mail", err)
           "#{' '*indent}<figure#{el_html_attributes(el)}><artwork#{html_attributes(artwork_attr)}><![CDATA[#{result}#{result =~ /\n\Z/ ? '' : "\n"}]]></artwork></figure>\n"
 
         else
