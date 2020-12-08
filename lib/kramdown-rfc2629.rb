@@ -19,6 +19,7 @@ Kramdown::Parser::Html::Constants::HTML_SPAN_ELEMENTS.concat my_span_elements
 
 require 'rexml/parsers/baseparser'
 require 'open3'                 # for math
+require 'json'                  # for math
 
 class Object
   def deep_clone
@@ -740,6 +741,23 @@ COLORS
         entity_to_str(smart_quote_entity(el))
       end
 
+      MATH_LATEX_FILENAME = File.expand_path '../../data/math.json', __FILE__
+      MATH_LATEX = JSON.parse(File.read(MATH_LATEX_FILENAME, encoding: Encoding::UTF_8))
+      MATH_REPLACEMENTS = MATH_LATEX["replacements"]
+      MATH_COMBININGMARKS = MATH_LATEX["combiningmarks"]
+
+      def munge_latex(s)
+        MATH_REPLACEMENTS.each do |o, n|
+          s.gsub!(o, n)
+        end
+        MATH_COMBININGMARKS.each do |m, n|
+          re = /\\#{m[1..-1]}\{(\X)\}/
+          s.gsub!(re) { "#$1#{n}" }
+        end
+        s
+      end
+      # XXX: This is missing sup/sub support, which needs to be added
+
       def convert_math(el, indent, opts) # XXX: This is wrong
         el = el.deep_clone
         if el.options[:category] == :block
@@ -757,10 +775,18 @@ COLORS
           "#{' '*indent}<figure#{el_html_attributes(el)}><artwork#{html_attributes(artwork_attr)}><![CDATA[#{result}#{result =~ /\n\Z/ ? '' : "\n"}]]></artwork></figure>\n"
 
         else
-          warn "*** no support for inline math in XML2RFCv2"
           type = 'spanx'
-          attrstring = el_html_attributes_with(el, {"style" => 'verb'})
-          "<#{type}#{attrstring}>#{escape_html(el.value, :text)}</#{type}>"
+          if $options.v3
+            type = 'contact'
+            result = munge_latex(el.value)
+            attrstring = el_html_attributes_with(el, {"fullname" => result.chomp, "asciiFullname" => ''})
+          else
+            warn "*** no support for inline math in XML2RFCv2"
+            type = 'spanx'
+            attrstring = el_html_attributes_with(el, {"style" => 'verb'})
+            content = escape_html(el.value, :text)
+          end
+          "<#{type}#{attrstring}>#{content}</#{type}>"
         end
       end
 
