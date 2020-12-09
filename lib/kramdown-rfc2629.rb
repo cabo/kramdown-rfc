@@ -394,7 +394,18 @@ COLORS
         end
       end
       alias :convert_ol :convert_ul
-      alias :convert_dl :convert_ul
+
+      def convert_dl(el, indent, opts)
+        if $options.v3
+          vspace = el.attr.delete('vspace')
+          if vspace && !el.attr['newline']
+            el.attr['newline'] = 'true'
+          end
+          "#{' '*indent}<dl#{el_html_attributes(el)}>\n#{inner(el, indent, opts.dup)}#{' '*indent}</dl>\n"
+        else
+          convert_ul(el, indent, opts)
+        end
+      end
 
       def convert_li(el, indent, opts)
         res_a = inner_a(el, indent, opts)
@@ -409,7 +420,16 @@ COLORS
         end
         "#{' '*indent}<t#{el_html_attributes(el)}>#{res}#{(res =~ /\n\Z/ ? ' '*indent : '')}</t>\n"
       end
+
       def convert_dd(el, indent, opts)
+        if $options.v3
+          out = ''
+          if !opts[:haddt]
+            out ="#{' '*indent}<dt/>\n" # you can't make this one up
+          end
+          opts[:haddt] = false
+          out << "#{' '*indent}<dd#{el_html_attributes(el)}>\n#{inner(el, indent, opts)}#{' '*indent}</dd>\n"
+        else
         output = ' '*indent
         if @in_dt == 1
           @in_dt = 0
@@ -423,15 +443,25 @@ COLORS
 #          output << "\n" << res << ' '*indent
 #        end
         output << "</t>\n"
+        end
       end
 
       def convert_dt(el, indent, opts) # SERIOUSLY BAD HACK:
+        if $options.v3
+          out = ''
+          if opts[:haddt]
+            out ="#{' '*indent}<dd><t/></dd>\n" # you can't make this one up
+          end
+          opts[:haddt] = true
+          out << "#{' '*indent}<dt#{el_html_attributes(el)}>\n#{inner(el, indent, opts)}#{' '*indent}</dt>\n"
+        else
         close = "#{' '*indent}</t>\n" * @in_dt
         @in_dt = 1
         vspace = opts[:vspace]
         vspaceel = "<vspace blankLines='#{vspace}'/>" if vspace
         ht = escape_html(inner(el, indent, opts), :attribute) # XXX this may leave gunk
         "#{close}#{' '*indent}<t#{el_html_attributes(el)} hangText=\"#{ht}\">#{vspaceel}\n"
+        end
       end
 
       HTML_TAGS_WITH_BODY=['div', 'script']
