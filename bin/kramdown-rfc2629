@@ -154,7 +154,7 @@ def xml_from_sections(input)
       if bibref
         if old = anchor_to_bibref[word]
           if bibref != old
-            warn "*** conflicting definitions for xref #{anchor}: #{old} != #{bibref}"
+            warn "*** conflicting definitions for xref #{word}: #{old} != #{bibref}"
           end
         else
           anchor_to_bibref[word] = bibref
