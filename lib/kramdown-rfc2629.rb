@@ -373,8 +373,15 @@ COLORS
         if options[:auto_ids] && !el.attr['anchor']
           el.attr['anchor'] = saner_generate_id(el.options[:raw_text])
         end
+        if $options.v3
+          if sl = el.attr.delete('slugifiedName') # could do general name- play
+            attrstring = html_attributes({'slugifiedName' => sl})
+          end
+          irefs = "<name#{attrstring}>#{inner(el, indent, opts)}</name>" #
+        else
         clean, irefs = clean_pcdata(inner_a(el, indent, opts))
         el.attr['title'] = clean
+        end
         "#{end_sections(el.options[:level], indent)}#{' '*indent}<section#{@sec_level += 1; el_html_attributes(el)}>#{irefs}\n"
       end
 
@@ -752,9 +759,14 @@ COLORS
       EMPH = { em: "emph", strong: "strong"}
 
       def convert_em(el, indent, opts)
+        if $options.v3
+          gi = el.type
+          "<#{gi}#{el_html_attributes(el)}>#{inner(el, indent, opts)}</#{gi}>"
+        else
         attrstring = el_html_attributes_with(el, {"style" => EMPH[el.type]})
         span, irefs = clean_pcdata(inner_a(el, indent, opts))
         "<spanx#{attrstring}>#{span}</spanx>#{irefs}"
+        end
       end
       alias :convert_strong :convert_em
 
