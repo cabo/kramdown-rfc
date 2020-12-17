@@ -39,7 +39,36 @@ module Kramdown
         @span_parsers.unshift(:iref)
       end
 
-      XREF_START = /\{\{(?:(?:\{(.*?)\}(?:\{(.*?)\})?)|(.*?))((?:\}\})|\})/u
+      SECTIONS_RE = /Section(?:s (?:[\w.]+, )*[\w.]+,? and)? [\w.]+/
+
+      def handle_bares(s, attr, format, href)
+        sa = s.sub(/\A\S+\s/, '').split(/,? and /)
+        sa[0..0] = *sa[0].split(', ')
+        sz = sa.size
+        if sz != 1         # we have to redo xml2rfc's work here
+          @tree.children << Element.new(:text, "Sections ", {}) # XXX needs to split into Section/Appendix
+          sa.each_with_index do |sec, i|
+            attr1 = {"target" => href, "section" => sec, "sectionFormat" => "bare"}
+            @tree.children << Element.new(:xref, nil, attr1)
+            text = if i == 0 && sz == 2
+                     " and "
+                   elsif i == sz-1
+                     " of "
+                   elsif i == sz-2
+                     ", and "
+                   else
+                     ", "
+                   end
+            @tree.children << Element.new(:text, text, {})
+          end
+          # attr stays unchanged, no section added
+        else
+          attr['section'] = sa[-1]
+          attr['sectionFormat'] = format
+        end
+      end
+
+      XREF_START = /\{\{(?:(?:\{(.*?)\}(?:\{(.*?)\})?)|(\X*?))((?:\}\})|\})/u
 
       # Introduce new {{target}} syntax for empty xrefs, which would
       # otherwise be an ugly ![!](target) or ![ ](target)
@@ -57,8 +86,28 @@ module Kramdown
           el = Element.new(:contact, nil, attr)
         else
           href = @src[3]
+          attr = {}
+          if $options.v3
+            # match Section ... of ...; set section, sectionFormat
+            case href.gsub(/[\u00A0\s]+/, ' ') # may need nbsp and/or newlines
+            when /\A(#{SECTIONS_RE}) of (.*)\z/
+              href = $2
+              handle_bares($1, attr, "of", href)
+            when /\A(.*), (#{SECTIONS_RE})\z/
+              href = $1
+              handle_bares($2, attr, "comma", href)
+            when /\A(.*) \((#{SECTIONS_RE})\)\z/
+              href = $1
+              handle_bares($2, attr, "parens", href)
+            when /\A([\w.]+)<(.*)\z/
+              href = $2
+              attr['section'] = $1
+              attr['sectionFormat'] = 'bare'
+            end
+          end
           href = href.gsub(/\A[0-9]/) { "_#{$&}" } # can't start an IDREF with a number
-          el = Element.new(:xref, nil, {'target' => href})
+          attr['target'] = href
+          el = Element.new(:xref, nil, attr)
         end
         @tree.children << el
       end
