@@ -453,10 +453,8 @@ COLORS
 
       def convert_dl(el, indent, opts)
         if $options.v3
-          hangindent = el.attr.delete('hangIndent')
-          if hangindent && !$hangindent_seen
-            warn "** Ignoring @hangIndent on <dl> for v3, see https://u.nu/hangindent-dl"
-            $hangindent_seen = true
+          if hangindent = el.attr.delete('hangIndent')
+            el.attr['indent'] ||= hangindent # new attribute name wins
           end
           vspace = el.attr.delete('vspace')
           if vspace && !el.attr['newline']
