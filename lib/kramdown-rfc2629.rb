@@ -128,6 +128,22 @@ module Kramdown
   end
 
   class Element
+
+    # Not fixing studly element names postalLine and seriesInfo yet
+
+    # occasionally regenerate the studly attribute name list via
+    # script in data/studly.rb
+    STUDLY_ATTR = %w(
+    asciiAbbrev asciiFullname asciiInitials asciiName asciiSurname
+    asciiValue blankLines derivedAnchor derivedContent derivedCounter
+    derivedLink displayFormat docName expiresDate hangIndent hangText
+    indexInclude iprExtract keepWithNext keepWithPrevious originalSrc
+    prepTime quoteTitle quotedFrom removeInRFC sectionFormat seriesNo
+    showOnFrontPage slugifiedName sortRefs submissionType symRefs tocDepth
+    tocInclude
+    )
+    STUDLY_ATTR_MAP = Hash[STUDLY_ATTR.map {|s| [s.downcase, s]}]
+
     def rfc2629_fix
       if a = attr
         if anchor = a.delete('id')
@@ -135,6 +151,11 @@ module Kramdown
         end
         if anchor = a.delete('href')
           a['target'] = anchor
+        end
+        attr.keys.each do |k|
+          if (d = k.gsub(/_(.|$)/) { $1.upcase }) != k or d = STUDLY_ATTR_MAP[k]
+            a[d] = a.delete(k)
+          end
         end
       end
     end
