@@ -1,3 +1,5 @@
+require 'kramdown-rfc/erb'
+
 module KramdownRFC
 
   extend Kramdown::Utils::Html
@@ -8,7 +10,7 @@ module KramdownRFC
 
   def self.ref_to_xml(k, v)
     vps = KramdownRFC::ParameterSet.new(v)
-    erb = ERB.new <<-REFERB, nil, '-'
+    erb = ERB.trim_new <<-REFERB, '-'
 <reference anchor="<%= escattr(k) %>" <%= vps.attr("target") %>>
   <front>
     <%= vps.ele("title") -%>
@@ -75,7 +77,7 @@ module KramdownRFC
   ERB
 
   def self.person_element_from_aups(element_name, aups)
-    erb = ERB.new(PERSON_ERB, nil, '-')
+    erb = ERB.trim_new(PERSON_ERB, '-')
     erb.result(binding)
   end
 

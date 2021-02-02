@@ -4,7 +4,7 @@ require 'kramdown-rfc2629'
 require 'kramdown-rfc/parameterset'
 require 'kramdown-rfc/refxml'
 require 'yaml'
-require 'erb'
+require 'kramdown-rfc/erb'
 require 'date'
 
 # try to get this from gemspec.
@@ -229,7 +229,7 @@ def xml_from_sections(input)
 
   erbfilename = File.expand_path '../../data/kramdown-rfc2629.erb', __FILE__
   erbfile = File.read(erbfilename, coding: "UTF-8")
-  erb = ERB.new(erbfile, nil, '-')
+  erb = ERB.trim_new(erbfile, '-')
   # remove redundant nomarkdown pop outs/pop ins as they confuse kramdown
   input = erb.result(binding).gsub(%r"{::nomarkdown}\s*{:/nomarkdown}"m, "")
   ps.warn_if_leftovers
