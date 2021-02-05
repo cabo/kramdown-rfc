@@ -289,6 +289,8 @@ COLORS
         REXML::XPath.each(d.root, "//*[@fill]") { |x| x.attributes["fill"] = svg_munch_color(x.attributes["fill"], true) }
         REXML::XPath.each(d.root, "//*[@id]") { |x| x.attributes["id"] = svg_munch_id(x.attributes["id"]) }
 ##      REXML::XPath.each(d.root, "//rect") { |x| x.attributes["style"] = "fill:none;stroke:black;stroke-width:1" unless x.attributes["style"] }
+        # Fix for mermaid:
+        REXML::XPath.each(d.root, "//polygon") { |x| x.attributes["rx"] = nil; x.attributes["ry"] = nil }
         d.to_s
       end
 
@@ -330,8 +332,8 @@ COLORS
         when "mermaid"
           result1, err, _s = Open3.capture3("mmdc -i #{file.path}", stdin_data: result); #  -b transparent
           outpath = file.path + ".svg"
-          result1 = File.read(outpath)
-          File.unlink(outpath)
+          result1 = File.read(outpath) rescue '' # don't die before providing error message
+          File.unlink(outpath) rescue nil        # ditto
         when "plantuml", "plantuml-utxt"
           plantuml = "@startuml\n#{result}\n@enduml"
           result1, err, _s = Open3.capture3("plantuml -pipe -tsvg", stdin_data: plantuml);
