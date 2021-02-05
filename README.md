@@ -305,7 +305,7 @@ Currently supported labels as of 1.3.9:
   (fork: [asciiTeX][asciiTeX-eggert]) for plaintext
 
 [goat]: https://github.com/blampe/goat
-[ditaa]: http://ditaa.sourceforge.net/
+[ditaa]:  https://github.com/stathissideris/ditaa
 [mscgen]: http://www.mcternan.me.uk/mscgen/
 [plantuml]: https://plantuml.com
 [mermaid]: https://github.com/mermaid-js/mermaid-cli
