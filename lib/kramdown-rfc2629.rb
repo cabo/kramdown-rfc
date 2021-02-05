@@ -292,6 +292,9 @@ COLORS
         # Fix for mermaid:
         REXML::XPath.each(d.root, "//polygon") { |x| x.attributes["rx"] = nil; x.attributes["ry"] = nil }
         d.to_s
+      rescue => detail
+        warn "*** Can't clean SVG: #{detail}"
+        d
       end
 
       def memoize(meth, *args)
@@ -351,6 +354,10 @@ COLORS
         result1, err, _s = Open3.capture3("svgcheck -qa", stdin_data: result1);
         capture_croak("svgcheck", err)
         # warn ["svgcheck:", result1.inspect]
+        if result1 == ''
+          warn "*** could not create svg for #{result.inspect[0...20]}..."
+          exit 65 # EX_DATAERR
+        end
         [result, result1]       # text, svg
       end
 
