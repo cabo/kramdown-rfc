@@ -308,7 +308,7 @@ Currently supported labels as of 1.3.9:
 [ditaa]: http://ditaa.sourceforge.net/
 [mscgen]: http://www.mcternan.me.uk/mscgen/
 [plantuml]: https://plantuml.com
-[mermaid]: https://github.com/mermaidjs/mermaid.cli
+[mermaid]: https://github.com/mermaid-js/mermaid-cli
 [tex2svg]: https://github.com/mathjax/MathJax-demos-node/blob/master/direct/tex2svg
 [asciitex]: http://asciitex.sourceforge.net/
 [asciiTeX-eggert]: https://github.com/larseggert/asciiTeX
