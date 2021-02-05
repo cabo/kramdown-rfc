@@ -338,7 +338,7 @@ COLORS
           plantuml = "@startuml\n#{result}\n@enduml"
           result1, err, _s = Open3.capture3("plantuml -pipe -tsvg", stdin_data: plantuml);
           result, err1, _s = Open3.capture3("plantuml -pipe -tutxt", stdin_data: plantuml) if t == "plantuml-utxt"
-          err << err1
+          err << err1.to_s
         when "math"
           result1, err, _s = Open3.capture3("tex2svg --font STIX --speech=false #{Shellwords.escape(' ' << result)}");
           result, err1, _s = Open3.capture3("asciitex -f #{file.path}")
