@@ -695,7 +695,7 @@ COLORS
             message = "fetching"
             fetch_timeout = 60 # seconds; long timeout needed for Travis
           end
-          $stderr.puts "#{fn}: #{message}"
+          $stderr.puts "#{fn}: #{message} from #{url}"
           if ENV["HAVE_WGET"]
             `cd #{REFCACHEDIR}; wget -t 3 -T #{fetch_timeout} -Nnv "#{url}"` # ignore errors if offline (hack)
             begin
@@ -739,8 +739,12 @@ COLORS
 
       # [subdirectory name, cache ttl in seconds, does it provide for ?anchor=]
       XML_RESOURCE_ORG_MAP = {
-        "RFC" => ["bibxml", 86400*7], # these should change rarely
-        "I-D" => "bibxml3",
+        "RFC" => ["bibxml", 86400*7, false,
+                  ->(fn, n){ "https://www.rfc-editor.org/refs/bibxml/#{fn}"}
+                 ],
+        "I-D" => ["bibxml3", false, false,
+                  ->(fn, n){ "https://datatracker.ietf.org/doc/bibxml3/draft-#{n.sub(/\Adraft-/, '')}/xml" }
+                 ],
         "W3C" => "bibxml4",
         "3GPP" => "bibxml5",
         "ANSI" => "bibxml2",
@@ -761,6 +765,7 @@ COLORS
       XML_RESOURCE_ORG_HOST = ENV["XML_RESOURCE_ORG_HOST"] || "xml2rfc.tools.ietf.org"
       XML_RESOURCE_ORG_PREFIX = ENV["XML_RESOURCE_ORG_PREFIX"] ||
                                 "https://#{XML_RESOURCE_ORG_HOST}/public/rfc"
+      KRAMDOWN_USE_TOOLS_SERVER = ENV["KRAMDOWN_USE_TOOLS_SERVER"]
 
       KRAMDOWN_REFCACHETTL = (e = ENV["KRAMDOWN_REFCACHETTL"]) ? e.to_i : 3600
 
@@ -783,10 +788,14 @@ COLORS
           to_insert = ""
           src.scan(/(W3C|3GPP|[A-Z-]+)[.]?([A-Za-z_0-9.\/\+-]+)/) do |t, n|
             fn = "reference.#{t}.#{n}.xml"
-            sub, ttl, can_anchor = XML_RESOURCE_ORG_MAP[t]
+            sub, ttl, can_anchor, altproc = XML_RESOURCE_ORG_MAP[t]
             ttl ||= KRAMDOWN_REFCACHETTL  # everything but RFCs might change a lot
             puts "*** Huh: #{fn}" unless sub
-            url = "#{XML_RESOURCE_ORG_PREFIX}/#{sub}/#{fn}"
+            if altproc && !KRAMDOWN_USE_TOOLS_SERVER
+              url = altproc.call(fn, n)
+            else
+              url = "#{XML_RESOURCE_ORG_PREFIX}/#{sub}/#{fn}"
+            end
             # if can_anchor # create anchor server-side for stand_alone: false
             #   url << "?anchor=#{anchor}"
             #   fn[/.xml$/] = "--anchor=#{anchor}.xml"
