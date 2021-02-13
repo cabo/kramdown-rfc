@@ -802,6 +802,8 @@ COLORS
             # end
             to_insert = get_and_cache_resource(url, fn.gsub('/', '_'), ttl)
             to_insert.scrub! rescue nil # only do this for Ruby >= 2.1
+            to_insert.gsub!(%r{target="https?://www.ietf.org/internet-drafts/},
+                            %{target="https://www.ietf.org/archive/id/}) if t == "I-D"
             # this may be a bit controversial: Don't break the build if reference is broken
             if KRAMDOWN_OFFLINE
               unless to_insert
