@@ -178,6 +178,17 @@ module Kramdown
 
       # :stopdoc:
 
+      KRAMDOWN_PERSISTENT = ENV["KRAMDOWN_PERSISTENT"]
+
+      if KRAMDOWN_PERSISTENT
+        begin
+          require 'net/http/persistent'
+          $http = Net::HTTP::Persistent.new name: 'kramdown-rfc'
+        rescue Exception => e
+          warn "** Can't set up persistent HTTP -- #{e}"
+        end
+      end
+
       # Defines the amount of indentation used when nesting XML tags.
       INDENTATION = 2
 
@@ -682,6 +693,34 @@ COLORS
       KRAMDOWN_OFFLINE = ENV["KRAMDOWN_OFFLINE"]
       KRAMDOWN_REFCACHE_REFETCH = ENV["KRAMDOWN_REFCACHE_REFETCH"]
 
+      def get_and_write_resource(url, fn)
+        options = {}
+        if ENV["KRAMDOWN_DONT_VERIFY_HTTPS"]
+          options[:ssl_verify_mode] = OpenSSL::SSL::VERIFY_NONE
+        end             # workaround for OpenSSL on Windows...
+        # URI.open(url, **options) do |uf|          # not portable to older versions
+        OpenURI.open_uri(url, **options) do |uf|
+          s = uf.read
+          if uf.status[0] != "200"
+            warn "*** Status code #{status} while fetching #{url}"
+          else
+            File.write(fn, s)
+          end
+        end
+      end
+
+      def get_and_write_resource_persistently(url, fn)
+        t1 = Time.now
+        response = $http.request(URI(url))
+        if response.code != "200"
+          raise "Status code #{response.code} while fetching #{url}"
+        else
+          File.write(fn, response.body)
+        end
+        t2 = Time.now
+        warn "(#{"%.3f" % (t2 - t1)} s)"
+      end
+
       # this is now slightly dangerous as multiple urls could map to the same cachefile
       def get_and_cache_resource(url, cachefile, tvalid = 7200, tn = Time.now)
         fn = "#{REFCACHEDIR}/#{cachefile}"
@@ -710,18 +749,15 @@ COLORS
             require 'timeout'
             begin
               Timeout::timeout(fetch_timeout) do
-                options = {}
-                if ENV["KRAMDOWN_DONT_VERIFY_HTTPS"]
-                  options[:ssl_verify_mode] = OpenSSL::SSL::VERIFY_NONE
-                end             # workaround for OpenSSL on Windows...
-#               URI.open(url, **options) do |uf|          # not portable to older versions
-                OpenURI.open_uri(url, **options) do |uf|
-                  s = uf.read
-                  if uf.status[0] != "200"
-                    warn "*** Status code #{status} while fetching #{url}"
-                  else
-                    File.write(fn, s)
+                if $http
+                  begin         # belt and suspenders
+                    get_and_write_resource_persistently(url, fn)
+                  rescue Exception => e
+                    warn "*** Can't get with persistent HTTP: #{e}"
+                    get_and_write_resource(url, fn)
                   end
+                else
+                  get_and_write_resource(url, fn)
                 end
               end
             rescue OpenURI::HTTPError, Errno::EHOSTUNREACH, Errno::ECONNREFUSED,
