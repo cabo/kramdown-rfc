@@ -739,10 +739,10 @@ COLORS
 
       # [subdirectory name, cache ttl in seconds, does it provide for ?anchor=]
       XML_RESOURCE_ORG_MAP = {
-        "RFC" => ["bibxml", 86400*7, false,
+        "RFC" => ["bibxml", 86400*7,
                   ->(fn, n){ "https://www.rfc-editor.org/refs/bibxml/#{fn}"}
                  ],
-        "I-D" => ["bibxml3", false, false,
+        "I-D" => ["bibxml3", false,
                   ->(fn, n){ "https://datatracker.ietf.org/doc/bibxml3/draft-#{n.sub(/\Adraft-/, '')}/xml" }
                  ],
         "W3C" => "bibxml4",
@@ -757,8 +757,8 @@ COLORS
         "NIST" => "bibxml2",
         "OASIS" => "bibxml2",
         "PKCS" => "bibxml2",
-        "DOI" => ["bibxml7", 86400, true], # 24 h cache at source anyway
-        "IANA" => ["bibxml8", 86400, true], # ditto
+        "DOI" => ["bibxml7", 86400], # 24 h cache at source anyway
+        "IANA" => ["bibxml8", 86400], # ditto
       }
 
       # XML_RESOURCE_ORG_HOST = ENV["XML_RESOURCE_ORG_HOST"] || "xml.resource.org"
@@ -788,7 +788,7 @@ COLORS
           to_insert = ""
           src.scan(/(W3C|3GPP|[A-Z-]+)[.]?([A-Za-z_0-9.\/\+-]+)/) do |t, n|
             fn = "reference.#{t}.#{n}.xml"
-            sub, ttl, can_anchor, altproc = XML_RESOURCE_ORG_MAP[t]
+            sub, ttl, altproc = XML_RESOURCE_ORG_MAP[t]
             ttl ||= KRAMDOWN_REFCACHETTL  # everything but RFCs might change a lot
             puts "*** Huh: #{fn}" unless sub
             if altproc && !KRAMDOWN_USE_TOOLS_SERVER
@@ -796,10 +796,6 @@ COLORS
             else
               url = "#{XML_RESOURCE_ORG_PREFIX}/#{sub}/#{fn}"
             end
-            # if can_anchor # create anchor server-side for stand_alone: false
-            #   url << "?anchor=#{anchor}"
-            #   fn[/.xml$/] = "--anchor=#{anchor}.xml"
-            # end
             to_insert = get_and_cache_resource(url, fn.gsub('/', '_'), ttl)
             to_insert.scrub! rescue nil # only do this for Ruby >= 2.1
             to_insert.gsub!(%r{target="https?://www.ietf.org/internet-drafts/},
