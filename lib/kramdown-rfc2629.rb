@@ -788,7 +788,7 @@ COLORS
           to_insert = ""
           src.scan(/(W3C|3GPP|[A-Z-]+)[.]?([A-Za-z_0-9.\/\+-]+)/) do |t, n|
             fn = "reference.#{t}.#{n}.xml"
-            sub, ttl, can_anchor, altproc = XML_RESOURCE_ORG_MAP[t]
+            sub, ttl, _can_anchor, altproc = XML_RESOURCE_ORG_MAP[t]
             ttl ||= KRAMDOWN_REFCACHETTL  # everything but RFCs might change a lot
             puts "*** Huh: #{fn}" unless sub
             if altproc && !KRAMDOWN_USE_TOOLS_SERVER
