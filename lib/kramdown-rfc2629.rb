@@ -839,8 +839,11 @@ COLORS
             # end
             to_insert = get_and_cache_resource(url, fn.gsub('/', '_'), ttl)
             to_insert.scrub! rescue nil # only do this for Ruby >= 2.1
-            to_insert.gsub!(%r{target="https?://www.ietf.org/internet-drafts/},
-                            %{target="https://www.ietf.org/archive/id/}) if t == "I-D"
+            if t == "RFC" or t == "I-D"
+              # Let xml2rfc --id-base-url and --rfc-base-url work.
+              to_insert.sub!(%r{(<reference\s+.*)\s+target=(?:'[^']*'|"[^"]*")}, '\1')
+              to_insert.gsub!(%r{\s+<format[^>]*/>}, "")
+            end
             # this may be a bit controversial: Don't break the build if reference is broken
             if KRAMDOWN_OFFLINE
               unless to_insert
