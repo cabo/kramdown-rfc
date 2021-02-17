@@ -179,6 +179,7 @@ module Kramdown
       # :stopdoc:
 
       KRAMDOWN_PERSISTENT = ENV["KRAMDOWN_PERSISTENT"]
+      KRAMDOWN_PERSISTENT_VERBOSE = /v/ === KRAMDOWN_PERSISTENT
 
       if KRAMDOWN_PERSISTENT
         begin
@@ -718,7 +719,7 @@ COLORS
           File.write(fn, response.body)
         end
         t2 = Time.now
-        warn "(#{"%.3f" % (t2 - t1)} s)"
+        warn "(#{"%.3f" % (t2 - t1)} s)" if KRAMDOWN_PERSISTENT_VERBOSE
       end
 
       # this is now slightly dangerous as multiple urls could map to the same cachefile
