@@ -294,7 +294,6 @@ COLORS
       end
 
       def svg_clean(s)          # expensive, risky
-        require "rexml/document"
         d = REXML::Document.new(s)
         REXML::XPath.each(d.root, "//*[@shape-rendering]") { |x| x.attributes["shape-rendering"] = nil }  #; warn x.inspect }
         REXML::XPath.each(d.root, "//*[@text-rendering]") { |x| x.attributes["text-rendering"] = nil }  #; warn x.inspect  }
