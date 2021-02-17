@@ -20,6 +20,7 @@ Kramdown::Parser::Html::Constants::HTML_SPAN_ELEMENTS.concat my_span_elements
 require 'rexml/parsers/baseparser'
 require 'open3'                 # for math
 require 'json'                  # for math
+require 'rexml/document'        # for SVG and bibxml acrobatics
 
 class Object
   def deep_clone
@@ -806,6 +807,8 @@ COLORS
 
       KRAMDOWN_REFCACHETTL = (e = ENV["KRAMDOWN_REFCACHETTL"]) ? e.to_i : 3600
 
+      KRAMDOWN_NO_TARGETS = ENV['KRAMDOWN_NO_TARGETS']
+
       def convert_img(el, indent, opts) # misuse the tag!
         if a = el.attr
           alt = a.delete('alt').strip
@@ -839,10 +842,32 @@ COLORS
             # end
             to_insert = get_and_cache_resource(url, fn.gsub('/', '_'), ttl)
             to_insert.scrub! rescue nil # only do this for Ruby >= 2.1
-            to_insert.gsub!(%r{target="https?://www.ietf.org/internet-drafts/},
-                            %{target="https://www.ietf.org/archive/id/}) if t == "I-D"
+
+            begin
+              d = REXML::Document.new(to_insert)
+              d.xml_decl.nowrite
+              d.root.attributes["anchor"] = anchor
+              if t == "RFC" or t == "I-D"
+                if KRAMDOWN_NO_TARGETS
+                  d.root.attributes["target"] = nil
+                  REXML::XPath.each(d.root, "/reference/format") { |x|
+                    d.root.delete_element(x)
+                  }
+                else
+                  REXML::XPath.each(d.root, "/reference/format") { |x|
+                    x.attributes["target"].sub!(%r{https?://www.ietf.org/internet-drafts/}, 
+                                                %{https://www.ietf.org/archive/id/}) if t == "I-D"
+                  }
+                end
+              end
+              to_insert = d.to_s
+            rescue Exception => e
+              warn "** Can't manipulate reference XML: #{e}"
+              broken = true
+              to_insert = nil
+            end
             # this may be a bit controversial: Don't break the build if reference is broken
-            if KRAMDOWN_OFFLINE
+            if KRAMDOWN_OFFLINE || broken
               unless to_insert
                 to_insert = "<reference anchor='#{anchor}'> <front> <title>*** BROKEN REFERENCE ***</title> <author> <organization/> </author> <date/> </front> </reference>"
                 warn "*** KRAMDOWN_OFFLINE: Inserting broken reference for #{fn}"
@@ -851,8 +876,7 @@ COLORS
               exit 66 unless to_insert # EX_NOINPUT
             end
           end
-          to_insert.sub(/<\?xml version=["']1.0["'] encoding=["']UTF-8["']\?>/, '')
-            .sub(/\banchor=(?:"[^"]+"|'[^']+')/, "anchor=\"#{anchor}\"")
+          to_insert
         else
           "<xref#{el_html_attributes(el)}>#{alt}</xref>"
         end
