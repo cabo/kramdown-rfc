@@ -428,7 +428,7 @@ COLORS
             "#{' '*indent}<figure#{el_html_attributes(el)}><artset><artwork #{html_attributes(artwork_attr.merge("type"=> "svg"))}>#{result1.sub(/.*?<svg/m, "<svg")}</artwork><artwork #{html_attributes(artwork_attr.merge("type"=> "ascii-art"))}><![CDATA[#{result}#{result =~ /\n\Z/ ? '' : "\n"}]]></artwork></artset></figure>\n"
           else
             gi ||= (
-              if !$options.v3 || !t || ARTWORK_TYPES.include?(t)
+              if !$options.v3 || !t || ARTWORK_TYPES.include?(t) || artwork_attr["align"]
                 "artwork"
               else
                 "sourcecode"
