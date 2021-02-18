@@ -373,9 +373,12 @@ COLORS
         [result, result1]       # text, svg
       end
 
+      ARTWORK_TYPES = %w(ascii-art binary-art call-flow hex-dump svg)
+
       def convert_codeblock(el, indent, opts)
         # el.attr['anchor'] ||= saner_generate_id(el.value) -- no longer in 1.0.6
         result = el.value
+        gi = el.attr.delete('gi')
         blockclass = el.attr.delete('class')
         if blockclass == 'language-tbreak'
           result = result.lines.map {|line| [line.chomp, 0]}
@@ -402,7 +405,7 @@ COLORS
               if md = cl.match(/\Alanguage-(.*)/)
                 t = artwork_attr["type"] = md[1] # XXX overwrite
               else
-                $stderr.puts "*** Unimplemented block class: #{cl}"
+                $stderr.puts "*** Unimplemented codeblock class: #{cl}"
               end
             end
           end
@@ -411,17 +414,27 @@ COLORS
             result[0,0] = "\n" unless result[0,1] == "\n"
           end
           el.attr.each do |k, v|
-            if md = k.match(/\Aartwork-(.*)/)
+            if md = k.match(/\A(?:artwork|sourcecode)-(.*)/)
               el.attr.delete(k)
               artwork_attr[md[1]] = v
             end
           end
           case t
           when "goat", "ditaa", "mscgen", "plantuml", "plantuml-utxt", "mermaid", "math"
+            if gi
+              warn "*** Can't set GI #{gi} for composite SVG artset"
+            end
             result, result1 = memoize(:svg_tool_process, t, result)
             "#{' '*indent}<figure#{el_html_attributes(el)}><artset><artwork #{html_attributes(artwork_attr.merge("type"=> "svg"))}>#{result1.sub(/.*?<svg/m, "<svg")}</artwork><artwork #{html_attributes(artwork_attr.merge("type"=> "ascii-art"))}><![CDATA[#{result}#{result =~ /\n\Z/ ? '' : "\n"}]]></artwork></artset></figure>\n"
           else
-            "#{' '*indent}<figure#{el_html_attributes(el)}><artwork#{html_attributes(artwork_attr)}><![CDATA[#{result}#{result =~ /\n\Z/ ? '' : "\n"}]]></artwork></figure>\n"
+            gi ||= (
+              if !$options.v3 || !t || ARTWORK_TYPES.include?(t)
+                "artwork"
+              else
+                "sourcecode"
+              end
+            )
+            "#{' '*indent}<figure#{el_html_attributes(el)}><#{gi}#{html_attributes(artwork_attr)}><![CDATA[#{result}#{result =~ /\n\Z/ ? '' : "\n"}]]></#{gi}></figure>\n"
           end
         end
       end
