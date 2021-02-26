@@ -108,6 +108,13 @@
        aups = KramdownRFC::authorps_from_hash(au)
    -%>
 <%= KramdownRFC::person_element_from_aups("contact", aups) -%>
+<%= if contrib = aups["contribution"]
+    <<CONTRIBUTION
+{:/nomarkdown}
+#{contrib}
+{::nomarkdown}
+CONTRIBUTION
+    end -%>
 <%   aups.warn_if_leftovers  -%>
 <%   end -%>
 <% end -%>
