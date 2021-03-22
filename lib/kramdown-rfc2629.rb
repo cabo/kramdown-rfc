@@ -12,7 +12,7 @@ require 'shellwords'
 
 raise "sorry, 1.8 was last decade" unless RUBY_VERSION >= '1.9'
 
-gem 'kramdown', '~> 1.17.0'
+gem 'kramdown', '~> 2.3.0'
 require 'kramdown'
 my_span_elements =  %w{list figure xref eref iref cref spanx vspace}
 Kramdown::Parser::Html::Constants::HTML_SPAN_ELEMENTS.concat my_span_elements
@@ -38,6 +38,8 @@ module Kramdown
         super
         @span_parsers.unshift(:xref)
         @span_parsers.unshift(:iref)
+        @span_parsers.unshift(:span_pi)
+        @block_parsers.unshift(:block_pi)
       end
 
       SECTIONS_RE = /Section(?:s (?:[\w.]+, )*[\w.]+,? and)? [\w.]+/
@@ -112,7 +114,7 @@ module Kramdown
         end
         @tree.children << el
       end
-      define_parser(:xref, XREF_START, '{{')
+      define_parser(:xref, XREF_START, '\{\{')
 
       IREF_START = /\(\(\((.*?)\)\)\)/u
 
@@ -124,6 +126,40 @@ module Kramdown
         @tree.children << el
       end
       define_parser(:iref, IREF_START, '\(\(\(')
+
+      # HTML_INSTRUCTION_RE = /<\?(.*?)\?>/m    # still defined!
+
+      # warn [:OPT_SPACE, OPT_SPACE, HTML_INSTRUCTION_RE].inspect
+
+      PI_BLOCK_START = /^#{OPT_SPACE}<\?/u
+
+      def parse_block_pi
+        # warn [:BLOCK].inspect
+        line = @src.current_line_number
+        if (result = @src.scan(HTML_INSTRUCTION_RE))
+          @tree.children << Element.new(:xml_pi, result, nil, category: :block, location: line)
+          @src.scan(TRAILING_WHITESPACE)
+          true
+        else
+          false
+        end
+      end
+      define_parser(:block_pi, PI_BLOCK_START)
+
+      PI_SPAN_START = /<\?/u
+
+      def parse_span_pi
+        # warn [:SPAN].inspect
+        line = @src.current_line_number
+        if (result = @src.scan(HTML_INSTRUCTION_RE))
+          @tree.children << Element.new(:xml_pi, result, nil, category: :span, location: line)
+        else
+          add_text(@src.getch)
+        end
+      end
+      define_parser(:span_pi, PI_SPAN_START, '<\?')
+
+      # warn [:HERE, @@parsers.keys].inspect
 
     end
   end
