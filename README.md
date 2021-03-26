@@ -616,7 +616,7 @@ Other human-oriented markup input languages that are being used for authoring RF
 Since kramdown version 1.0, kramdown itself is MIT licensed, which
 made it possible to license kramdown-rfc2629 under the same license.
 
-[kramdown]: http://kramdown.rubyforge.org/
+[kramdown]: https://kramdown.gettalong.org
 [kdsyntax]: http://kramdown.gettalong.org/syntax.html
 [kdsyntax-ial]: http://kramdown.gettalong.org/syntax.html#inline-attribute-lists
 [stupid]: http://tools.ietf.org/id/draft-hartke-xmpp-stupid-00
