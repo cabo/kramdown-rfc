@@ -698,7 +698,11 @@ COLORS
       end
 
       def convert_br(el, indent, opts)
-        "<vspace />"
+        if $options.v3
+          "<br />"
+        else
+          "<vspace />"
+        end
       end
 
       def convert_a(el, indent, opts)
