@@ -127,6 +127,9 @@ BANNER
   opts.on("-p", "--[no-]prep", "Convert xml to prepped xml") do |v|
     $options.prep = v
   end
+  opts.on("-P", "--[no-]pdf", "Convert xml to PDF") do |v|
+    $options.pdf = v
+  end
   opts.on("-c", "--[no-]convert", "Convert xml to v3 xml") do |v|
     $options.v2v3 = v
   end
@@ -150,6 +153,7 @@ def process_the_xml(fn, base)
   process_xml(fn, "#{base}.v2v3.xml", "--v2v3") if $options.v2v3
   process_xml(fn, "#{base}.txt") if $options.txt || $options.idnits
   process_xml(fn, "#{base}.html", "--html") if $options.html
+  process_xml(fn, "#{base}.pdf", "--pdf") if $options.pdf
   run_idnits("#{base}.txt") if $options.idnits
 end
 
