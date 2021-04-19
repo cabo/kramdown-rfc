@@ -399,7 +399,7 @@ COLORS
         # warn ["goat:", result1.inspect]
         file.unlink
         result1 = svg_clean(result1) unless t == "goat"
-        result1, err, _s = Open3.capture3("svgcheck -NXqa", stdin_data: result1);
+        result1, err, _s = Open3.capture3("svgcheck -Xqa", stdin_data: result1);
         capture_croak("svgcheck", err)
         # warn ["svgcheck:", result1.inspect]
         if result1 == ''
