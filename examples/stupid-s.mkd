@@ -2,7 +2,6 @@
 title: STUN/TURN using PHP in Despair
 abbrev: STuPiD
 docname: draft-hartke-xmpp-stupid-00
-date: 2009-07-05
 category: info
 
 ipr: trust200902
@@ -112,6 +111,15 @@ Finally, where STuPiD becomes part of a client standard
 (such as a potential extension to XMPP's in-band byte-stream
 protocol as hinted in {{xmpp}}), it is a good
 thing if STuPiD is already defined.
+
+A summary table explains the above:
+
+|Reason| Summary|
+|---------------|
+|diff-comm-int| There are different communities of interest|
+|common-code| Having common code will optimize implementations|
+|incorporation| a standard is easy to incorporate in other standards|
+
 
 Hence, this document focuses on the definition of the STuPiD
 service itself, tries to make this as general as possible
@@ -444,7 +452,7 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
    if (empty($chid)) {
       echo $_SERVER["REMOTE_ADDR"] . ":" . $_SERVER["REMOTE_PORT"];
    } elseif ($result = mysql_query("SELECT `data` FROM `Data` " .
-                         "WHERE `chid` = '$chid'")) {
+                   "WHERE `chid` = '$chid'")) {
       if ($row = mysql_fetch_array($result, MYSQL_ASSOC)) {
          echo base64_decode($row["data"]);
       } else {
@@ -459,10 +467,10 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
       header("HTTP/1.0 404 Not Found");
    } else {
       mysql_query("DELETE FROM `Data` " .
-                  "WHERE `timestamp` < DATE_SUB(NOW(), INTERVAL 5 MINUTE)");
+             "WHERE `timestamp` < DATE_SUB(NOW(), INTERVAL 5 MINUTE)");
       $data = base64_encode(file_get_contents("php://input"));
       if (!mysql_query("INSERT INTO `Data` (`chid`, `data`) " .
-                       "VALUES ('$chid', '$data')")) {
+                    "VALUES ('$chid', '$data')")) {
          header("HTTP/1.0 403 Bad Request");
       }
    }
