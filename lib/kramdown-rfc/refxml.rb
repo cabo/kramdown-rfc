@@ -32,6 +32,7 @@ module KramdownRFC
   <format type="<%=escattr(k)%>" target="<%=escattr(v)%>"/>
 <% end -%>
 <%= vps.ele("annotation=ann", nil, nil, true) -%>
+<%= vps.ele("refcontent=rc", nil, nil, true) -%>
 </reference>
     REFERB
     ret = erb.result(binding)
