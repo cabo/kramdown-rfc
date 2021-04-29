@@ -75,7 +75,11 @@ ARGV.each do |doi|
   if (ct = cite["container-title"]) && ct != []
     info = []
     if v = cite["volume"]
-      info << "Vol. #{v}"
+      vi = "vol. #{v}"
+      if (v = cite["journal-issue"]) && (issue = v["issue"])
+        vi << ", no. #{issue}"
+      end
+      info << vi
     end
     if p = cite["page"]
       info << "pp. #{p}"
