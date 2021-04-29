@@ -102,10 +102,13 @@ module Kramdown
             when /\A(.*) \((#{SECTIONS_RE})\)\z/
               href = $1
               handle_bares($2, attr, "parens", href)
-            when /\A([\w.]+)<(.*)\z/
+            when /\A(.+)<(.+)\z/
               href = $2
               attr['section'] = $1
               attr['sectionFormat'] = 'bare'
+            when /\A(.+)<\z/
+              href= $1
+              attr['format'] = 'counter'
             end
           end
           href = href.gsub(/\A[0-9]/) { "_#{$&}" } # can't start an IDREF with a number
@@ -907,7 +910,7 @@ COLORS
                   }
                 else
                   REXML::XPath.each(d.root, "/reference/format") { |x|
-                    x.attributes["target"].sub!(%r{https?://www.ietf.org/internet-drafts/}, 
+                    x.attributes["target"].sub!(%r{https?://www.ietf.org/internet-drafts/},
                                                 %{https://www.ietf.org/archive/id/}) if t == "I-D"
                   }
                 end
