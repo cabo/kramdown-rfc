@@ -112,7 +112,7 @@ Finally, where STuPiD becomes part of a client standard
 protocol as hinted in {{xmpp}}), it is a good
 thing if STuPiD is already defined.
 
-A summary table explains the above:
+{{ex-table}} summarizes the above:
 
 |Reason|Value|Summary|
 |:-----|----:|:------|
