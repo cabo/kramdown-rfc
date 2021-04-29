@@ -42,14 +42,15 @@ module Kramdown
         @block_parsers.unshift(:block_pi)
       end
 
-      SECTIONS_RE = /Section(?:s (?:[\w.]+, )*[\w.]+,? and)? [\w.]+/
+      SECTIONS_RE = /(?:Sections?|Appendi(?:x|ces))(?: (?:[\w.]+, )*[\w.]+,? and)? [\w.]+/
 
       def handle_bares(s, attr, format, href)
-        sa = s.sub(/\A\S+\s/, '').split(/,? and /)
+        (sect, secn) = s.split(/\s/, 2)
+        sa = secn.split(/,? and /)
         sa[0..0] = *sa[0].split(', ')
         sz = sa.size
         if sz != 1         # we have to redo xml2rfc's work here
-          @tree.children << Element.new(:text, "Sections ", {}) # XXX needs to split into Section/Appendix
+          @tree.children << Element.new(:text, "#{sect} ", {}) # XXX needs to split into Section/Appendix
           sa.each_with_index do |sec, i|
             attr1 = {"target" => href, "section" => sec, "sectionFormat" => "bare"}
             @tree.children << Element.new(:xref, nil, attr1)
