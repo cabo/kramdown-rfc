@@ -114,11 +114,12 @@ thing if STuPiD is already defined.
 
 A summary table explains the above:
 
-|Reason| Summary|
-|---------------|
-|diff-comm-int| There are different communities of interest|
-|common-code| Having common code will optimize implementations|
-|incorporation| a standard is easy to incorporate in other standards|
+|Reason|Value|Summary|
+|:-----|----:|:------|
+|diff-comm-int| 1 | There are different communities of interest|
+|common-code| 2 | Having common code will optimize implementations|
+|incorporation| 3 | a standard is easy to incorporate in other standards|
+{: #ex-table title="Example Table"}
 
 
 Hence, this document focuses on the definition of the STuPiD
