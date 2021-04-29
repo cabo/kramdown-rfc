@@ -14,7 +14,7 @@ Encoding.default_external = "UTF-8" # wake up, smell the coffee
 
 def boilerplate(key)
   case key.downcase
-  when /\Abcp14(\+)?\z/i
+  when /\Abcp14(\+)?(-tagged)?\z/i
     ret = <<RFC8174
 The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL
 NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED",
@@ -27,6 +27,25 @@ RFC8174
 These words may also appear in this document in
 lower case as plain English words, absent their normative meanings.
 PLUS
+    end
+    if $2
+      if $options.v3
+        ret << <<PLUS
+
+*[MUST]: <bcp14>
+*[MUST NOT]: <bcp14>
+*[REQUIRED]: <bcp14>
+*[SHALL]: <bcp14>
+*[SHALL NOT]: <bcp14>
+*[SHOULD]: <bcp14>
+*[SHOULD NOT]: <bcp14>
+*[RECOMMENDED]: <bcp14>
+*[MAY]: <bcp14>
+*[OPTIONAL]: <bcp14>
+PLUS
+      else
+        warn "** need --v3 to tag bcp14"
+      end
     end
     ret
   else

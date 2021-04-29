@@ -1079,6 +1079,9 @@ COLORS
         title = nil if title.empty?
         value = el.value
         if item = title
+          if item == "<bcp14>" && $options.v3
+            return "<bcp14>#{el.value}</bcp14>"
+          end
           m = title.scan(Parser::RFC2629Kramdown::IREF_START)
           if m.empty?
             subitem = value
