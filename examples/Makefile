@@ -15,4 +15,4 @@ html:   $(HTML)
 	$(OPEN) $@
 
 %.txt:	%.xml
-	xml2rfc --text  $<
+	xml2rfc --text --no-pagination $< -o $@
