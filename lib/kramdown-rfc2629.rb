@@ -107,10 +107,10 @@ module Kramdown
               attr['section'] = $1
               attr['sectionFormat'] = 'bare'
             when /\A<<(.+)\z/
-              href= $1
+              href = $1
               attr['format'] = 'title'
             when /\A<(.+)\z/
-              href= $1
+              href = $1
               attr['format'] = 'counter'
             end
           end
