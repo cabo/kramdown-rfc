@@ -30,7 +30,7 @@ PLUS
     end
     if $2
       if $options.v3
-        ret << <<PLUS
+        ret << <<TAGGED
 
 *[MUST]: <bcp14>
 *[MUST NOT]: <bcp14>
@@ -40,9 +40,10 @@ PLUS
 *[SHOULD]: <bcp14>
 *[SHOULD NOT]: <bcp14>
 *[RECOMMENDED]: <bcp14>
+*[NOT RECOMMENDED]: <bcp14>
 *[MAY]: <bcp14>
 *[OPTIONAL]: <bcp14>
-PLUS
+TAGGED
       else
         warn "** need --v3 to tag bcp14"
       end
