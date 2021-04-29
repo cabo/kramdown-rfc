@@ -50,7 +50,7 @@ module Kramdown
         sa[0..0] = *sa[0].split(', ')
         sz = sa.size
         if sz != 1         # we have to redo xml2rfc's work here
-          @tree.children << Element.new(:text, "#{sect} ", {}) # XXX needs to split into Section/Appendix
+          @tree.children << Element.new(:text, "#{sect} ", {})
           sa.each_with_index do |sec, i|
             attr1 = {"target" => href, "section" => sec, "sectionFormat" => "bare"}
             @tree.children << Element.new(:xref, nil, attr1)
@@ -908,7 +908,7 @@ COLORS
                   }
                 else
                   REXML::XPath.each(d.root, "/reference/format") { |x|
-                    x.attributes["target"].sub!(%r{https?://www.ietf.org/internet-drafts/}, 
+                    x.attributes["target"].sub!(%r{https?://www.ietf.org/internet-drafts/},
                                                 %{https://www.ietf.org/archive/id/}) if t == "I-D"
                   }
                 end
