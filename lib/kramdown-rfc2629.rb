@@ -102,11 +102,11 @@ module Kramdown
             when /\A(.*) \((#{SECTIONS_RE})\)\z/
               href = $1
               handle_bares($2, attr, "parens", href)
-            when /\A(.+)<(.+)\z/
+            when /\A([\w.]+)<(.+)\z/
               href = $2
               attr['section'] = $1
               attr['sectionFormat'] = 'bare'
-            when /\A(.+)<\z/
+            when /\A([\w.]+)<\z/
               href= $1
               attr['format'] = 'counter'
             end
