@@ -90,7 +90,9 @@ module Kramdown
         else
           href = @src[3]
           attr = {}
+          xtxt = nil
           if $options.v3
+            (href, xtxt) = href.split('>', 2)
             # match Section ... of ...; set section, sectionFormat
             case href.gsub(/[\u00A0\s]+/, ' ') # may need nbsp and/or newlines
             when /\A(#{SECTIONS_RE}) of (.*)\z/
@@ -116,7 +118,7 @@ module Kramdown
           end
           href = href.gsub(/\A[0-9]/) { "_#{$&}" } # can't start an IDREF with a number
           attr['target'] = href
-          el = Element.new(:xref, nil, attr)
+          el = Element.new(:xref, xtxt, attr)
         end
         @tree.children << el
       end
@@ -738,7 +740,12 @@ COLORS
           else
             gi ||= "xref"
           end
-          "<#{gi}#{el_html_attributes(el)}/>"
+          if el.value
+            tail = ">#{escape_html(el.value, :text)}</#{gi}>"
+          else
+            tail = "/>"
+          end
+          "<#{gi}#{el_html_attributes(el)}#{tail}"
         end
       end
 
