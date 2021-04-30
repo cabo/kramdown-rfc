@@ -100,7 +100,7 @@
         <name>Contributors</name>
 <%   else -%>
     <section anchor="contributors" numbered="false" title="Contributors">
-<%     warn "*** Cannot process YAML contributors under V2 rules" if consec -%>
+<%     warn "*** To use YAML contributors, use --v3 (kdrfc -3)" if consec -%>
 <%   end -%>
 <%= sh -%>
 <% if $options.v3 && consec
