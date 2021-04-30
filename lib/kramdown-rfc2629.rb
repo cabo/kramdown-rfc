@@ -42,32 +42,48 @@ module Kramdown
         @block_parsers.unshift(:block_pi)
       end
 
-      SECTIONS_RE = /Section(?:s (?:[\w.]+, )*[\w.]+,? and)? [\w.]+/
+      XREF_RE = /[!\?-]?[\w.-]+(?: \([^)]+\))?/
+      XREF_RE_M = /\A([!\?-]?[\w.-]+)(?: \(([^)]+)\))?/ # matching version of XREF
+      XREF_SINGLE = /(?:Section|Appendix) #{XREF_RE}/
+      XREF_MULTI = /(?:Sections|Appendices) (?:#{XREF_RE}, )*#{XREF_RE},? and #{XREF_RE}/
+      XREF_ANY = /(?:#{XREF_SINGLE}|#{XREF_MULTI})/
+      SECTIONS_RE = /(?:#{XREF_ANY} and )?#{XREF_ANY}/
 
-      def handle_bares(s, attr, format, href)
-        sa = s.sub(/\A\S+\s/, '').split(/,? and /)
-        sa[0..0] = *sa[0].split(', ')
-        sz = sa.size
-        if sz != 1         # we have to redo xml2rfc's work here
-          @tree.children << Element.new(:text, "Sections ", {}) # XXX needs to split into Section/Appendix
-          sa.each_with_index do |sec, i|
-            attr1 = {"target" => href, "section" => sec, "sectionFormat" => "bare"}
-            @tree.children << Element.new(:xref, nil, attr1)
-            text = if i == 0 && sz == 2
-                     " and "
-                   elsif i == sz-1
-                     " of "
-                   elsif i == sz-2
-                     ", and "
-                   else
-                     ", "
-                   end
-            @tree.children << Element.new(:text, text, {})
+      def handle_bares(s, attr, format, href, last_join = nil)
+        if s.match(/\A(#{XREF_ANY}) and (#{XREF_ANY})\z/)
+          handle_bares($1, {}, nil, href, " and ")
+          handle_bares($2, {}, nil, href, " of ")
+          return
+        end
+
+        href = href.split(' ')[0] # Remove any trailing (...)
+        multi = last_join != nil
+        (sn, s) = s.split(' ', 2)
+        loop do
+          m = s.match(/#{XREF_RE_M}(, |,? and )?/)
+          break if not m
+
+          if not multi and not m[2] and not m[3]
+            # Modify |attr| if there is a single reference.  This can only be
+            # used if there is only one section reference and the section part
+            # has no title.
+            attr['section'] = m[1]
+            attr['sectionFormat'] = format
+            attr['text'] = m[2]
+            return
           end
-          # attr stays unchanged, no section added
-        else
-          attr['section'] = sa[-1]
-          attr['sectionFormat'] = format
+
+          if sn
+            @tree.children << Element.new(:text, "#{sn} ", {})
+            sn = nil
+          end
+
+          multi = true
+          s = s[m[0].size..]
+
+          attr1 = { 'target' => href, 'section' => m[1], 'sectionFormat' => 'bare', 'text' => m[2] }
+          @tree.children << Element.new(:xref, nil, attr1)
+          @tree.children << Element.new(:text, m[3] || last_join || " of ", {})
         end
       end
 
@@ -92,7 +108,6 @@ module Kramdown
           attr = {}
           xtxt = nil
           if $options.v3
-            (href, xtxt) = href.split('>', 2)
             # match Section ... of ...; set section, sectionFormat
             case href.gsub(/[\u00A0\s]+/, ' ') # may need nbsp and/or newlines
             when /\A(#{SECTIONS_RE}) of (.*)\z/
@@ -116,9 +131,13 @@ module Kramdown
               attr['format'] = 'counter'
             end
           end
+          if href.match(XREF_RE_M)
+            href = $1
+            attr['text'] = $2
+          end
           href = href.gsub(/\A[0-9]/) { "_#{$&}" } # can't start an IDREF with a number
           attr['target'] = href
-          el = Element.new(:xref, xtxt, attr)
+          el = Element.new(:xref, nil, attr)
         end
         @tree.children << el
       end
@@ -737,6 +756,7 @@ COLORS
 
       def convert_xref(el, indent, opts)
         gi = el.attr.delete('gi')
+        text = el.attr.delete('text')
         target = el.attr['target']
         if target[0] == "&"
           "#{target};"
@@ -746,8 +766,8 @@ COLORS
           else
             gi ||= "xref"
           end
-          if el.value
-            tail = ">#{escape_html(el.value, :text)}</#{gi}>"
+          if text
+            tail = ">#{escape_html(text, :text)}</#{gi}>"
           else
             tail = "/>"
           end
