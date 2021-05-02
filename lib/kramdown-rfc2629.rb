@@ -42,8 +42,10 @@ module Kramdown
         @block_parsers.unshift(:block_pi)
       end
 
-      XREF_RE = /[!\?-]?[\w.-]+(?: \([^)]+\))?/
-      XREF_RE_M = /\A([!\?-]?[\w.-]+)(?: \(([^)]+)\))?/ # matching version of XREF
+      XREF_BASE = /[\w.-]+/ # a token for a reference
+      XREF_TXT = /(?:[^\(]|\([^\)]*\))+/ # parenthesized text
+      XREF_RE = /#{XREF_BASE}(?: \(#{XREF_TXT}\))?/
+      XREF_RE_M = /\A(#{XREF_BASE})(?: \((#{XREF_TXT})\))?/ # matching version of XREF_RE
       XREF_SINGLE = /(?:Section|Appendix) #{XREF_RE}/
       XREF_MULTI = /(?:Sections|Appendices) (?:#{XREF_RE}, )*#{XREF_RE},? and #{XREF_RE}/
       XREF_ANY = /(?:#{XREF_SINGLE}|#{XREF_MULTI})/
@@ -60,7 +62,7 @@ module Kramdown
         multi = last_join != nil
         (sn, s) = s.split(' ', 2)
         loop do
-          m = s.match(/#{XREF_RE_M}(, |,? and )?/)
+          m = s.match(/\A#{XREF_RE_M}(, |,? and )?/)
           break if not m
 
           if not multi and not m[2] and not m[3]
@@ -79,7 +81,7 @@ module Kramdown
           end
 
           multi = true
-          s = s[m[0].size..]
+          s[m[0]] = ''
 
           attr1 = { 'target' => href, 'section' => m[1], 'sectionFormat' => 'bare', 'text' => m[2] }
           @tree.children << Element.new(:xref, nil, attr1)
@@ -761,7 +763,10 @@ COLORS
             gi ||= "xref"
           end
           if text
-            tail = ">#{escape_html(text, :text)}</#{gi}>"
+            doc = ::Kramdown::Document.new(text, $global_markdown_options)
+            $stderr.puts doc.warnings.to_yaml unless doc.warnings.empty?
+            t = doc.to_rfc2629[3..-6] # skip <t>...</t>\n
+            tail = ">#{t}</#{gi}>"
           else
             tail = "/>"
           end
