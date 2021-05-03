@@ -865,13 +865,24 @@ COLORS
         end
       end
 
+      def self.bcp_std_ref(t, n)
+        warn "*** #{t} anchors not supported in v2 format" unless $options.v3
+        "https://xml2rfc.tools.ietf.org/public/rfc/bibxml-rfcsubseries/reference.##{t}.#{"%04d" % n.to_i}.xml"
+      end
+
       # [subdirectory name, cache ttl in seconds, does it provide for ?anchor=]
       XML_RESOURCE_ORG_MAP = {
         "RFC" => ["bibxml", 86400*7, false,
-                  ->(fn, n){ "https://www.rfc-editor.org/refs/bibxml/#{fn}"}
+                  ->(fn, n){ "https://www.rfc-editor.org/refs/bibxml/reference.RFC.#{"%04d" % n.to_i}.xml" }
                  ],
         "I-D" => ["bibxml3", false, false,
                   ->(fn, n){ "https://datatracker.ietf.org/doc/bibxml3/draft-#{n.sub(/\Adraft-/, '')}/xml" }
+                 ],
+        "BCP" => ["bibxml-rfcsubseries", 86400*7, false,
+                  ->(fn, n){ Rfc2629::bcp_std_ref("BCP", n) }
+                 ],
+        "STD" => ["bibxml-rfcsubseries", 86400*7, false,
+                  ->(fn, n){ Rfc2629::bcp_std_ref("STD", n) }
                  ],
         "W3C" => "bibxml4",
         "3GPP" => "bibxml5",
