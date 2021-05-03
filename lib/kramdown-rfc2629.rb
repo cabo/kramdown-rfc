@@ -288,6 +288,12 @@ module Kramdown
         generate_id(value).gsub(/-+/, '-')
       end
 
+      def self.process_markdown(v)             # Uuh.  Heavy coupling.
+        doc = ::Kramdown::Document.new(v, $global_markdown_options)
+        $stderr.puts doc.warnings.to_yaml unless doc.warnings.empty?
+        doc.to_rfc2629[3..-6] # skip <t>...</t>\n
+      end
+
       SVG_COLORS = Hash.new {|h, k| k}
       <<COLORS.each_line {|l| k, v = l.chomp.split; SVG_COLORS[k] = v}
 black	#000000

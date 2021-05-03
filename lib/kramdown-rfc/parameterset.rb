@@ -34,13 +34,12 @@ module KramdownRFC
       val ||= defcontent
       Array(val).map do |val1|
         v = val1.to_s.strip
-        if markdown             # Uuh.  Heavy coupling.
-          doc = Kramdown::Document.new(v, $global_markdown_options)
-          $stderr.puts doc.warnings.to_yaml unless doc.warnings.empty?
-          contents = doc.to_rfc2629[3..-6] # skip <t>...</t>\n
-        else
-          contents = escape_html(v)
-        end
+        contents =
+          if markdown
+            ::Kramdown::Converter::Rfc2629::process_markdown(v)
+          else
+            escape_html(v)
+          end
         %{<#{[an, *Array(attr).map(&:to_s)].join(" ").strip}>#{contents}</#{an}>}
       end.join(" ")
     end
