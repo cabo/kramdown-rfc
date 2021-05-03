@@ -835,16 +835,19 @@ COLORS
 
       def self.bcp_std_ref(t, n)
         warn "*** #{t} anchors not supported in v2 format" unless $options.v3
-        "#{XML_RESOURCE_ORG_PREFIX}/bibxml-rfcsubseries-new/reference.#{t}.#{"%04d" % n.to_i}.xml"
+        [name = "reference.#{t}.#{"%04d" % n.to_i}.xml",
+         "#{XML_RESOURCE_ORG_PREFIX}/bibxml-rfcsubseries-new/#{name}"] # FOR NOW
       end
 
       # [subdirectory name, cache ttl in seconds, does it provide for ?anchor=]
       XML_RESOURCE_ORG_MAP = {
         "RFC" => ["bibxml", 86400*7, false,
-                  ->(fn, n){ "https://www.rfc-editor.org/refs/bibxml/reference.RFC.#{"%04d" % n.to_i}.xml" }
+                  ->(fn, n){ [name = "reference.RFC.#{"%04d" % n.to_i}.xml",
+                              "https://www.rfc-editor.org/refs/bibxml/#{name}"] }
                  ],
         "I-D" => ["bibxml3", false, false,
-                  ->(fn, n){ "https://datatracker.ietf.org/doc/bibxml3/draft-#{n.sub(/\Adraft-/, '')}/xml" }
+                  ->(fn, n){ [fn,
+                              "https://datatracker.ietf.org/doc/bibxml3/draft-#{n.sub(/\Adraft-/, '')}/xml"] }
                  ],
         "BCP" => ["bibxml-rfcsubseries", 86400*7, false,
                   ->(fn, n){ Rfc2629::bcp_std_ref("BCP", n) }
@@ -901,7 +904,7 @@ COLORS
             ttl ||= KRAMDOWN_REFCACHETTL  # everything but RFCs might change a lot
             puts "*** Huh: #{fn}" unless sub
             if altproc && !KRAMDOWN_USE_TOOLS_SERVER
-              url = altproc.call(fn, n)
+              fn, url = altproc.call(fn, n)
             else
               url = "#{XML_RESOURCE_ORG_PREFIX}/#{sub}/#{fn}"
             end
