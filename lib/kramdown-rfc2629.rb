@@ -835,7 +835,7 @@ COLORS
 
       def self.bcp_std_ref(t, n)
         warn "*** #{t} anchors not supported in v2 format" unless $options.v3
-        "https://xml2rfc.tools.ietf.org/public/rfc/bibxml-rfcsubseries/reference.##{t}.#{"%04d" % n.to_i}.xml"
+        "#{XML_RESOURCE_ORG_PREFIX}/bibxml-rfcsubseries-new/reference.#{t}.#{"%04d" % n.to_i}.xml"
       end
 
       # [subdirectory name, cache ttl in seconds, does it provide for ?anchor=]
