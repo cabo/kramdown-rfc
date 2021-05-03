@@ -269,6 +269,10 @@ def bibtagsys(bib, anchor=nil, stand_alone=true)
     rfc4d = "%04d" % $1.to_i
     [bib.upcase,
      "#{XML_RESOURCE_ORG_PREFIX}/bibxml/reference.RFC.#{rfc4d}.xml"]
+  elsif $options.v3 && bib =~ /\A(bcp|std)(\d+)/i
+    n4d = "%04d" % $2.to_i
+    [bib.upcase,
+     "#{XML_RESOURCE_ORG_PREFIX}/bibxml-rfcsubseries-new/reference.#{$1.upcase}.#{n4d}.xml"]
   elsif bib =~ /\A([-A-Z0-9]+)\./ &&
         (xro = Kramdown::Converter::Rfc2629::XML_RESOURCE_ORG_MAP[$1])
     dir, _ttl, rewrite_anchor = xro
