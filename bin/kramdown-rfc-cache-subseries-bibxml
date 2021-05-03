@@ -1,0 +1,120 @@
+#!/usr/bin/env ruby
+# prerequisite:
+# gem install net-http-persistent
+#
+# generates referencegroup files for BCP and STD series (like bibxml9)
+# unfortunately, needs to re-fetch rfc-index.xml
+# uses pretty slow built-in XML parser, so it will take a while even on regen
+#
+# uses ENV["KRAMDOWN_REFCACHEDIR"] for where you want to have your bibxml9 data
+#
+
+require 'rexml/document'
+require 'fileutils'
+
+begin
+  require 'net/http/persistent'
+rescue
+  warn "*** please install net-http-persistent:"
+  warn "   gem install net-http-persistent"
+  warn "(prefix by sudo only if required)."
+  exit 72                       # EX_OSFILE
+end
+
+
+TARGET_DIR = ENV["KRAMDOWN_REFCACHEDIR"] || (
+  path = File.expand_path("~/.cache/xml2rfc")
+  warn "*** set environment variable KRAMDOWN_REFCACHEDIR to #{path} to actually use the cache"
+  path
+)
+
+FileUtils.mkdir_p(TARGET_DIR)
+FileUtils.chdir(TARGET_DIR)
+
+$http = Net::HTTP::Persistent.new name: 'subseries'
+
+KRAMDOWN_PERSISTENT_VERBOSE = true
+
+      def get_and_write_resource_persistently(url, fn, age_verbose=false)
+        t1 = Time.now
+        response = $http.request(URI(url))
+        if response.code != "200"
+          raise "*** Status code #{response.code} while fetching #{url}"
+        else
+          File.write(fn, response.body)
+        end
+        t2 = Time.now
+        warn "#{url} -> #{fn} (#{"%.3f" % (t2 - t1)} s)" if KRAMDOWN_PERSISTENT_VERBOSE
+        if age_verbose
+          if age = response.get_fields("age")
+            warn "(working from a web cache, index is #{age.first} seconds stale)"
+          end
+        end
+      end
+
+CLEAR_RET = "\e[K\r" # XXX all the world is ECMA-48 (ISO 6429), no?
+
+      def noisy(name)
+        print "#{name}...#{CLEAR_RET}"
+      end
+      def clear_noise
+        print CLEAR_RET
+      end
+
+def normalize_name(n)
+  n.sub(/([A-Z])0+/) {$1}
+end
+
+def regress_name(n)
+  n.sub(/([A-Z])(\d+)/) {"#$1#{"%04d" % $2.to_i}"}
+end
+
+def regress_name_dot(n)
+  n.sub(/([A-Z])(\d+)/) {"#$1.#{"%04d" % $2.to_i}"}
+end
+
+def get_ref(rfcname)
+  name = "reference.#{regress_name_dot(rfcname)}.xml"
+  begin
+    file = File.read(name)      # no age check
+  rescue Errno::ENOENT
+    get_and_write_resource_persistently("https://www.rfc-editor.org/refs/bibxml/" << name, name)
+    file = File.read(name)
+  end
+  d = REXML::Document.new(file)
+  d.xml_decl.nowrite
+  "<!-- #{name} -->\n" << d.to_s.lstrip
+end
+
+def create_bib(series, subname, rfcnames)
+  p [series, subname, rfcnames]
+  subname_norm = normalize_name(subname)
+  refs = %{<?xml version='1.0' encoding='UTF-8'?>\n}
+  refs << %{<referencegroup anchor='#{subname_norm}' target='https://www.rfc-editor.org/info/#{subname_norm.downcase}'>\n}
+  refs << rfcnames.map {|x| get_ref(x)}.join
+  refs << "</referencegroup>\n"
+  File.write("reference.#{regress_name_dot(subname)}.xml", refs)
+end
+
+def handle_sub(series, entry)
+  ids = entry.get_elements("doc-id")
+  warn "** ids #{ids} #{entry}" unless ids.size == 1
+  subname = ids.first.text
+  isalso = entry.get_elements("is-also")
+  if isalso.size == 1
+    rfcs = isalso.first.get_elements("doc-id")
+    if rfcs.size > 0
+      rfcnames = rfcs.map {|r| r.text}
+      create_bib(series, subname, rfcnames)
+    end
+  end
+end
+
+RFCINDEX_SOURCE = "https://www.rfc-editor.org/rfc/rfc-index.xml"
+RFCINDEX_COPY = File.basename(RFCINDEX_SOURCE)
+
+get_and_write_resource_persistently(RFCINDEX_SOURCE, RFCINDEX_COPY, true) unless ENV["KRAMDOWN_DONT_REFRESH_RFCINDEX"]
+
+doc = REXML::Document.new(File.read(RFCINDEX_COPY))
+REXML::XPath.each(doc.root, "/rfc-index/bcp-entry") { |e| handle_sub("BCP", e) }
+REXML::XPath.each(doc.root, "/rfc-index/std-entry") { |e| handle_sub("STD", e) }
