@@ -89,6 +89,14 @@ def yaml_load(input, *args)
  end
 end
 
+XREF_SECTIONS_RE = ::Kramdown::Parser::RFC2629Kramdown::SECTIONS_RE
+XSR_PREFIX = "#{XREF_SECTIONS_RE} of "
+XSR_SUFFIX = ", (#{XREF_SECTIONS_RE})| \((#{XREF_SECTIONS_RE})\)"
+
+def spacify_re(s)
+  s.gsub(' ', '[\u00A0\s]+')
+end
+
 def xml_from_sections(input)
 
   unless ENV["KRAMDOWN_NO_SOURCE"]
@@ -158,11 +166,17 @@ def xml_from_sections(input)
   # collect normative/informative tagging {{!RFC2119}} {{?RFC4711}}
   sechash.each do |k, v|
     next if k == "fluff"
-    v.gsub!(/{{(?:([?!])(-)?|(-))([\w._\-]+)(?:=([\w.\/_\-]+))?}}/) do |match|
-      norminform = $1
-      replacing = $2 || $3
-      word = $4
-      bibref = $5
+    v.gsub!(/{{(#{
+      spacify_re(XSR_PREFIX)
+    })?(?:([?!])(-)?|(-))([\w._\-]+)(?:=([\w.\/_\-]+))?(#{
+      spacify_re(XSR_SUFFIX)
+    })?}}/) do |match|
+      xsr_prefix = $1
+      norminform = $2
+      replacing = $3 || $4
+      word = $5
+      bibref = $6
+      xsr_suffix = $7
       if replacing
         if new = ref_replacements[word]
           word = new
@@ -186,7 +200,7 @@ def xml_from_sections(input)
       if norminform
         norm_ref[word] ||= norminform == '!' # one normative ref is enough
       end
-      "{{#{word}}}"
+      "{{#{xsr_prefix}#{word}#{xsr_suffix}}}"
     end
   end
 
