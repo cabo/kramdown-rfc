@@ -62,7 +62,7 @@ module Kramdown
         multi = last_join != nil
         (sn, s) = s.split(' ', 2)
         loop do
-          m = s.match(/\A#{XREF_RE_M}(, |,? and )?/)
+          m = s.match(/\A#{XREF_RE_M}(, (?:and )?| and )?/)
           break if not m
 
           if not multi and not m[2] and not m[3]
@@ -108,7 +108,6 @@ module Kramdown
         else
           href = @src[3]
           attr = {}
-          xtxt = nil
           if $options.v3
             # match Section ... of ...; set section, sectionFormat
             case href.gsub(/[\u00A0\s]+/, ' ') # may need nbsp and/or newlines
@@ -769,10 +768,7 @@ COLORS
             gi ||= "xref"
           end
           if text
-            doc = ::Kramdown::Document.new(text, $global_markdown_options)
-            $stderr.puts doc.warnings.to_yaml unless doc.warnings.empty?
-            t = doc.to_rfc2629[3..-6] # skip <t>...</t>\n
-            tail = ">#{t}</#{gi}>"
+            tail = ">#{Rfc2629::process_markdown(text)}</#{gi}>"
           else
             tail = "/>"
           end
