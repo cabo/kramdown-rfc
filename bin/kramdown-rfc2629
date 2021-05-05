@@ -91,7 +91,9 @@ end
 
 XREF_SECTIONS_RE = ::Kramdown::Parser::RFC2629Kramdown::SECTIONS_RE
 XSR_PREFIX = "#{XREF_SECTIONS_RE} of "
-XSR_SUFFIX = ", (#{XREF_SECTIONS_RE})| \((#{XREF_SECTIONS_RE})\)"
+XSR_SUFFIX = ", (#{XREF_SECTIONS_RE})| \\((#{XREF_SECTIONS_RE})\\)"
+XREF_TXT = ::Kramdown::Parser::RFC2629Kramdown::XREF_TXT
+XREF_TXT_SUFFIX = " \\(#{XREF_TXT}\\)"
 
 def spacify_re(s)
   s.gsub(' ', '[\u00A0\s]+')
@@ -169,6 +171,8 @@ def xml_from_sections(input)
     v.gsub!(/{{(#{
       spacify_re(XSR_PREFIX)
     })?(?:([?!])(-)?|(-))([\w._\-]+)(?:=([\w.\/_\-]+))?(#{
+      XREF_TXT_SUFFIX
+    })?(#{
       spacify_re(XSR_SUFFIX)
     })?}}/) do |match|
       xsr_prefix = $1
@@ -176,7 +180,8 @@ def xml_from_sections(input)
       replacing = $3 || $4
       word = $5
       bibref = $6
-      xsr_suffix = $7
+      xrt_suffix = $7
+      xsr_suffix = $8
       if replacing
         if new = ref_replacements[word]
           word = new
@@ -200,7 +205,7 @@ def xml_from_sections(input)
       if norminform
         norm_ref[word] ||= norminform == '!' # one normative ref is enough
       end
-      "{{#{xsr_prefix}#{word}#{xsr_suffix}}}"
+      "{{#{xsr_prefix}#{word}#{xrt_suffix}#{xsr_suffix}}}"
     end
   end
 
