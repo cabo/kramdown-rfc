@@ -363,6 +363,19 @@ COLORS
         end
       end
 
+      def svg_clean_kgt(s)
+        d = REXML::Document.new(s)
+        REXML::XPath.each(d.root, "//rect|//line|//path") do |x|
+          x.attributes["fill"] = "none"
+          x.attributes["stroke"] = "black"
+          x.attributes["stroke-width"] = "1.5"
+        end
+        d.to_s
+      rescue => detail
+        warn "*** Can't clean SVG: #{detail}"
+        d
+      end
+
       def svg_clean(s)          # expensive, risky
         d = REXML::Document.new(s)
         REXML::XPath.each(d.root, "//*[@shape-rendering]") { |x| x.attributes["shape-rendering"] = nil }  #; warn x.inspect }
@@ -407,9 +420,12 @@ COLORS
         file = Tempfile.new("kramdown-rfc")
         file.write(result)
         file.close
+        dont_clean = false
+        dont_check = false
         case t
         when "goat"
           result1, err, _s = Open3.capture3("goat #{file.path}", stdin_data: result);
+          dont_clean = true
         when "ditaa"        # XXX: This needs some form of option-setting
           result1, err, _s = Open3.capture3("ditaa #{file.path} --svg -o -", stdin_data: result);
         when "mscgen"
@@ -424,18 +440,27 @@ COLORS
           result1, err, _s = Open3.capture3("plantuml -pipe -tsvg", stdin_data: plantuml);
           result, err1, _s = Open3.capture3("plantuml -pipe -tutxt", stdin_data: plantuml) if t == "plantuml-utxt"
           err << err1.to_s
+        when "railroad", "railroad-utf8"
+          result1, err1, _s = Open3.capture3("kgt -l abnf -e svg", stdin_data: result);
+          result1 = svg_clean_kgt(result1); dont_clean = true
+          result, err, _s = Open3.capture3("kgt -l abnf -e rr#{t == "railroad" ? "text" : "utf8"}",
+                                            stdin_data: result);
+          err << err1.to_s
         when "math"
           result1, err, _s = Open3.capture3("tex2svg --font STIX --speech=false #{Shellwords.escape(' ' << result)}");
           result, err1, _s = Open3.capture3("asciitex -f #{file.path}")
           err << err1
         end
         capture_croak(t, err)
-        # warn ["goat:", result1.inspect]
+        # warn ["text:", result.inspect]
+        # warn ["svg:", result1.inspect]
         file.unlink
-        result1 = svg_clean(result1) unless t == "goat"
-        result1, err, _s = Open3.capture3("svgcheck -Xqa", stdin_data: result1);
-        capture_croak("svgcheck", err)
-        # warn ["svgcheck:", result1.inspect]
+        result1 = svg_clean(result1) unless dont_clean
+        unless dont_check
+          result1, err, _s = Open3.capture3("svgcheck -Xqa", stdin_data: result1);
+          # warn ["svgcheck:", result1.inspect]
+          capture_croak("svgcheck", err)
+        end
         if result1 == ''
           warn "*** could not create svg for #{result.inspect[0...20]}..."
           exit 65 # EX_DATAERR
@@ -490,7 +515,8 @@ COLORS
             end
           end
           case t
-          when "goat", "ditaa", "mscgen", "plantuml", "plantuml-utxt", "mermaid", "math"
+          when "goat", "ditaa", "mscgen", "plantuml", "plantuml-utxt", 
+               "railroad", "railroad-utf8", "mermaid", "math"
             if gi
               warn "*** Can't set GI #{gi} for composite SVG artset"
             end
