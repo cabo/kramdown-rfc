@@ -49,6 +49,43 @@ TAGGED
       end
     end
     ret
+  when /\Abcp14ise(\+)?(-tagged)?\z/i
+    ret = <<RFC8174ise
+Although this document is not an IETF Standards Track publication it
+adopts the conventions for normative language to provide clarity of
+instructions to the implementer.  The key words "MUST", "MUST NOT",
+"REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT",
+"RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be
+interpreted as described in BCP 14 {{!RFC2119}} {{!RFC8174}} when, and only
+when, they appear in all capitals, as shown here.
+RFC8174ise
+    if $1
+      ret << <<PLUSise
+These words may also appear in this document in
+lower case as plain English words, absent their normative meanings.
+PLUSise
+    end
+    if $2
+      if $options.v3
+        ret << <<TAGGEDise
+
+*[MUST]: <bcp14>
+*[MUST NOT]: <bcp14>
+*[REQUIRED]: <bcp14>
+*[SHALL]: <bcp14>
+*[SHALL NOT]: <bcp14>
+*[SHOULD]: <bcp14>
+*[SHOULD NOT]: <bcp14>
+*[RECOMMENDED]: <bcp14>
+*[NOT RECOMMENDED]: <bcp14>
+*[MAY]: <bcp14>
+*[OPTIONAL]: <bcp14>
+TAGGEDise
+      else
+        warn "** need --v3 to tag bcp14"
+      end
+    end
+    ret
   else
     warn "** Unknwon boilerplate key: #{key}"
     "{::boilerplate #{key}}"
