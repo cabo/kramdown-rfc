@@ -18,7 +18,7 @@ def boilerplate(key)
     ret = ''
     if $1
       ret << <<RFC8174ise
-Although this document is not an IETF Standards Track publication it
+Although this document is not an IETF Standards Track publication, it
 adopts the conventions for normative language to provide clarity of
 instructions to the implementer.
 RFC8174ise
