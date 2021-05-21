@@ -91,7 +91,11 @@ NORMINFORM = { "!" => :normative, "?" => :informative }
 
 def yaml_load(input, *args)
   if YAML.respond_to?(:safe_load)
-    YAML.safe_load(input, *args)
+    begin
+      YAML.safe_load(input, *args)
+    rescue ArgumentError
+      YAML.safe_load(input, permitted_classes: args[0], permitted_symbols: args[1], aliases: args[2])
+    end
   else
     YAML.load(input)
  end
