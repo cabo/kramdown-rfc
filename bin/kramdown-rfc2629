@@ -98,7 +98,7 @@ def yaml_load(input, *args)
     end
   else
     YAML.load(input)
- end
+  end
 end
 
 def process_kramdown_options(coding_override = nil,
