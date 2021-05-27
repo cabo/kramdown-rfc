@@ -468,7 +468,7 @@ COLORS
         [result, result1]       # text, svg
       end
 
-      ARTWORK_TYPES = %w(ascii-art binary-art call-flow hex-dump svg)
+      ARTWORK_TYPES = %w(ascii-art binary-art call-flow drawing hex-dump svg)
 
       def convert_codeblock(el, indent, opts)
         # el.attr['anchor'] ||= saner_generate_id(el.value) -- no longer in 1.0.6
