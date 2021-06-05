@@ -98,7 +98,61 @@ def yaml_load(input, *args)
     end
   else
     YAML.load(input)
- end
+  end
+end
+
+def process_kramdown_options(coding_override = nil,
+                             smart_quotes = nil, typographic_symbols = nil,
+                             header_kramdown_options = nil)
+
+  ascii_target = coding_override && coding_override =~ /ascii/
+  suppress_typography = ascii_target || $options.v3
+  entity_output = ascii_target ? :numeric : :as_char;
+
+  options = {input: 'RFC2629Kramdown', entity_output: entity_output, link_defs: {}}
+
+  if smart_quotes.nil? && suppress_typography
+    smart_quotes = false
+  end
+  if smart_quotes == false
+    smart_quotes = ["'".ord, "'".ord, '"'.ord, '"'.ord]
+  end
+  case smart_quotes
+  when Array
+    options[:smart_quotes] = smart_quotes
+  when nil, true
+    # nothin
+  else
+    warn "*** Can't deal with smart_quotes value #{smart_quotes.inspect}"
+  end
+
+  if typographic_symbols.nil? && suppress_typography
+    typographic_symbols = false
+  end
+  if typographic_symbols == false
+    typographic_symbols = Hash[::Kramdown::Parser::Kramdown::TYPOGRAPHIC_SYMS.map { |k, v|
+                                 if Symbol === v
+                                   [v.intern, k]
+                                 end
+                               }.compact]
+  end
+  # warn [:TYPOGRAPHIC_SYMBOLS, typographic_symbols].to_yaml
+  case typographic_symbols
+  when Hash
+    options[:typographic_symbols] = typographic_symbols
+  when nil, true
+    # nothin
+  else
+    warn "*** Can't deal with typographic_symbols value #{typographic_symbols.inspect}"
+  end
+
+  if header_kramdown_options
+    options.merge! header_kramdown_options
+  end
+
+  $global_markdown_options = options   # For nested calls in bibref annotation processing and xref text
+
+  options
 end
 
 XREF_SECTIONS_RE = ::Kramdown::Parser::RFC2629Kramdown::SECTIONS_RE
@@ -127,10 +181,15 @@ def xml_from_sections(input)
   # We put back the "---" plus gratuitous blank lines to hack the line number in errors
   yaml_in = input[/---\s*/] << sections.shift[2]
   ps = KramdownRFC::ParameterSet.new(yaml_load(yaml_in, [Date], [], true))
+
   coding_override = ps.has(:coding)
   smart_quotes = ps[:smart_quotes]
   typographic_symbols = ps[:typographic_symbols]
-  kramdown_options = ps[:kramdown_options]
+  header_kramdown_options = ps[:kramdown_options]
+
+  kramdown_options = process_kramdown_options(coding_override,
+                                              smart_quotes, typographic_symbols,
+                                              header_kramdown_options)
 
   # all the other sections are put in a Hash, possibly concatenated from parts there
   sechash = Hash.new{ |h,k| h[k] = ""}
@@ -243,13 +302,12 @@ def xml_from_sections(input)
   end
 
   stand_alone = ps[:stand_alone]
-  link_defs = {}
 
   [:normative, :informative].each do |sn|
     if refs = ps[sn]
       refs.each do |k, v|
         href = k.gsub(/\A[0-9]/) { "_#{$&}" } # can't start an IDREF with a number
-        link_defs[k] = ["##{href}", nil]            # allow [RFC2119] in addition to {{RFC2119}}
+        kramdown_options[:link_defs][k] = ["##{href}", nil]   # allow [RFC2119] in addition to {{RFC2119}}
 
         bibref = anchor_to_bibref[k] || k
         bts, url = bibtagsys(bibref, k, stand_alone)
@@ -270,9 +328,7 @@ def xml_from_sections(input)
           if bts && !v.delete("override")
             warn "*** warning: explicit settings completely override canned bibxml in reference #{k}"
           end
-          options = {input: 'RFC2629Kramdown', entity_output: coding_override, link_defs: link_defs}
-          $global_markdown_options = options # For recursive calls in bibref annotation processing.
-          sechash[sn.to_s] << KramdownRFC::ref_to_xml(k, v)
+          sechash[sn.to_s] << KramdownRFC::ref_to_xml(href, v)
         end
       end
     end
@@ -289,7 +345,7 @@ def xml_from_sections(input)
     warn "*** sections left #{sechash.keys.inspect}!"
   end
 
-  [input, coding_override, link_defs, smart_quotes, typographic_symbols, kramdown_options]
+  [input, kramdown_options, coding_override]
 end
 
 XML_RESOURCE_ORG_PREFIX = Kramdown::Converter::Rfc2629::XML_RESOURCE_ORG_PREFIX
@@ -371,7 +427,6 @@ if $options.verbose && $options.v3
   warn "*** not much RFCXMLv3 stuff implemented yet"
 end
 
-coding_override = :as_char
 input = ARGF.read
 if input[0] == "\uFEFF"
    warn "*** There is a leading byte order mark. Ignored."
@@ -392,59 +447,18 @@ if input =~ /[\t]/
    input = expand_tabs(input)
 end
 
-link_defs = {}
 if input =~ /\A---/        # this is a sectionized file
   do_the_tls_dance unless ENV["KRAMDOWN_DONT_VERIFY_HTTPS"]
-  input, target_coding, link_defs, smart_quotes, typographic_symbols, kramdown_options = xml_from_sections(input)
+  input, options, coding_override = xml_from_sections(input)
+else
+  options = process_kramdown_options # all default
 end
 if input =~ /\A<\?xml/          # if this is a whole XML file, protect it
   input = "{::nomarkdown}\n#{input}\n{:/nomarkdown}\n"
 end
-options = {input: 'RFC2629Kramdown', entity_output: coding_override, link_defs: link_defs}
-if smart_quotes.nil?
-  if (target_coding && target_coding =~ /ascii/) || $options.v3
-     smart_quotes = false
-  end
-end
-if smart_quotes == false
-  smart_quotes = ["'".ord, "'".ord, '"'.ord, '"'.ord]
-end
-case smart_quotes
-when Array
-  options[:smart_quotes] = smart_quotes
-when nil, true
-  # nothin
-else
-  warn "*** Can't deal with smart_quotes value #{smart_quotes.inspect}"
-end
-if typographic_symbols.nil?
-  if (target_coding && target_coding =~ /ascii/) || $options.v3
-     typographic_symbols = false
-  end
-end
-if typographic_symbols == false
-  typographic_symbols = Hash[::Kramdown::Parser::Kramdown::TYPOGRAPHIC_SYMS.map { |k, v|
-                               if Symbol === v
-                                 [v.intern, k]
-                               end
-                             }.compact]
-end
-# warn [:TYPOGRAPHIC_SYMBOLS, typographic_symbols].to_yaml
-case typographic_symbols
-when Hash
-  options[:typographic_symbols] = typographic_symbols
-when nil, true
-  # nothin
-else
-  warn "*** Can't deal with typographic_symbols value #{typographic_symbols.inspect}"
-end
 
-if kramdown_options
-  options.merge! kramdown_options
-end
-
-if target_coding
-  input = input.encode(Encoding.find(target_coding), fallback: FALLBACK)
+if coding_override
+  input = input.encode(Encoding.find(coding_override), fallback: FALLBACK)
 end
 
 # warn "options: #{options.inspect}"

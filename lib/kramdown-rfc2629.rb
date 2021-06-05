@@ -917,6 +917,7 @@ COLORS
                  ],
         "W3C" => "bibxml4",
         "3GPP" => "bibxml5",
+        "SDO-3GPP" => "bibxml5",
         "ANSI" => "bibxml2",
         "CCITT" => "bibxml2",
         "FIPS" => "bibxml2",
