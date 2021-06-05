@@ -127,7 +127,7 @@ BANNER
   opts.on("-p", "--[no-]prep", "Convert xml to prepped xml") do |v|
     $options.prep = v
   end
-  opts.on("-P", "--[no-]pdf", "Convert xml to PDF") do |v|
+  opts.on("-P", "-f", "--[no-]pdf", "Convert xml to PDF") do |v|
     $options.pdf = v
   end
   opts.on("-c", "--[no-]convert", "Convert xml to v3 xml") do |v|
