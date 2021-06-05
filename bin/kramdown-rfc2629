@@ -328,7 +328,7 @@ def xml_from_sections(input)
           if bts && !v.delete("override")
             warn "*** warning: explicit settings completely override canned bibxml in reference #{k}"
           end
-          sechash[sn.to_s] << KramdownRFC::ref_to_xml(k, v)
+          sechash[sn.to_s] << KramdownRFC::ref_to_xml(href, v)
         end
       end
     end
