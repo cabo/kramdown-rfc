@@ -251,7 +251,10 @@ module Kramdown
           require 'net/http/persistent'
           $http = Net::HTTP::Persistent.new name: 'kramdown-rfc'
         rescue Exception => e
-          warn "** Can't set up persistent HTTP -- #{e}"
+          warn "** Not using persistent HTTP -- #{e}"
+          warn "**   To silence this message and get full speed, try:"
+          warn "**     gem install net-http-persistent"
+          warn "**   If this doesn't work, you can ignore this warning."
         end
       end
 
