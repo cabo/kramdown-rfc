@@ -461,7 +461,18 @@ if coding_override
   input = input.encode(Encoding.find(coding_override), fallback: FALLBACK)
 end
 
+# 1.4.17: because of UTF-8 bibxml files, kramdown always needs to see UTF-8 (!)
+if input.encoding != Encoding::UTF_8
+  input = input.encode(Encoding::UTF_8)
+end
+
 # warn "options: #{options.inspect}"
 doc = Kramdown::Document.new(input, options)
 $stderr.puts doc.warnings.to_yaml unless doc.warnings.empty?
-puts doc.to_rfc2629
+output = doc.to_rfc2629
+
+if coding_override
+  output = output.encode(Encoding.find(coding_override), fallback: FALLBACK)
+end
+
+puts output
