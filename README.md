@@ -317,6 +317,10 @@ Note that this feature does not play well with the CI (continuous
 integration) support in Martin Thomson's [I-D Template][], as that may
 not have the tools installed in its docker instance.
 
+More details have been collected on the [wiki][svg].
+
+[svg]: https://github.com/cabo/kramdown-rfc2629/wiki/SVG
+
 (1.2.9:)
 The YAML header now allows specifying [kramdown_options][].
 
