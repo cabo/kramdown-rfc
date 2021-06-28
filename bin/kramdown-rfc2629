@@ -307,7 +307,7 @@ def xml_from_sections(input)
   [:normative, :informative].each do |sn|
     if refs = ps[sn]
       refs.each do |k, v|
-        href = k.gsub(/\A[0-9]/) { "_#{$&}" } # can't start an IDREF with a number
+        href = ::Kramdown::Parser::RFC2629Kramdown.idref_cleanup(k)
         kramdown_options[:link_defs][k] = ["##{href}", nil]   # allow [RFC2119] in addition to {{RFC2119}}
 
         bibref = anchor_to_bibref[k] || k
@@ -364,7 +364,7 @@ def bibtagsys(bib, anchor=nil, stand_alone=true)
   elsif bib =~ /\A([-A-Z0-9]+)\./ &&
         (xro = Kramdown::Converter::Rfc2629::XML_RESOURCE_ORG_MAP[$1])
     dir, _ttl, rewrite_anchor = xro
-    bib1 = bib.gsub(/\A[0-9]/) { "_#{$&}" } # can't start an ID with a number
+    bib1 = ::Kramdown::Parser::RFC2629Kramdown.idref_cleanup(bib)
     if anchor && bib1 != anchor
       if rewrite_anchor
         a = %{?anchor=#{anchor}}

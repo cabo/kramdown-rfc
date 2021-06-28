@@ -51,6 +51,11 @@ module Kramdown
       XREF_ANY = /(?:#{XREF_SINGLE}|#{XREF_MULTI})/
       SECTIONS_RE = /(?:#{XREF_ANY} and )?#{XREF_ANY}/
 
+      def self.idref_cleanup(href)
+        # can't start an IDREF with a number or reserved start
+        href.gsub(/\A(?:[0-9]|section-|u-|figure-|table-|iref-)/) { "_#{$&}" }
+      end
+
       def handle_bares(s, attr, format, href, last_join = nil)
         if s.match(/\A(#{XREF_ANY}) and (#{XREF_ANY})\z/)
           handle_bares($1, {}, nil, href, " and ")
@@ -136,7 +141,7 @@ module Kramdown
             href = $1
             attr['text'] = $2
           end
-          href = href.gsub(/\A[0-9]/) { "_#{$&}" } # can't start an IDREF with a number
+          href = self.class.idref_cleanup(href)
           attr['target'] = href
           el = Element.new(:xref, nil, attr)
         end
@@ -212,10 +217,10 @@ module Kramdown
     def rfc2629_fix
       if a = attr
         if anchor = a.delete('id')
-          a['anchor'] = anchor
+          a['anchor'] = ::Kramdown::Parser::RFC2629Kramdown.idref_cleanup(anchor)
         end
         if anchor = a.delete('href')
-          a['target'] = anchor
+          a['target'] = ::Kramdown::Parser::RFC2629Kramdown.idref_cleanup(anchor)
         end
         attr.keys.each do |k|
           if (d = k.gsub(/_(.|$)/) { $1.upcase }) != k or d = STUDLY_ATTR_MAP[k]
@@ -959,7 +964,7 @@ COLORS
             warn "*** missing anchor for '#{src}'"
             src
           )
-          anchor.sub!(/\A[0-9]/) { "_#{$&}" } # can't start an ID with a number
+          anchor = ::Kramdown::Parser::RFC2629Kramdown.idref_cleanup(anchor)
           anchor.gsub!('/', '_')              # should take out all illegals
           to_insert = ""
           src.scan(/(W3C|3GPP|[A-Z-]+)[.]?([A-Za-z_0-9.\/\+-]+)/) do |t, n|
@@ -1028,7 +1033,7 @@ COLORS
         # "\n#{' '*indent}<cref>\n#{inner(el.value, indent, opts).rstrip}\n#{' '*indent}</cref>"
         content = inner(el.value, indent, opts).strip
         content = escape_html(content.sub(/\A<t>(.*)<\/t>\z/m) {$1}, :text) # text only...
-        name = el.options[:name].sub(/\A[0-9]/) {"_" << $&}
+        name = ::Kramdown::Parser::RFC2629Kramdown.idref_cleanup(el.options[:name])
         while @footnote_names_in_use[name] do
           if name =~ /:\d+\z/
             name.succ!
