@@ -42,7 +42,7 @@ module Kramdown
         @block_parsers.unshift(:block_pi)
       end
 
-      XREF_BASE = /[\w.-]+/ # a token for a reference
+      XREF_BASE = /#{REXML::XMLTokens::NAME_CHAR}+/ # a token for a reference
       XREF_TXT = /(?:[^\(]|\([^\)]*\))+/ # parenthesized text
       XREF_RE = /#{XREF_BASE}(?: \(#{XREF_TXT}\))?/
       XREF_RE_M = /\A(#{XREF_BASE})(?: \((#{XREF_TXT})\))?/ # matching version of XREF_RE
