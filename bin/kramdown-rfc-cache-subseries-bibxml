@@ -14,7 +14,7 @@ require 'fileutils'
 
 begin
   require 'net/http/persistent'
-rescue
+rescue LoadError
   warn "*** please install net-http-persistent:"
   warn "   gem install net-http-persistent"
   warn "(prefix by sudo only if required)."
