@@ -137,7 +137,7 @@ module Kramdown
               attr['format'] = 'counter'
             end
           end
-          if href.match(XREF_RE_M)
+          if href.match(/#{XREF_RE_M}\z/)
             href = $1
             attr['text'] = $2
           end
