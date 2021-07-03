@@ -53,19 +53,37 @@ def process_xml_locally(input, output, *flags)
     end
   rescue Errno::ENOENT
     warn "*** falling back to remote processing" if $options.verbose
-    process_xml_remotely(input, output)
+    process_xml_remotely(input, output, *flags)
   end
 end
 
 XML2RFC_WEBSERVICE = ENV["KRAMDOWN_XML2RFC_WEBSERVICE"] ||
                      'http://xml2rfc.tools.ietf.org/cgi-bin/xml2rfc-dev.cgi'
 
+MODE_AS_FORMAT = {
+  nil => {                    # v2
+    "--text" => "txt/ascii",
+    "--html" => "html/ascii",
+  },
+  true => {                     # v3
+    "--text" => "txt/v3ascii",
+    "--html" => "html/v3ascii",
+    "--v2v3" => "v3xml/ascii",
+  }
+}
 
-def process_xml_remotely(input, output)
+def process_xml_remotely(input, output, *flags)
   warn "* converting remotely from xml #{input} to txt #{output}" if $options.verbose
+  format = flags[0] || "--text"
+  # warn [:V3, $options.v3].inspect
+  maf = MODE_AS_FORMAT[$options.v3][format]
+  unless maf
+    warn "*** don't know how to convert remotely from xml #{input} to txt #{output}"
+    exit(1)
+  end
   url = URI(XML2RFC_WEBSERVICE)
   req = Net::HTTP::Post.new(url)
-  form = [["modeAsFormat", "txt/#{"v3" if $options.v3}ascii"],
+  form = [["modeAsFormat", maf],
           ["type", "binary"],
           ["input", File.open(input),
            {filename: "input.xml",
