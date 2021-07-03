@@ -6,13 +6,15 @@ require 'open3'
 # try to get this from gemspec.
 KDRFC_VERSION=Gem.loaded_specs["kramdown-rfc2629"].version rescue "unknown-version"
 
+KDRFC_PREPEND = [ENV["KDRFC_PREPEND"]].compact
+
 def v3_flag?
   $options.v3 ? ["--v3"] : []
 end
 
 def process_mkd(input, output)
   warn "* converting locally from markdown #{input} to xml #{output}" if $options.verbose
-  o, s = Open3.capture2("kramdown-rfc2629", *v3_flag?, input)
+  o, s = Open3.capture2(*KDRFC_PREPEND, "kramdown-rfc2629", *v3_flag?, input)
   if s.success?
     File.open(output, "w") do |fo|
       fo.print(o)
@@ -41,7 +43,7 @@ end
 def process_xml_locally(input, output, *flags)
   warn "* converting locally from xml #{input} to txt #{output}" if $options.verbose
   begin
-    o, s = Open3.capture2("xml2rfc", *v3_flag?, *flags, input)
+    o, s = Open3.capture2(*KDRFC_PREPEND, "xml2rfc", *v3_flag?, *flags, input)
     puts o
     if s.success?
       warn "* #{output} written" if $options.verbose
