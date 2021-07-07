@@ -1032,18 +1032,30 @@ COLORS
         # this would be more like xml2rfc v3:
         # "\n#{' '*indent}<cref>\n#{inner(el.value, indent, opts).rstrip}\n#{' '*indent}</cref>"
         content = inner(el.value, indent, opts).strip
-        content = escape_html(content.sub(/\A<t>(.*)<\/t>\z/m) {$1}, :text) # text only...
+        content = content.sub(/\A<t>(.*)<\/t>\z/m) {$1}
         name = ::Kramdown::Parser::RFC2629Kramdown.idref_cleanup(el.options[:name])
+        o_name = name.dup
         while @footnote_names_in_use[name] do
-          if name =~ /:\d+\z/
+          if name =~ /_\d+\z/
             name.succ!
           else
-            name << ":1"
+            name << "_1"
           end
         end
         @footnote_names_in_use[name] = true
         attrstring = el_html_attributes_with(el, {"anchor" => name})
-        "\n#{' '*indent}<cref#{attrstring}>#{content}</cref>"
+        if $options.v3
+          if o_name[-1] == "-"
+            # Ignore HTML attributes.  Hmm.
+            content
+          else
+            # do not indent span-level so we can stick to previous word.  Good?
+            "<cref#{attrstring}>#{content}</cref>"
+          end
+        else
+          content = escape_html(content, :text) # text only...
+          "\n#{' '*indent}<cref#{attrstring}>#{content}</cref>"
+        end
       end
 
       def convert_raw(el, indent, opts)
