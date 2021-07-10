@@ -53,6 +53,9 @@ module Kramdown
 
       def self.idref_cleanup(href)
         # can't start an IDREF with a number or reserved start
+        if href =~ / /
+          warn "** space(s) in cross-reference '#{href}' -- are you trying to use section references?"
+        end
         href.gsub(/\A(?:[0-9]|section-|u-|figure-|table-|iref-)/) { "_#{$&}" }
       end
 
