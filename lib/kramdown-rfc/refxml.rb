@@ -57,17 +57,35 @@ module KramdownRFC
     aups
   end
 
+  # The below anticipates the "postalLine" changes.
+  # If a postalLine is used (abbreviated "postal" in YAML),
+  # non-postalLine elements are appended as further postalLines.
+  # This prepares for how "country" is expected to be handled
+  # specially with the next schema update.
+  # So an address is now best keyboarded as:
+  #   postal:
+  #     - Foo Street
+  #     - 28359 Bar
+  #   country: Germany
+
   PERSON_ERB = <<~ERB
     <<%= element_name%> <%=aups.attrs("initials", "surname", "fullname=name", "role")%>>
       <%= aups.ele("organization=org", aups.attrs("abbrev=orgabbrev",
                                                   *[$options.v3 && "ascii=orgascii"]), "") %>
       <address>
-<% postal = %w{street city region code country}.select{|gi| aups.has(gi)}
-   if postal != [] -%>
+<% postal_elements = %w{extaddr pobox street cityarea city region code sortingcode country postal}.select{|gi| aups.has(gi)}
+   if postal_elements != [] -%>
         <postal>
-<%   postal.each do |gi| -%>
+<% if pl = postal_elements.delete("postal") -%>
+          <%= aups.ele("postalLine=postal") %>
+<%   postal_elements.each do |gi| -%>
+          <%= aups.ele("postalLine=" << gi) %>
+<%   end -%>
+<% else -%>
+<%   postal_elements.each do |gi| -%>
           <%= aups.ele(gi) %>
 <%   end -%>
+<% end -%>
         </postal>
 <% end -%>
 <% %w{phone facsimile email uri}.select{|gi| aups.has(gi)}.each do |gi| -%>
