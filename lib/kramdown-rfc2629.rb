@@ -548,8 +548,17 @@ COLORS
 
       def convert_blockquote(el, indent, opts)
         text = inner(el, indent, opts)
+        if $options.v3
+          gi = el.attr.delete('gi')
+          if gi && gi != 'ul'
+            "#{' '*indent}<#{gi}#{el_html_attributes(el)}>\n#{text}#{' '*indent}</#{gi}>\n"
+          else
+            "#{' '*indent}<ul#{el_html_attributes_with(el, {"empty" => 'true'})}><li>\n#{text}#{' '*indent}</li></ul>\n"
+          end
+        else
         text = "<t></t>" unless text =~ /</ # empty block quote
         "#{' '*indent}<t><list style='empty'#{el_html_attributes(el)}>\n#{text}#{' '*indent}</list></t>\n"
+        end
       end
 
       def end_sections(to_level, indent)
