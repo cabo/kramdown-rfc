@@ -12,6 +12,24 @@ KDRFC_VERSION=Gem.loaded_specs["kramdown-rfc2629"].version rescue "unknown-versi
 
 Encoding.default_external = "UTF-8" # wake up, smell the coffee
 
+# Note that this doesn't attempt to handle HT characters
+def remove_indentation(s)
+  l = s.lines
+  indent = l.grep(/\S/).map {|l| l[/^\s*/].size}.min
+  l.map {|li| li.sub(/^ {0,#{indent}}/, "")}.join
+end
+
+def add_quote(s)
+  l = s.lines
+  l.map {|li| "> #{li}"}.join
+end
+
+def process_chunk(s, dedent, quote)
+  s = remove_indentation(s) if dedent
+  s = add_quote(s) if quote
+  s
+end
+
 def boilerplate(key)
   case key.downcase
   when /\Abcp14(info)?(\+)?(-tagged)?\z/i
@@ -437,8 +455,34 @@ if input[-1] != "\n"
   # warn "*** added missing newline at end"
   input << "\n"                 # fix #26
 end
-input.gsub!(/^\{::include\s+(.*?)\}/) {
-  File.read($1).chomp
+input.gsub!(/^\{::include((?:-[a-z]+)*)\s+(.*?)\}/) {
+  include_flags = $1
+  fn = [$2]
+  chunks = false
+  dedent = false
+  quote = false
+  include_flags.split("-") do |flag|
+    case flag
+    when ""
+    when "quote"
+      quote = true
+    when "dedent"
+      dedent = true
+    when "all", "last"
+      fn = fn.flat_map{|n| Dir[n]}
+      fn = [fn.last] if flag == "last"
+      chunks = fn.map{ |f|
+        ret = process_chunk(File.read(f), dedent, quote)
+        dedent = false; quote = false
+        ret
+      }
+    else
+      warn "** unknown include flag #{flag}"
+    end
+  end
+  chunks = fn.map{|f| File.read(f)} unless chunks # no all/last
+  chunks = chunks.map {|ch| process_chunk(ch, dedent, quote)}
+  chunks.join.chomp
 } unless ENV["KRAMDOWN_SAFE"]
 input.gsub!(/^\{::boilerplate\s+(.*?)\}/) {
   boilerplate($1)
