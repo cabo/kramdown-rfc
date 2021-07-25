@@ -379,8 +379,20 @@ COLORS
         end
       end
 
+      SVG_NAMESPACES = {"xmlns"=>"http://www.w3.org/2000/svg",
+                        "xlink"=>"http://www.w3.org/1999/xlink"}
+
       def svg_clean_kgt(s)
         d = REXML::Document.new(s)
+        REXML::XPath.each(d.root, "/xmlns:svg", SVG_NAMESPACES) do |x|
+          if (w = x.attributes["width"]) && (h = x.attributes["height"])
+            x.attributes["viewBox"] = "0 0 %d %d" % [w, h]
+          end
+          if x.attributes["viewBox"]
+            x.attributes["width"] = nil
+            x.attributes["height"] = nil
+          end
+        end
         REXML::XPath.each(d.root, "//rect|//line|//path") do |x|
           x.attributes["fill"] = "none"
           x.attributes["stroke"] = "black"
