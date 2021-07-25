@@ -128,9 +128,14 @@ module Kramdown
             when /\A(.*) \((#{SECTIONS_RE})\)\z/
               href = $1
               handle_bares($2, attr, "parens", href)
-            when /\A(#{XREF_BASE})<(.+)\z/
-              href = $2
-              attr['section'] = $1
+            when /#{XREF_RE_M}<(.+)\z/
+              href = $3
+              if $2
+                attr['section'] = $2
+                attr['relative'] = "#" << $1
+              else
+                attr['section'] = $1
+              end
               attr['sectionFormat'] = 'bare'
             when /\A<<(.+)\z/
               href = $1
