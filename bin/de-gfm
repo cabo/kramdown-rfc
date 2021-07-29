@@ -1,0 +1,38 @@
+#!/usr/bin/env ruby
+
+require 'kramdown'
+require 'kramdown-parser-gfm'
+
+if ARGV[0] == '-k'              # kramdown
+  MARKDOWN_BR = "\\\\\n"
+  ARGV.shift
+end
+
+if ARGV[0] == '-c'              # commonmark
+  MARKDOWN_BR = "\\\n"
+  ARGV.shift
+end
+
+if ARGV[0] == '-b'              # universal HTML
+  MARKDOWN_BR = "<br/>\n"
+  ARGV.shift
+end
+
+MARKDOWN_BR ||= "  \n"          # original Gruber
+
+module Kramdown
+
+  module Converter
+
+    # Converts an element tree to the kramdown format.
+    class Kramdown < Base
+
+      # Argh
+      def convert_br(_el, _opts)
+        MARKDOWN_BR
+      end
+    end
+  end
+end
+
+puts Kramdown::Document.new(ARGF.read, input: 'GFM', gfm_quirks: 'paragraph_end').to_kramdown
