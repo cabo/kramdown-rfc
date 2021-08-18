@@ -1,4 +1,6 @@
-#!/usr/bin/env ruby
+#!/usr/bin/env ruby -Ku
+
+Encoding.default_external = "UTF-8" # wake up, smell the coffee
 
 require 'kramdown'
 require 'kramdown-parser-gfm'
