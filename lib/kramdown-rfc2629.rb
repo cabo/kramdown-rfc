@@ -54,7 +54,11 @@ module Kramdown
       def self.idref_cleanup(href)
         # can't start an IDREF with a number or reserved start
         if href =~ / /
-          warn "** space(s) in cross-reference '#{href}' -- are you trying to use section references?"
+          if $options.v3
+            warn "** space(s) in cross-reference '#{href}' -- are you trying to use section references?"
+          else
+            warn "** space(s) in cross-reference '#{href}' -- note that section references are supported in v3 mode only."
+          end
         end
         href.gsub(/\A(?:[0-9]|section-|u-|figure-|table-|iref-)/) { "_#{$&}" }
       end
@@ -944,7 +948,7 @@ COLORS
                  ],
         "I-D" => ["bibxml3", false, false,
                   ->(fn, n){ [fn,
-                              "https://datatracker.ietf.org/doc/bibxml3/draft-#{n.sub(/\Adraft-/, '')}/xml"] }
+                              "https://datatracker.ietf.org/doc/bibxml3/draft-#{n.sub(/\Adraft-/, '')}.xml"] }
                  ],
         "BCP" => ["bibxml-rfcsubseries", 86400*7, false,
                   ->(fn, n){ Rfc2629::bcp_std_ref("BCP", n) }
