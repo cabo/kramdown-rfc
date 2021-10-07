@@ -87,9 +87,9 @@ active_names.each do |name|
       FileUtils.touch(name0)    # because name1 already exists, we believe name0 is fresh
     else
       begin
-        url0 = "https://datatracker.ietf.org/doc/bibxml3/draft-#{namepart}/xml"
+        url0 = "https://datatracker.ietf.org/doc/bibxml3/draft-#{namepart}.xml"
         get_and_write_resource_persistently(url0, name0) # get name0 first
-        url1 = "https://datatracker.ietf.org/doc/bibxml3/draft-#{namepart}-#{version}/xml"
+        url1 = "https://datatracker.ietf.org/doc/bibxml3/draft-#{namepart}-#{version}.xml"
         get_and_write_resource_persistently(url1, name1) # then name1 to mark this as updated
       rescue => e
         warn "*** #{name0}: #{e}"
