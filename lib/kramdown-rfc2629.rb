@@ -1033,6 +1033,8 @@ COLORS
                                                 %{https://www.ietf.org/archive/id/}) if t == "I-D"
                   }
                 end
+              elsif t == "IANA"
+                d.root.attributes["target"].sub!(%r{\Ahttp://www.iana.org/assignments/}, 'https://www.iana.org/assignments/')
               end
               to_insert = d.to_s
             rescue Exception => e
