@@ -1000,7 +1000,7 @@ COLORS
           anchor = ::Kramdown::Parser::RFC2629Kramdown.idref_cleanup(anchor)
           anchor.gsub!('/', '_')              # should take out all illegals
           to_insert = ""
-          src.scan(/(W3C|3GPP|[A-Z-]+)[.]?([A-Za-z_0-9.\/\+-]+)/) do |t, n|
+          src.scan(/(W3C|3GPP|[A-Z-]+)[.]?([A-Za-z_0-9.\(\)\/\+-]+)/) do |t, n|
             fn = "reference.#{t}.#{n}.xml"
             sub, ttl, _can_anchor, altproc = XML_RESOURCE_ORG_MAP[t]
             ttl ||= KRAMDOWN_REFCACHETTL  # everything but RFCs might change a lot
