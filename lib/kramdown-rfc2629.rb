@@ -455,6 +455,19 @@ COLORS
         dont_clean = false
         dont_check = false
         case t
+        when "protocol", "protocol-goat"
+          cmdparm = result.lines.map(&:strip).select {|x| x != ''}.join(',')
+          result, err, _s = Open3.capture3("protocol #{Shellwords.escape(cmdparm)}", stdin_data: '')
+          if t == "protocol-goat"
+            file.unlink
+            file = Tempfile.new("kramdown-rfc")
+            file.write(result)
+            file.close
+            result1, err, _s = Open3.capture3("goat #{file.path}", stdin_data: result);
+            dont_clean = true
+          else
+            result1 = nil
+          end
         when "goat"
           result1, err, _s = Open3.capture3("goat #{file.path}", stdin_data: result);
           dont_clean = true
@@ -487,15 +500,17 @@ COLORS
         # warn ["text:", result.inspect]
         # warn ["svg:", result1.inspect]
         file.unlink
-        result1 = svg_clean(result1) unless dont_clean
-        unless dont_check
-          result1, err, _s = Open3.capture3("svgcheck -Xqa", stdin_data: result1);
-          # warn ["svgcheck:", result1.inspect]
-          capture_croak("svgcheck", err)
-        end
-        if result1 == ''
-          warn "*** could not create svg for #{result.inspect[0...20]}..."
-          exit 65 # EX_DATAERR
+        if result1
+          result1 = svg_clean(result1) unless dont_clean
+          unless dont_check
+            result1, err, _s = Open3.capture3("svgcheck -Xqa", stdin_data: result1);
+            # warn ["svgcheck:", result1.inspect]
+            capture_croak("svgcheck", err)
+          end
+          if result1 == ''
+            warn "*** could not create svg for #{result.inspect[0...20]}..."
+            exit 65 # EX_DATAERR
+          end
         end
         [result, result1]       # text, svg
       end
@@ -548,12 +563,17 @@ COLORS
           end
           case t
           when "goat", "ditaa", "mscgen", "plantuml", "plantuml-utxt", 
-               "railroad", "railroad-utf8", "mermaid", "math"
+               "railroad", "railroad-utf8", "mermaid", "protocol", "protocol-goat",
+               "math"
             if gi
               warn "*** Can't set GI #{gi} for composite SVG artset"
             end
             result, result1 = memoize(:svg_tool_process, t, result)
+            if result1          # refactor!
             "#{' '*indent}<figure#{el_html_attributes(el)}><artset><artwork #{html_attributes(artwork_attr.merge("type"=> "svg"))}>#{result1.sub(/.*?<svg/m, "<svg")}</artwork><artwork #{html_attributes(artwork_attr.merge("type"=> "ascii-art"))}><![CDATA[#{result}#{result =~ /\n\Z/ ? '' : "\n"}]]></artwork></artset></figure>\n"
+            else
+            "#{' '*indent}<figure#{el_html_attributes(el)}><artwork #{html_attributes(artwork_attr.merge("type"=> "ascii-art"))}><![CDATA[#{result}#{result =~ /\n\Z/ ? '' : "\n"}]]></artwork></figure>\n"
+            end
           else
             gi ||= (
               if !$options.v3 || !t || ARTWORK_TYPES.include?(t) || artwork_attr["align"]
