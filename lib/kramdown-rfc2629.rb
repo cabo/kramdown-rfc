@@ -455,7 +455,7 @@ COLORS
         dont_clean = false
         dont_check = false
         case t
-        when "protocol", "protocol-goat"
+        when "protocol", "protocol-goat", "protocol-aasvg"
           cmdparm = result.lines.map(&:strip).select {|x| x != ''}.join(',')
           result, err, _s = Open3.capture3("protocol #{Shellwords.escape(cmdparm)}", stdin_data: '')
           if t == "protocol-goat"
@@ -465,11 +465,17 @@ COLORS
             file.close
             result1, err, _s = Open3.capture3("goat #{file.path}", stdin_data: result);
             dont_clean = true
+          elsif t == "protocol-aasvg"
+            result1, err, _s = Open3.capture3("aasvg", stdin_data: result);
+            dont_clean = true
           else
             result1 = nil
           end
         when "goat"
           result1, err, _s = Open3.capture3("goat #{file.path}", stdin_data: result);
+          dont_clean = true
+        when "aasvg"
+          result1, err, _s = Open3.capture3("aasvg", stdin_data: result);
           dont_clean = true
         when "ditaa"        # XXX: This needs some form of option-setting
           result1, err, _s = Open3.capture3("ditaa #{file.path} --svg -o -", stdin_data: result);
@@ -562,9 +568,11 @@ COLORS
             end
           end
           case t
-          when "goat", "ditaa", "mscgen", "plantuml", "plantuml-utxt", 
-               "railroad", "railroad-utf8", "mermaid", "protocol", "protocol-goat",
-               "math"
+          when "aasvg", "ditaa", "goat",
+               "math", "mermaid",  "mscgen",
+               "plantuml", "plantuml-utxt",
+               "protocol", "protocol-aasvg", "protocol-goat",
+               "railroad", "railroad-utf8"
             if gi
               warn "*** Can't set GI #{gi} for composite SVG artset"
             end
