@@ -568,9 +568,11 @@ COLORS
             end
           end
           case t
-          when "goat", "ditaa", "mscgen", "plantuml", "plantuml-utxt", 
-               "railroad", "railroad-utf8", "mermaid", "protocol", "protocol-goat",
-               "math"
+          when "aasvg", "ditaa", "goat",
+               "math", "mermaid",  "mscgen",
+               "plantuml", "plantuml-utxt",
+               "protocol", "protocol-aasvg", "protocol-goat",
+               "railroad", "railroad-utf8"
             if gi
               warn "*** Can't set GI #{gi} for composite SVG artset"
             end
