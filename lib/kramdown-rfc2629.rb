@@ -466,7 +466,7 @@ COLORS
             result1, err, _s = Open3.capture3("goat #{file.path}", stdin_data: result);
             dont_clean = true
           elsif t == "protocol-aasvg"
-            result1, err, _s = Open3.capture3("aasvg", stdin_data: result);
+            result1, err, _s = Open3.capture3("aasvg --spaces=1", stdin_data: result);
             dont_clean = true
           else
             result1 = nil
