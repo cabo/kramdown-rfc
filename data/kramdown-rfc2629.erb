@@ -42,6 +42,31 @@
 
     </abstract>
 
+<% if $options.v3 -%>
+<%  venue = ps[:venue] -%>
+<%  if venue -%>
+<%    venue = KramdownRFC::ParameterSet.new(venue) -%>
+    <note title="Discussion Venues" removeInRFC="true">
+<%   if mail = venue[:mail] -%>
+<%     mail_local, mail_host = mail.split("@", 2) -%>
+<%     mail_subdomain, mail_domain = mail_host.split(".", 2) -%>
+<%     group = venue[:group] || mail_local # XXX -%>
+<%     arch = venue[:arch] || "https://mailarchive.ietf.org/arch/browse/#{mail_local}/" -%>
+<%     GROUPS = {"ietf" => "Working ", "irtf" => "Research "} -%>
+<%     type = venue[:type] || "#{GROUPS[mail_subdomain]}Group" -%>
+      <t>Discussion of this document takes place on the
+        <%=group%> <%=type%> mailing list (<%=mail%>),
+        which is archived at <eref target="<%=arch%>"/>.</t>
+<%   end -%>
+<%   if gh = venue[:github] -%>
+      <t>Source for this draft and an issue tracker can be found at
+        <eref target="https://github.com/<%=gh%>"/>.</t>
+<%   end -%>
+    </note>
+<%  venue.warn_if_leftovers -%>
+<%  end -%>
+<% end -%>
+
 <% sechash.keys.each do |k| -%>
 <%   if k =~ /\A(to_be_removed_)?note_(.*)/ -%>
 
