@@ -646,7 +646,7 @@ COLORS
           if sl = el.attr.delete('slugifiedName') # could do general name- play
             attrstring = html_attributes({'slugifiedName' => sl})
           end
-          irefs = "<name#{attrstring}>#{inner(el, indent, opts)}</name>" #
+          irefs = "<name#{attrstring}>#{inner(el, indent, opts.merge(noabbrev: true))}</name>" #
         else
         clean, irefs = clean_pcdata(inner_a(el, indent, opts))
         el.attr['title'] = clean
@@ -1233,13 +1233,30 @@ COLORS
       end
 
       def convert_abbreviation(el, indent, opts) # XXX: This is wrong
+        if opts[:noabbrev]
+          return el.value
+        end
+
         title = @root.options[:abbrev_defs][el.value]
         title = nil if title.empty?
         value = el.value
-        if item = title
-          if item == "<bcp14>" && $options.v3
-            return "<bcp14>#{el.value}</bcp14>"
+
+        if title == "<bcp14>" && $options.v3
+          return "<bcp14>#{value}</bcp14>"
+        end
+
+        if title && title[0] == "#"
+          target, title = title.split(' ', 2)
+          if target == "#"
+            target = value
+          else
+            target = target[1..]
           end
+        else
+          target = nil
+        end
+
+        if item = title
           m = title.scan(Parser::RFC2629Kramdown::IREF_START)
           if m.empty?
             subitem = value
@@ -1250,7 +1267,11 @@ COLORS
           item = value
         end
         iref ||= "<iref#{html_attributes(item: item, subitem: subitem)}/>"
-        "#{el.value}#{iref}"
+        if target
+          "<xref#{html_attributes(target: target, format: "none")}>#{value}</xref>#{iref}"
+        else
+          "#{value}#{iref}"
+        end
       end
 
       def convert_root(el, indent, opts)
