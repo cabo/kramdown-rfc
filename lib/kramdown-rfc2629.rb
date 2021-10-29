@@ -447,6 +447,8 @@ COLORS
         end
       end
 
+      DEFAULT_AASVG="aasvg --spaces=1"
+
       def svg_tool_process(t, result)
         require 'tempfile'
         file = Tempfile.new("kramdown-rfc")
@@ -466,7 +468,7 @@ COLORS
             result1, err, _s = Open3.capture3("goat #{file.path}", stdin_data: result);
             dont_clean = true
           elsif t == "protocol-aasvg"
-            result1, err, _s = Open3.capture3("aasvg", stdin_data: result);
+            result1, err, _s = Open3.capture3("#{DEFAULT_AASVG}", stdin_data: result);
             dont_clean = true
           else
             result1 = nil
@@ -475,7 +477,7 @@ COLORS
           result1, err, _s = Open3.capture3("goat #{file.path}", stdin_data: result);
           dont_clean = true
         when "aasvg"
-          result1, err, _s = Open3.capture3("aasvg", stdin_data: result);
+          result1, err, _s = Open3.capture3("#{DEFAULT_AASVG}", stdin_data: result);
           dont_clean = true
         when "ditaa"        # XXX: This needs some form of option-setting
           result1, err, _s = Open3.capture3("ditaa #{file.path} --svg -o -", stdin_data: result);
