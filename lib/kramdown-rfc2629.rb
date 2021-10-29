@@ -579,11 +579,14 @@ COLORS
               warn "*** Can't set GI #{gi} for composite SVG artset"
             end
             result, result1 = memoize(:svg_tool_process, t, result)
-            if result1          # refactor!
-            "#{' '*indent}<figure#{el_html_attributes(el)}><artset><artwork #{html_attributes(artwork_attr.merge("type"=> "svg"))}>#{result1.sub(/.*?<svg/m, "<svg")}</artwork><artwork #{html_attributes(artwork_attr.merge("type"=> "ascii-art"))}><![CDATA[#{result}#{result =~ /\n\Z/ ? '' : "\n"}]]></artwork></artset></figure>\n"
-            else
-            "#{' '*indent}<figure#{el_html_attributes(el)}><artwork #{html_attributes(artwork_attr.merge("type"=> "ascii-art"))}><![CDATA[#{result}#{result =~ /\n\Z/ ? '' : "\n"}]]></artwork></figure>\n"
+            retart = mk_artwork(artwork_attr, "ascii-art",
+                                "<![CDATA[#{result}#{result =~ /\n\Z/ ? '' : "\n"}]]>")
+            if result1          # nest TXT in artset with SVG
+              retsvg = mk_artwork(artwork_attr, "svg",
+                                  result1.sub(/.*?<svg/m, "<svg"))
+              retart = "<artset>#{retsvg}#{retart}</artset>"
             end
+            "#{' '*indent}<figure#{el_html_attributes(el)}>#{retart}</figure>\n"
           else
             gi ||= (
               if !$options.v3 || !t || ARTWORK_TYPES.include?(t) || artwork_attr["align"]
@@ -595,6 +598,10 @@ COLORS
             "#{' '*indent}<figure#{el_html_attributes(el)}><#{gi}#{html_attributes(artwork_attr)}><![CDATA[#{result}#{result =~ /\n\Z/ ? '' : "\n"}]]></#{gi}></figure>\n"
           end
         end
+      end
+
+      def mk_artwork(artwork_attr, typ, content)
+        "<artwork #{html_attributes(artwork_attr.merge("type" => typ))}>#{content}</artwork>"
       end
 
       def convert_blockquote(el, indent, opts)
