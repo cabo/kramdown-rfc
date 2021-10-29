@@ -226,7 +226,11 @@ module Kramdown
     )
     STUDLY_ATTR_MAP = Hash[STUDLY_ATTR.map {|s| [s.downcase, s]}]
 
-    def rfc2629_fix
+    TRUTHY = Hash.new {|h, k| k}
+    TRUTHY["false"] = false
+    TRUTHY["no"] = false
+
+    def rfc2629_fix(opts)
       if a = attr
         if anchor = a.delete('id')
           a['anchor'] = ::Kramdown::Parser::RFC2629Kramdown.idref_cleanup(anchor)
@@ -234,12 +238,16 @@ module Kramdown
         if anchor = a.delete('href')
           a['target'] = ::Kramdown::Parser::RFC2629Kramdown.idref_cleanup(anchor)
         end
+        if av = a.delete('noabbrev')      # pseudo attribute -> opts
+          opts = opts.merge(noabbrev: TRUTHY[av]) # updated copy
+        end
         attr.keys.each do |k|
           if (d = k.gsub(/_(.|$)/) { $1.upcase }) != k or d = STUDLY_ATTR_MAP[k]
             a[d] = a.delete(k)
           end
         end
       end
+      opts
     end
   end
 
@@ -294,15 +302,15 @@ module Kramdown
       end
 
       def convert1(el, indent, opts = {})
-        el.rfc2629_fix
-        send("convert_#{el.type}", el, indent, opts)
+        nopts = el.rfc2629_fix(opts)
+        send("convert_#{el.type}", el, indent, nopts)
       end
 
       def inner_a(el, indent, opts)
         indent += INDENTATION
         el.children.map do |inner_el|
-          inner_el.rfc2629_fix
-          send("convert_#{inner_el.type}", inner_el, indent, opts)
+          nopts = inner_el.rfc2629_fix(opts)
+          send("convert_#{inner_el.type}", inner_el, indent, nopts)
         end
       end
 
@@ -664,6 +672,7 @@ COLORS
           if sl = el.attr.delete('slugifiedName') # could do general name- play
             attrstring = html_attributes({'slugifiedName' => sl})
           end
+          # noabbrev: true -- Workaround for https://trac.ietf.org/trac/xml2rfc/ticket/683
           irefs = "<name#{attrstring}>#{inner(el, indent, opts.merge(noabbrev: true))}</name>" #
         else
         clean, irefs = clean_pcdata(inner_a(el, indent, opts))
