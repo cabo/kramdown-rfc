@@ -447,61 +447,67 @@ COLORS
         end
       end
 
+      def shell_prepare(opt)
+        " " << opt.shellsplit.shelljoin
+      end
+
       DEFAULT_AASVG="aasvg --spaces=1"
 
-      def svg_tool_process(t, result)
+      def svg_tool_process(t, svg_opt, txt_opt, result)
         require 'tempfile'
         file = Tempfile.new("kramdown-rfc")
         file.write(result)
         file.close
         dont_clean = false
         dont_check = false
+        svg_opt = shell_prepare(svg_opt) if svg_opt
+        txt_opt = shell_prepare(txt_opt) if txt_opt
         case t
         when "protocol", "protocol-goat", "protocol-aasvg"
           cmdparm = result.lines.map(&:strip).select {|x| x != ''}.join(',')
-          result, err, _s = Open3.capture3("protocol #{Shellwords.escape(cmdparm)}", stdin_data: '')
+          result, err, _s = Open3.capture3("protocol #{Shellwords.escape(cmdparm)}#{txt_opt}", stdin_data: '')
           if t == "protocol-goat"
             file.unlink
             file = Tempfile.new("kramdown-rfc")
             file.write(result)
             file.close
-            result1, err, _s = Open3.capture3("goat #{file.path}", stdin_data: result);
+            result1, err, _s = Open3.capture3("goat#{svg_opt} #{file.path}", stdin_data: result);
             dont_clean = true
           elsif t == "protocol-aasvg"
-            result1, err, _s = Open3.capture3("#{DEFAULT_AASVG}", stdin_data: result);
+            result1, err, _s = Open3.capture3("#{DEFAULT_AASVG}#{svg_opt}", stdin_data: result);
             dont_clean = true
           else
             result1 = nil
           end
         when "goat"
-          result1, err, _s = Open3.capture3("goat #{file.path}", stdin_data: result);
+          result1, err, _s = Open3.capture3("goat#{svg_opt} #{file.path}", stdin_data: result);
           dont_clean = true
         when "aasvg"
-          result1, err, _s = Open3.capture3("#{DEFAULT_AASVG}", stdin_data: result);
+          result1, err, _s = Open3.capture3("#{DEFAULT_AASVG}#{svg_opt}", stdin_data: result);
           dont_clean = true
         when "ditaa"        # XXX: This needs some form of option-setting
-          result1, err, _s = Open3.capture3("ditaa #{file.path} --svg -o -", stdin_data: result);
+          result1, err, _s = Open3.capture3("ditaa #{file.path} --svg -o -#{svg_opt}", stdin_data: result);
         when "mscgen"
-          result1, err, _s = Open3.capture3("mscgen -T svg -i #{file.path} -o -", stdin_data: result);
+          result1, err, _s = Open3.capture3("mscgen -T svg -i #{file.path} -o -#{svg_opt}", stdin_data: result);
         when "mermaid"
-          result1, err, _s = Open3.capture3("mmdc -i #{file.path}", stdin_data: result); #  -b transparent
+          result1, err, _s = Open3.capture3("mmdc -i #{file.path}#{svg_opt}", stdin_data: result); #  -b transparent
           outpath = file.path + ".svg"
           result1 = File.read(outpath) rescue '' # don't die before providing error message
           File.unlink(outpath) rescue nil        # ditto
         when "plantuml", "plantuml-utxt"
           plantuml = "@startuml\n#{result}\n@enduml"
-          result1, err, _s = Open3.capture3("plantuml -pipe -tsvg", stdin_data: plantuml);
-          result, err1, _s = Open3.capture3("plantuml -pipe -tutxt", stdin_data: plantuml) if t == "plantuml-utxt"
+          result1, err, _s = Open3.capture3("plantuml -pipe -tsvg#{svg_opt}", stdin_data: plantuml);
+          result, err1, _s = Open3.capture3("plantuml -pipe -tutxt#{txt_opt}", stdin_data: plantuml) if t == "plantuml-utxt"
           err << err1.to_s
         when "railroad", "railroad-utf8"
-          result1, err1, _s = Open3.capture3("kgt -l abnf -e svg", stdin_data: result);
+          result1, err1, _s = Open3.capture3("kgt -l abnf -e svg#{svg_opt}", stdin_data: result);
           result1 = svg_clean_kgt(result1); dont_clean = true
-          result, err, _s = Open3.capture3("kgt -l abnf -e rr#{t == "railroad" ? "text" : "utf8"}",
+          result, err, _s = Open3.capture3("kgt -l abnf -e rr#{t == "railroad" ? "text" : "utf8"}#{txt_opt}",
                                             stdin_data: result);
           err << err1.to_s
         when "math"
-          result1, err, _s = Open3.capture3("tex2svg --font STIX --speech=false #{Shellwords.escape(' ' << result)}");
-          result, err1, _s = Open3.capture3("asciitex -f #{file.path}")
+          result1, err, _s = Open3.capture3("tex2svg --font STIX --speech=false#{svg_opt} #{Shellwords.escape(' ' << result)}");
+          result, err1, _s = Open3.capture3("asciitex -f #{file.path}#{txt_opt}")
           err << err1
         end
         capture_croak(t, err)
@@ -578,7 +584,10 @@ COLORS
             if gi
               warn "*** Can't set GI #{gi} for composite SVG artset"
             end
-            result, result1 = memoize(:svg_tool_process, t, result)
+            result, result1 = memoize(:svg_tool_process, t,
+                                      artwork_attr.delete("svg-options"),
+                                      artwork_attr.delete("txt-options"),
+                                      result)
             retart = mk_artwork(artwork_attr, "ascii-art",
                                 "<![CDATA[#{result}#{result =~ /\n\Z/ ? '' : "\n"}]]>")
             if result1          # nest TXT in artset with SVG
