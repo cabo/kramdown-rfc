@@ -58,7 +58,7 @@
         <%=group%> <%=type%> mailing list (<%=mail%>),
         which is archived at <eref target="<%=arch%>"/>.</t>
 <%   end -%>
-<%   if repo = venue[:repo] || (gh = venue[:github]) ? "https://github.com/#{gh}" : nil -%>
+<%   if repo = venue[:repo] || ((gh = venue[:github]) && "https://github.com/#{gh}") -%>
       <t>Source for this draft and an issue tracker can be found at
         <eref target="<%=repo%>"/>.</t>
 <%   end -%>
