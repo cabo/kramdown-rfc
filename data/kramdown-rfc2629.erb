@@ -48,7 +48,7 @@
 <%    venue = KramdownRFC::ParameterSet.new(venue) -%>
     <note title="Discussion Venues" removeInRFC="true">
 <%   mail = venue[:mail] -%>
-<%   homepage = venue[:homepage] -%>
+<%   homepage = venue[:home] -%>
 <%   gtype = venue[:type] -%>
 <%   if mail || homepage -%>
       <t>
