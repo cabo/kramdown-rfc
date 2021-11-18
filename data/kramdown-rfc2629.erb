@@ -47,17 +47,29 @@
 <%  if venue -%>
 <%    venue = KramdownRFC::ParameterSet.new(venue) -%>
     <note title="Discussion Venues" removeInRFC="true">
-<%   if mail = venue[:mail] -%>
+<%   mail = venue[:mail] -%>
+<%   homepage = venue[:homepage] -%>
+<%   gtype = venue[:type] -%>
+<%   if mail || homepage -%>
+      <t>
+<% end -%>
+<%   if mail -%>
 <%     mail_local, mail_host = mail.split("@", 2) -%>
 <%     mail_subdomain, mail_domain = mail_host.split(".", 2) -%>
 <%     group = venue[:group] || mail_local # XXX -%>
 <%     arch = venue[:arch] || "https://mailarchive.ietf.org/arch/browse/#{mail_local}/" -%>
 <%     GROUPS = {"ietf" => "Working ", "irtf" => "Research "} -%>
-<%     type = venue[:type] || "#{GROUPS[mail_subdomain]}Group" -%>
-      <t>Discussion of this document takes place on the
-        <%=group%> <%=type%> mailing list (<%=mail%>),
-        which is archived at <eref target="<%=arch%>"/>.</t>
+<%     gtype = gtype || "#{GROUPS[mail_subdomain]}Group" -%>
+        Discussion of this document takes place on the
+        <%=group%> <%=gtype%> mailing list (<%=mail%>),
+        which is archived at <eref target="<%=arch%>"/>.
 <%   end -%>
+<%   if homepage -%>
+        <%=gtype%> information can be found at <eref target="<%=homepage%>"/>.
+<%   end -%>
+<%   if mail || homepage -%>
+      </t>
+<% end -%>
 <%   if repo = venue[:repo] || ((gh = venue[:github]) && "https://github.com/#{gh}") -%>
       <t>Source for this draft and an issue tracker can be found at
         <eref target="<%=repo%>"/>.</t>
