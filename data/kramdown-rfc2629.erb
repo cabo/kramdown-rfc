@@ -59,9 +59,9 @@
 <%     group = venue[:group] || mail_local # XXX -%>
 <%     arch = venue[:arch] || "https://mailarchive.ietf.org/arch/browse/#{mail_local}/" -%>
 <%     GROUPS = {"ietf" => "Working ", "irtf" => "Research "} -%>
-<%     gtype = gtype || "#{GROUPS[mail_subdomain]}Group" -%>
+<%     gtype ||= "#{GROUPS[mail_subdomain]}Group" -%>
         Discussion of this document takes place on the
-        <%=group%> <%=type%> mailing list (<eref target="mailto:<%=mail%>"/>),
+        <%=group%> <%=gtype%> mailing list (<eref target="mailto:<%=mail%>"/>),
         which is archived at <eref target="<%=arch%>"/>.
 <%   end -%>
 <%   if homepage -%>
