@@ -624,6 +624,35 @@ COLORS
                 "sourcecode"
               end
             )
+            loc_str =
+              if anchor = el.attr['anchor']
+                "##{anchor}"
+              elsif lineno = el.options[:location]
+                "approx. line #{lineno}" # XXX
+              else
+                "UNKNOWN"
+              end
+            case t
+            when "json"
+              begin
+                JSON.load(result)
+              rescue => e
+                err1 = "*** #{loc_str}: JSON isn't: #{e.message[0..40]}\n"
+                begin
+                  JSON.load("{" << result << "}")
+                rescue => e
+                  warn err1 << "***  not even with braces added around: #{e.message[0..40]}"
+                end
+              end
+            when "json-from-yaml"
+              begin
+                y = YAML.safe_load(result, aliases: true, filename: loc_str)
+                result = JSON.pretty_generate(y)
+                t = "json"      # XXX, this could be another format!
+              rescue => e
+                warn "*** YAML isn't: #{e.message}\n"
+              end
+            end
             "#{' '*indent}<figure#{el_html_attributes(el)}><#{gi}#{html_attributes(artwork_attr)}><![CDATA[#{result}#{result =~ /\n\Z/ ? '' : "\n"}]]></#{gi}></figure>\n"
           end
         end
