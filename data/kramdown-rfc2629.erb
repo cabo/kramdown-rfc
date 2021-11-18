@@ -52,7 +52,7 @@
 <%   gtype = venue[:type] -%>
 <%   if mail || homepage -%>
       <t>
-<% end -%>
+<%   end -%>
 <%   if mail -%>
 <%     mail_local, mail_host = mail.split("@", 2) -%>
 <%     mail_subdomain, mail_domain = mail_host.split(".", 2) -%>
@@ -69,7 +69,7 @@
 <%   end -%>
 <%   if mail || homepage -%>
       </t>
-<% end -%>
+<%   end -%>
 <%   if repo = venue[:repo] || ((gh = venue[:github]) && "https://github.com/#{gh}") -%>
       <t>Source for this draft and an issue tracker can be found at
         <eref target="<%=repo%>"/>.</t>
