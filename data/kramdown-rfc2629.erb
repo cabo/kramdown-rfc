@@ -55,7 +55,7 @@
 <%     GROUPS = {"ietf" => "Working ", "irtf" => "Research "} -%>
 <%     type = venue[:type] || "#{GROUPS[mail_subdomain]}Group" -%>
       <t>Discussion of this document takes place on the
-        <%=group%> <%=type%> mailing list (<%=mail%>),
+        <%=group%> <%=type%> mailing list (<eref target="mailto:<%=mail%>"><%=mail%></eref>),
         which is archived at <eref target="<%=arch%>"/>.</t>
 <%   end -%>
 <%   if repo = venue[:repo] || ((gh = venue[:github]) && "https://github.com/#{gh}") -%>
