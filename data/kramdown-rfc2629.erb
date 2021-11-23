@@ -47,8 +47,8 @@
 <%  if venue -%>
 <%    venue = KramdownRFC::ParameterSet.new(venue) -%>
     <note title="About This Document" removeInRFC="true">
-<%   if dn = ps.av[:docName]
-       dt = dn.rpartition('-')[0]
+<%   if (dn = ps.av[:docName]) &&
+       (dt = dn.rpartition('-')[0]) != ""
 -%>
       <t>
         Status information for this document may be found at <eref target="https://datatracker.ietf.org/doc/<%=dt%>/"/>.
