@@ -51,6 +51,9 @@
        (dt = dn.rpartition('-')[0]) != ""
 -%>
       <t>
+<%   if latest = venue[:latest] -%>
+        The editor's copy of this draft can be found at <eref target="<%=latest%>"/>.
+<%   end -%>
         Status information for this document may be found at <eref target="https://datatracker.ietf.org/doc/<%=dt%>/"/>.
       </t>
 <%   end -%>
