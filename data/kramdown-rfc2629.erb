@@ -47,6 +47,13 @@
 <%  if venue -%>
 <%    venue = KramdownRFC::ParameterSet.new(venue) -%>
     <note title="Discussion Venues" removeInRFC="true">
+<%   if dn = ps.av[:docName]
+       dt = dn.rpartition('-')[0]
+-%>
+      <t>
+        The IETF status of this document can be found at <eref target="https://datatracker.ietf.org/doc/<%=dt%>/"/>.
+      </t>
+<%   end -%>
 <%   mail = venue[:mail] -%>
 <%   homepage = venue[:home] -%>
 <%   gtype = venue[:type] -%>

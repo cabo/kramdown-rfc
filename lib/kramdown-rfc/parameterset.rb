@@ -7,7 +7,9 @@ module KramdownRFC
     def initialize(y)
       raise "*** invalid parameter set #{y.inspect}" unless Hash === y
       @f = y
+      @av = {}
     end
+    attr :av
     def [](pn)
       @f.delete(pn.to_s)
     end
@@ -24,6 +26,7 @@ module KramdownRFC
     end
     def attr(pn)
       val, an = van(pn)
+      @av[an.intern] = val
       %{#{an}="#{escattr(val)}"}    if val
     end
     def attrs(*pns)
