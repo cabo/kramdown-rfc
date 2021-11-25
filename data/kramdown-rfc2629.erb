@@ -60,8 +60,7 @@
 <%   if mail || homepage -%>
       <t>
 <%   end -%>
-<%   if mail -%>
-<%     mail_local, mail_host = mail.split("@", 2) -%>
+<%   if mail && (mail_local, mail_host = mail.split("@", 2)) && mail_host -%>
 <%     mail_subdomain, mail_domain = mail_host.split(".", 2) -%>
 <%     group = venue[:group] || mail_local # XXX -%>
 <%     arch = venue[:arch] || "https://mailarchive.ietf.org/arch/browse/#{mail_local}/" -%>
