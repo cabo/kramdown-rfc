@@ -12,14 +12,28 @@
 <% end -%>
 ]>
 
-<% ps.arr("pi", false) do |pi, val| -%>
+<%
+  rfcattrs = ps.attrs("ipr", "docName=docname", "category=cat",
+                      "consensus", "submissionType=submissiontype", "xml:lang=lang",
+                      "number", "obsoletes", "updates", "seriesNo=seriesno")
+  if $options.v3
+    ps.arr("pi", false) do |pi, val|
+      keys = ["tocdepth", "toc", "sortrefs", "symrefs"]
+      if keys.index(pi) != nil && !ps.has(pi)
+        ps.add(pi, {true => "true", false => "false", nil => "true"}[val] || val)
+      end
+    end
+    if piattrs = ps.attrs("tocDepth=tocdepth", "tocInclude=toc",
+                          "sortRefs=sortrefs", "symRefs=symrefs", "indexInclude=index")
+      rfcattrs += " " + piattrs
+    end
+  else
+    ps.arr("pi", false) do |pi, val| -%>
 <?rfc <%=pi%>="<%= {true => "yes", false => "no", nil => "yes"}[val] || val %>"?>
-<% end -%>
+<%   end
+  end -%>
 
-<rfc <%= ps.attrs("ipr", "docName=docname", "category=cat",
-                  "consensus", "submissionType=submissiontype", "xml:lang=lang",
-                  "number", "obsoletes", "updates", "seriesNo=seriesno") %>>
-
+<rfc <%=rfcattrs%>>
   <front>
     <%= ps.ele("title", ps.attr("abbrev=titleabbrev")) %>
 

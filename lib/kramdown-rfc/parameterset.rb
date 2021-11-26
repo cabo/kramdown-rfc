@@ -52,6 +52,9 @@ module KramdownRFC
       arr << { } if must_have_one && arr.empty?
       Array(arr).each(&block)
     end
+    def add(pn, val)
+      @f[pn] = val
+    end
     def rest
       @f
     end
