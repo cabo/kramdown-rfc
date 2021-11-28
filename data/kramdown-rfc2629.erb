@@ -20,7 +20,7 @@
     ps.arr("pi", false) do |pi, val|
       keys = ["tocdepth", "toc", "sortrefs", "symrefs"]
       if keys.index(pi) != nil && !ps.has(pi)
-        ps.add(pi, {true => "true", false => "false", nil => "true"}[val] || val)
+        ps[pi] = {true => "true", false => "false", nil => "true", "yes" => "true", "no" => "false"}[val] || val
       end
     end
     if piattrs = ps.attrs("tocDepth=tocdepth", "tocInclude=toc",

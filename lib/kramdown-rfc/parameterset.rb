@@ -13,6 +13,9 @@ module KramdownRFC
     def [](pn)
       @f.delete(pn.to_s)
     end
+    def []=(pn, val)
+      @f[pn] = val
+    end
     def has(pn)
       @f[pn.to_s]
     end
@@ -51,9 +54,6 @@ module KramdownRFC
       arr = [arr] if Hash === arr && converthash
       arr << { } if must_have_one && arr.empty?
       Array(arr).each(&block)
-    end
-    def add(pn, val)
-      @f[pn] = val
     end
     def rest
       @f
