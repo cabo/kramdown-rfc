@@ -18,19 +18,17 @@
                       "number", "obsoletes", "updates", "seriesNo=seriesno")
   pis = KramdownRFC::ParameterSet.new({})
   ps.arr("pi", false) do |pi, val|
-    if $options.v3
-      pis[pi] = {"yes" => "true", "no" => "false", nil => "true", false => "false", "true" => "true"}[val] || val
-    else
--%>
-<?rfc <%=pi%>="<%= {true => "yes", false => "no", nil => "yes"}[val] || escape_html(val.to_s, :attribute) %>"?>
-<%
-    end
+    pis[pi] = {nil => "true", false => "false", "true" => "true"}[val] || val
   end
   if piattrs = pis.attrs("tocDepth=tocdepth", "tocInclude=toc",
                          "sortRefs=sortrefs", "symRefs=symrefs", "indexInclude=index")
     rfcattrs += " " + piattrs
   end
+  pis.rest.each do |pi, val|
+    v = {"true" => "yes", "false" => "no"}[val] || escape_html(val.to_s, :attribute)
 -%>
+<?rfc <%=pi%>="<%=v%>"?>
+<% end -%>
 
 <rfc <%=rfcattrs%>>
   <front>
