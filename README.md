@@ -28,7 +28,8 @@ structure provided by kramdown.  `bin/kramdown-rfc2629` started out as
 a simple command-line program showing how to use this, but can now do
 much more (see below).
 
-To use kramdown-rfc2629, you'll need a Ruby 2.x, and maybe
+To use kramdown-rfc2629, you'll need Ruby (at least version 2.3, but
+preferably a current version), and maybe
 [XML2RFC][] if you want to see the fruits of your work.
 
     kramdown-rfc2629 mydraft.mkd >mydraft.xml
