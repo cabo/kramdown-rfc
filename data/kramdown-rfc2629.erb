@@ -22,10 +22,12 @@
   ps.arr("pi", false) do |pi, val|
     pis[pi] = TRUE_FALSE[val] || val
   end
-  piattrs = pis.attrs("tocDepth=tocdepth", "tocInclude=toc",
-                      "sortRefs=sortrefs", "symRefs=symrefs", "indexInclude=index")
-  if piattrs != ""
-    rfcattrs += " " + piattrs
+  if $options.v3
+    piattrs = pis.attrs("tocDepth=tocdepth", "tocInclude=toc",
+                        "sortRefs=sortrefs", "symRefs=symrefs", "indexInclude=index")
+    if piattrs != ""
+      rfcattrs += " " + piattrs
+    end
   end
   pis.rest.each do |pi, val|
     v = YES_NO[val] || escape_html(val.to_s, :attribute)
