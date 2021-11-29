@@ -19,7 +19,7 @@
   pis = KramdownRFC::ParameterSet.new({})
   ps.arr("pi", false) do |pi, val|
     if $options.v3
-      pis[pi] = {"yes" => "true", "no" => "false", nil => "true"}[val] || val
+      pis[pi] = {"yes" => "true", "no" => "false", nil => "true", false => "false", "true" => "true"}[val] || val
     else
 -%>
 <?rfc <%=pi%>="<%= {true => "yes", false => "no", nil => "yes"}[val] || escape_html(val.to_s, :attribute) %>"?>
