@@ -13,6 +13,12 @@
 ]>
 
 <%
+  ps.rest.fetch("consensus") do
+    # consensus not given -- default intelligently
+    cat = ps.has("category") || ps.has("cat")
+    MUST_CONSENSUS = {"std" => true, "bcp" => true}
+    ps["consensus"] = true if MUST_CONSENSUS[cat]
+  end
   rfcattrs = ps.attrs("ipr", "docName=docname", "category=cat",
                       "consensus", "submissionType=submissiontype", "xml:lang=lang",
                       "number", "obsoletes", "updates", "seriesNo=seriesno")
