@@ -16,7 +16,7 @@
   rfcattrs = ps.attrs("ipr", "docName=docname", "category=cat",
                       "consensus", "submissionType=submissiontype", "xml:lang=lang",
                       "number", "obsoletes", "updates", "seriesNo=seriesno")
-  TRUE_FALSE = {nil => "true", false => "false", "true" => "true"}
+  TRUE_FALSE = {nil => "true", false => "false", true => "true"}
   YES_NO = {"true" => "yes", "false" => "no"}
   pis = KramdownRFC::ParameterSet.new({})
   ps.arr("pi", false) do |pi, val|
@@ -26,7 +26,7 @@
     piattrs = pis.attrs("tocDepth=tocdepth", "tocInclude=toc",
                         "sortRefs=sortrefs", "symRefs=symrefs", "indexInclude=index")
     if piattrs != ""
-      rfcattrs += " " + piattrs
+      rfcattrs << " " << piattrs
     end
   end
   pis.rest.each do |pi, val|
