@@ -13,6 +13,9 @@ module KramdownRFC
     def [](pn)
       @f.delete(pn.to_s)
     end
+    def []=(pn, val)
+      @f[pn] = val
+    end
     def has(pn)
       @f[pn.to_s]
     end
