@@ -22,7 +22,8 @@
   rfcattrs = ps.attrs("ipr", "docName=docname", "category=cat",
                       "consensus", "submissionType=submissiontype", "xml:lang=lang",
                       "number", "obsoletes", "updates", "seriesNo=seriesno")
-  TRUE_FALSE = {nil => "true", false => "false", true => "true"}
+  TRUE_FALSE = {nil => "true", false => "false", true => "true",
+                "yes" => "true", "no" => "false"}
   YES_NO = {"true" => "yes", "false" => "no"}
   pis = KramdownRFC::ParameterSet.new({})
   ps.arr("pi", false) do |pi, val|
@@ -36,7 +37,7 @@
     end
   end
   pis.rest.each do |pi, val|
-    v = YES_NO[val] || escape_html(val.to_s, :attribute)
+    v = YES_NO[val] || pis.escattr(val)
 -%>
 <?rfc <%=pi%>="<%=v%>"?>
 <% end -%>
