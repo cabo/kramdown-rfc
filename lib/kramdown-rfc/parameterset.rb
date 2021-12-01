@@ -33,7 +33,7 @@ module KramdownRFC
       %{#{an}="#{escattr(val)}"}    if val
     end
     def attrs(*pns)
-      pns.map{ |pn| attr(pn) }.compact.join(" ")
+      pns.map{ |pn| attr(pn) if pn }.compact.join(" ")
     end
     def ele(pn, attr=nil, defcontent=nil, markdown=false)
       val, an = van(pn)
@@ -65,5 +65,4 @@ module KramdownRFC
     end
   end
 
-  
 end
