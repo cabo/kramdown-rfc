@@ -25,12 +25,52 @@ def add_quote(s)
   l.map {|li| "> #{li}"}.join
 end
 
-def process_chunk(s, dedent, fold, quote)
+def process_chunk(s, nested, dedent, fold, quote)
+  process_includes(s) if nested
   s = remove_indentation(s) if dedent
   s = fold8792_1(s) if fold
   s = add_quote(s) if quote
   s
 end
+
+def process_includes(input)
+ input.gsub!(/^\{::include((?:-[a-z]+)*)\s+(.*?)\}/) {
+  include_flags = $1
+  fn = [$2]
+  chunks = false
+  nested = false
+  dedent = false
+  fold = false
+  quote = false
+  include_flags.split("-") do |flag|
+    case flag
+    when ""
+    when "nested"
+      nested = true
+    when "quote"
+      quote = true
+    when "dedent"
+      dedent = true
+    when "fold"
+      fold = true
+    when "all", "last"
+      fn = fn.flat_map{|n| Dir[n]}
+      fn = [fn.last] if flag == "last"
+      chunks = fn.map{ |f|
+        ret = process_chunk(File.read(f), nested, dedent, fold, quote)
+        nested = false; dedent = false; fold = false; quote = false
+        ret
+      }
+    else
+      warn "** unknown include flag #{flag}"
+    end
+  end
+  chunks = fn.map{|f| File.read(f)} unless chunks # no all/last
+  chunks = chunks.map {|ch| process_chunk(ch, nested, dedent, fold, quote)}
+  chunks.join.chomp
+ }
+end
+
 
 def boilerplate(key)
   case key.downcase
@@ -457,38 +497,7 @@ if input[-1] != "\n"
   # warn "*** added missing newline at end"
   input << "\n"                 # fix #26
 end
-input.gsub!(/^\{::include((?:-[a-z]+)*)\s+(.*?)\}/) {
-  include_flags = $1
-  fn = [$2]
-  chunks = false
-  dedent = false
-  fold = false
-  quote = false
-  include_flags.split("-") do |flag|
-    case flag
-    when ""
-    when "quote"
-      quote = true
-    when "dedent"
-      dedent = true
-    when "fold"
-      fold = true
-    when "all", "last"
-      fn = fn.flat_map{|n| Dir[n]}
-      fn = [fn.last] if flag == "last"
-      chunks = fn.map{ |f|
-        ret = process_chunk(File.read(f), dedent, fold, quote)
-        dedent = false; quote = false
-        ret
-      }
-    else
-      warn "** unknown include flag #{flag}"
-    end
-  end
-  chunks = fn.map{|f| File.read(f)} unless chunks # no all/last
-  chunks = chunks.map {|ch| process_chunk(ch, dedent, fold, quote)}
-  chunks.join.chomp
-} unless ENV["KRAMDOWN_SAFE"]
+process_includes(input) unless ENV["KRAMDOWN_SAFE"]
 input.gsub!(/^\{::boilerplate\s+(.*?)\}/) {
   boilerplate($1)
 }
