@@ -3,6 +3,7 @@
 require 'kramdown-rfc2629'
 require 'kramdown-rfc/parameterset'
 require 'kramdown-rfc/refxml'
+require 'kramdown-rfc/rfc8792'
 require 'yaml'
 require 'kramdown-rfc/erb'
 require 'date'
@@ -24,8 +25,9 @@ def add_quote(s)
   l.map {|li| "> #{li}"}.join
 end
 
-def process_chunk(s, dedent, quote)
+def process_chunk(s, dedent, fold, quote)
   s = remove_indentation(s) if dedent
+  s = fold8792_1(s) if fold
   s = add_quote(s) if quote
   s
 end
@@ -460,6 +462,7 @@ input.gsub!(/^\{::include((?:-[a-z]+)*)\s+(.*?)\}/) {
   fn = [$2]
   chunks = false
   dedent = false
+  fold = false
   quote = false
   include_flags.split("-") do |flag|
     case flag
@@ -468,11 +471,13 @@ input.gsub!(/^\{::include((?:-[a-z]+)*)\s+(.*?)\}/) {
       quote = true
     when "dedent"
       dedent = true
+    when "fold"
+      fold = true
     when "all", "last"
       fn = fn.flat_map{|n| Dir[n]}
       fn = [fn.last] if flag == "last"
       chunks = fn.map{ |f|
-        ret = process_chunk(File.read(f), dedent, quote)
+        ret = process_chunk(File.read(f), dedent, fold, quote)
         dedent = false; quote = false
         ret
       }
@@ -481,7 +486,7 @@ input.gsub!(/^\{::include((?:-[a-z]+)*)\s+(.*?)\}/) {
     end
   end
   chunks = fn.map{|f| File.read(f)} unless chunks # no all/last
-  chunks = chunks.map {|ch| process_chunk(ch, dedent, quote)}
+  chunks = chunks.map {|ch| process_chunk(ch, dedent, fold, quote)}
   chunks.join.chomp
 } unless ENV["KRAMDOWN_SAFE"]
 input.gsub!(/^\{::boilerplate\s+(.*?)\}/) {
