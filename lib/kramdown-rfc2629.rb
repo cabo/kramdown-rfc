@@ -1323,7 +1323,7 @@ COLORS
           if target == "#"
             target = value
           else
-            target = target[1..]
+            target = target[1..-1]
           end
         else
           target = nil
