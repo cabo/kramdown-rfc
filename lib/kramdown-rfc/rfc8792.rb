@@ -1,3 +1,5 @@
+FOLD_MSG = "NOTE: '\\' line wrapping per RFC 8792".freeze
+MIN_FOLD_COLUMNS = FOLD_MSG.size
 FOLD_COLUMNS = 69
 RE_IDENT = /\A[A-Za-z0-9_]\z/
 
@@ -5,6 +7,15 @@ def fold8792_1(s, columns = FOLD_COLUMNS)
   if s.index("\t")
     warn "*** HT (\"TAB\") in text to be folded. Giving up."
     return s
+  end
+  if columns < MIN_FOLD_COLUMNS
+    columns =
+      if columns == 0
+        FOLD_COLUMNS
+      else
+        warn "*** folding to #{MIN_FOLD_COLUMNS}, not #{columns}"
+        MIN_FOLD_COLUMNS
+      end
   end
 
   lines = s.lines.map(&:chomp)
@@ -51,7 +62,13 @@ def fold8792_1(s, columns = FOLD_COLUMNS)
   end
 
   if did_fold
-    lines[0...0] = ["=== NOTE: '\\' line wrapping per RFC 8792 ===", ""]
+    msg = FOLD_MSG.dup
+    if columns >= msg.size + 4
+      delta = columns - msg.size - 2 # 2 spaces
+      half = delta/2
+      msg = "#{"=" * half} #{msg} #{"=" * (delta - half)}"
+    end
+    lines[0...0] = [msg, ""]
     lines.map{|x| x << "\n"}.join
   else
     s

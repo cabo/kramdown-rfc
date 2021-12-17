@@ -28,13 +28,13 @@ end
 def process_chunk(s, nested, dedent, fold, quote)
   process_includes(s) if nested
   s = remove_indentation(s) if dedent
-  s = fold8792_1(s) if fold
+  s = fold8792_1(s, fold) if fold
   s = add_quote(s) if quote
   s
 end
 
 def process_includes(input)
- input.gsub!(/^\{::include((?:-[a-z]+)*)\s+(.*?)\}/) {
+ input.gsub!(/^\{::include((?:-[a-z0-9]+)*)\s+(.*?)\}/) {
   include_flags = $1
   fn = [$2]
   chunks = false
@@ -51,8 +51,8 @@ def process_includes(input)
       quote = true
     when "dedent"
       dedent = true
-    when "fold"
-      fold = true
+    when /\Afold(\d*)\z/
+      fold = $1.to_i            # 0 for ''
     when "all", "last"
       fn = fn.flat_map{|n| Dir[n]}
       fn = [fn.last] if flag == "last"
