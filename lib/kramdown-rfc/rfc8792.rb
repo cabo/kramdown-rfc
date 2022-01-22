@@ -3,7 +3,7 @@ MIN_FOLD_COLUMNS = FOLD_MSG.size
 FOLD_COLUMNS = 69
 RE_IDENT = /\A[A-Za-z0-9_]\z/
 
-def fold8792_1(s, columns = FOLD_COLUMNS)
+def fold8792_1(s, columns = FOLD_COLUMNS, left = false, dry = false)
   if s.index("\t")
     warn "*** HT (\"TAB\") in text to be folded. Giving up."
     return s
@@ -31,25 +31,26 @@ def fold8792_1(s, columns = FOLD_COLUMNS)
       ix += 1
     else
       did_fold = true
+      min_indent = left || 0
       col -= 1                  # space for "\\"
       while li[col] == " "      # can't start new line with " "
         col -= 1
       end
-      if col <= 0
-        warn "*** Cannot RFC8792-fold1 #{li.inspect}"
+      if col <= min_indent
+        warn "*** Cannot RFC8792-fold1 to #{columns} cols #{"with indent #{left}" if left}  |#{li.inspect}|"
       else
         if RE_IDENT === li[col] # Don't split IDs
           col2 = col
-          while col2 > 0 && RE_IDENT === li[col2-1]
+          while col2 > min_indent && RE_IDENT === li[col2-1]
             col2 -= 1
           end
-          if col2 > 0
+          if col2 > min_indent
             col = col2
           end
         end
         rest = li[col..-1]
-        indent = columns - rest.size
-        if li[-1] == "\\"
+        indent = left || columns - rest.size
+        if !left && li[-1] == "\\"
           indent -= 1           # leave space for next round
         end
         if indent > 0
@@ -63,7 +64,7 @@ def fold8792_1(s, columns = FOLD_COLUMNS)
 
   if did_fold
     msg = FOLD_MSG.dup
-    if columns >= msg.size + 4
+    if !dry && columns >= msg.size + 4
       delta = columns - msg.size - 2 # 2 spaces
       half = delta/2
       msg = "#{"=" * half} #{msg} #{"=" * (delta - half)}"

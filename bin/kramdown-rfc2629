@@ -28,7 +28,7 @@ end
 def process_chunk(s, nested, dedent, fold, quote)
   process_includes(s) if nested
   s = remove_indentation(s) if dedent
-  s = fold8792_1(s, fold) if fold
+  s = fold8792_1(s, *fold) if fold
   s = add_quote(s) if quote
   s
 end
@@ -51,8 +51,10 @@ def process_includes(input)
       quote = true
     when "dedent"
       dedent = true
-    when /\Afold(\d*)\z/
-      fold = $1.to_i            # 0 for ''
+    when /\Afold(\d*)(left(\d*))?(dry)?\z/
+      fold = [$1.to_i,            # col 0 for ''
+              ($3.to_i if $2),    # left 0 for '', nil if no "left"
+              $4]                 # dry
     when "all", "last"
       fn = fn.flat_map{|n| Dir[n]}
       fn = [fn.last] if flag == "last"
