@@ -242,6 +242,14 @@ module Kramdown
     TRUTHY["false"] = false
     TRUTHY["no"] = false
 
+    # explicit or automatic studlification
+    # note that explicit (including trailing "_") opts out of automatic
+    def self.attrmangle(k)
+      if (d = k.gsub(/_(.|$)/) { $1.upcase }) != k or d = STUDLY_ATTR_MAP[k]
+        d
+      end
+    end
+
     def rfc2629_fix(opts)
       if a = attr
         if anchor = a.delete('id')
@@ -254,7 +262,7 @@ module Kramdown
           opts = opts.merge(noabbrev: TRUTHY[av]) # updated copy
         end
         attr.keys.each do |k|
-          if (d = k.gsub(/_(.|$)/) { $1.upcase }) != k or d = STUDLY_ATTR_MAP[k]
+          if d = self.class.attrmangle(k)
             a[d] = a.delete(k)
           end
         end
