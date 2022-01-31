@@ -38,7 +38,19 @@ module KramdownRFC
     def ele(pn, attr=nil, defcontent=nil, markdown=false)
       val, an = van(pn)
       val ||= defcontent
+      val = [val] if Hash === val
       Array(val).map do |val1|
+        a = Array(attr).dup
+        if Hash === val1
+          val1.each do |k, v|
+            if k == ":"
+              val1 = v
+            else
+              k = Kramdown::Element.attrmangle(k) || k
+              a.unshift(%{#{k}="#{escattr(v)}"})
+            end
+          end
+        end
         v = val1.to_s.strip
         contents =
           if markdown
@@ -46,7 +58,7 @@ module KramdownRFC
           else
             escape_html(v)
           end
-        %{<#{[an, *Array(attr).map(&:to_s)].join(" ").strip}>#{contents}</#{an}>}
+        %{<#{[an, *a.map(&:to_s)].join(" ").strip}>#{contents}</#{an}>}
       end.join(" ")
     end
     def arr(an, converthash=true, must_have_one=false, &block)
