@@ -46,19 +46,110 @@ module KramdownRFC
     ret
   end
 
+  def self.treat_multi_attribute_member(ps, an)
+    value = ps.rest[an]
+    if Hash === value
+      value.each do |k, v|
+        ps.rest[if k == ':'
+                  an
+                else
+                  Kramdown::Element.attrmangle(k + an) ||
+                  Kramdown::Element.attrmangle(k) ||
+                  k
+                end] = v
+      end
+    end
+  end
+
+  def self.initializify(s)      # XXX Jean-Pierre
+    w = '\p{Lu}\p{Lo}'
+    if s =~ /\A[-.#{w}]+[.]/u
+      $&
+    elsif s =~ /\A([#{w}])[^-]*/u
+      ret = "#$1."
+      while (s = $') && s =~ /\A(-[\p{L}])[^-]*/u
+        ret << "#$1."
+      end
+      ret
+    else
+      warn "*** Can't initializify #{s}"
+      s
+    end
+  end
+
+  def self.looks_like_initial(s)
+    s =~ /\A[\p{Lu}\p{Lo}]([-.][\p{Lu}\p{Lo}]?)*\z/u
+  end
+
+  def self.initials_from_parts_and_surname(aups, parts, s)
+    ssz = s.size
+    nonsurname = parts[0...-ssz]
+    if (ns = parts[-ssz..-1]) != s
+      warn "*** inconsistent surnames #{ns} and #{s}"
+    end
+    nonsurname.map{|x| initializify(x)}.join(" ")
+  end
+
+  def self.handle_ins(aups, ins_k, initials_k, surname_k)
+    if ins = aups[ins_k]
+      parts = ins.split('.').map(&:strip) # split on dots first
+      # Coalesce H.-P.
+      i = 1; while i < parts.size
+        if parts[i][0] == "-"
+          parts[i-1..i] = [parts[i-1] + "." + parts[i]]
+        else
+          i += 1
+        end
+      end
+      # Multiple surnames in ins?
+      parts[-1..-1] = parts[-1].split
+      s = if surname = aups.rest[surname_k]
+            surname.split
+          else parts.reverse.take_while{|x| !looks_like_initial(x)}.reverse
+          end
+      aups.rest[initials_k] = initials_from_parts_and_surname(aups, parts, s)
+      aups.rest[surname_k] = s.join(" ")
+    end
+  end
+
+  def self.handle_name(aups, fn_k, initials_k, surname_k)
+    if name = aups.rest[fn_k]
+      names = name.split(/ *\| */, 2) # boundary for given/last name
+      if names[1]
+        aups.rest[fn_k] = name = names.join(" ") # remove boundary
+        if surname = aups.rest[surname_k]
+          if surname != names[1]
+            warn "*** inconsistent embedded surname #{names[1]} and surname #{surname}"
+          end
+        end
+        aups.rest[surname_k] = names[1]
+      end
+      parts = name.split
+      surname = aups.rest[surname_k] || parts[-1]
+      s = surname.split
+      aups.rest[initials_k] ||= initials_from_parts_and_surname(aups, parts, s)
+      aups.rest[surname_k] = s.join(" ")
+    end
+  end
+
   def self.authorps_from_hash(au)
     aups = KramdownRFC::ParameterSet.new(au)
-    if ins = aups[:ins]
-      parts = ins.split('.').map(&:strip)
-      aups.rest["initials"] = parts[0..-2].join('.') << '.'
-      aups.rest["surname"] = parts[-1]
+    if n = aups[:name]
+      warn "** both name #{n} and fullname #{fn} are set on one author" if fn = aups.rest["fullname"]
+      aups.rest["fullname"] = n
+      usename = true
     end
+    ["fullname", "ins", "initials", "surname"].each do |an|
+      treat_multi_attribute_member(aups, an)
+    end
+    handle_ins(aups, :ins, "initials", "surname")
+    handle_ins(aups, :asciiIns, "asciiInitials", "asciiSurname")
     # hack ("heuristic for") initials and surname from name
     # -- only works for people with exactly one last name and uncomplicated first names
-    if n = aups.rest["name"]
-      n = n.split
-      aups.rest["initials"] ||= n[0..-2].map(&:chr).join('.') << '.'
-      aups.rest["surname"] ||= n[-1]
+    # -- add surname for people with more than one last name
+    if usename
+      handle_name(aups, "fullname", "initials", "surname")
+      handle_name(aups, "asciiFullname", "asciiInitials", "asciiSurname")
     end
     aups
   end
