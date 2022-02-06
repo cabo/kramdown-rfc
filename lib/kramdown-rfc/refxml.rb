@@ -8,6 +8,12 @@ module KramdownRFC
     escape_html(str.to_s, :attribute)
   end
 
+  AUTHOR_ATTRIBUTES = %w{
+    initials surname fullname
+    asciiInitials asciiSurname asciiFullname
+    role
+  }
+
   def self.ref_to_xml(k, v)
     vps = KramdownRFC::ParameterSet.new(v)
     erb = ERB.trim_new <<-REFERB, '-'
@@ -18,9 +24,7 @@ module KramdownRFC
 <% vps.arr("author", true, true) do |au|
    aups = authorps_from_hash(au)
  -%>
-    <author <%=aups.attrs("initials", "surname", "fullname=name",
-                          "asciiInitials", "asciiSurname", "asciiFullname",
-                          "role")%>>
+    <author <%=aups.attrs(*AUTHOR_ATTRIBUTES)%>>
       <%= aups.ele("organization=org", aups.attr("abbrev=orgabbrev"), "") %>
     </author>
 <%   aups.warn_if_leftovers  -%>
@@ -71,9 +75,7 @@ module KramdownRFC
   #   country: Germany
 
   PERSON_ERB = <<~ERB
-    <<%= element_name%> <%=aups.attrs("initials", "surname", "fullname=name", 
-                                      "asciiInitials", "asciiSurname", "asciiFullname",
-                                      "role")%>>
+    <<%= element_name%> <%=aups.attrs(*AUTHOR_ATTRIBUTES)%>>
       <%= aups.ele("organization=org", aups.attrs("abbrev=orgabbrev",
                                                   *[$options.v3 && "ascii=orgascii"]), "") %>
       <address>
