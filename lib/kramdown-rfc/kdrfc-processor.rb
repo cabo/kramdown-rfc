@@ -18,7 +18,8 @@ class KDRFC
 KDRFC_PREPEND = [ENV["KDRFC_PREPEND"]].compact
 
 def v3_flag?
-  @options.v3 ? ["--v3"] : []
+  [*(@options.v3 ? ["--v3"] : []),
+   *(@options.v2 ? ["--v2"] : [])]
 end
 
 def process_mkd(input, output)
@@ -79,6 +80,7 @@ MODE_AS_FORMAT = {
   }
 }
 
+# XXX move to author-tools@ietf.org API
 def process_xml_remotely(input, output, *flags)
   warn "* converting remotely from xml #{input} to txt #{output}" if @options.verbose
   format = flags[0] || "--text"
