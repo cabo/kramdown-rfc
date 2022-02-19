@@ -397,7 +397,7 @@ def xml_from_sections(input)
     end
   end
 
-  erbfilename = File.expand_path '../../data/kramdown-rfc2629.erb', __FILE__
+  erbfilename = File.expand_path '../../../data/kramdown-rfc2629.erb', __FILE__
   erbfile = File.read(erbfilename, coding: "UTF-8")
   erb = ERB.trim_new(erbfile, '-')
   # remove redundant nomarkdown pop outs/pop ins as they confuse kramdown
@@ -443,7 +443,7 @@ def bibtagsys(bib, anchor=nil, stand_alone=true)
 end
 
 def read_encodings
-  encfilename = File.expand_path '../../data/encoding-fallbacks.txt', __FILE__
+  encfilename = File.expand_path '../../../data/encoding-fallbacks.txt', __FILE__
   encfile = File.read(encfilename, coding: "UTF-8")
   Hash[encfile.lines.map{|l|
          l.chomp!;
