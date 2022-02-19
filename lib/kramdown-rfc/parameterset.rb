@@ -14,7 +14,15 @@ module KramdownRFC
       @f.delete(pn.to_s)
     end
     def []=(pn, val)
-      @f[pn] = val
+      @f[pn.to_s] = val
+    end
+    def default(pn, &block)
+      @f.fetch(pn.to_s, &block)
+    end
+    def default!(pn, value)
+      default(pn) {
+        @f[pn.to_s] = value
+      }
     end
     def has(pn)
       @f[pn.to_s]
