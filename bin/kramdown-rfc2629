@@ -1,0 +1,4 @@
+#!/usr/bin/env ruby
+# -*- coding: utf-8 -*-
+require 'kramdown-rfc/command'
+
