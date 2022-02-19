@@ -241,6 +241,19 @@ def xml_from_sections(input)
   yaml_in = input[/---\s*/] << sections.shift[2]
   ps = KramdownRFC::ParameterSet.new(yaml_load(yaml_in, [Date], [], true))
 
+  if v = ps[:v]
+    warn "*** unsupported RFCXML version #{v}" if v != 3
+    if $options.v2
+      warn "*** command line --v2 wins over document's 'v: #{v}'"
+    else
+      $options.v3 = true
+      $options.v = 3
+      ps.default!(:stand_alone, true)
+      ps.default!(:ipr, "trust200902")
+      ps.default!(:pi,  {"toc" => true, "sortrefs" => true, "symrefs" => true})
+    end
+  end
+
   coding_override = ps.has(:coding)
   smart_quotes = ps[:smart_quotes]
   typographic_symbols = ps[:typographic_symbols]
