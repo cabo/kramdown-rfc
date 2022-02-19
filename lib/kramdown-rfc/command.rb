@@ -99,8 +99,8 @@ lower case as plain English words, absent their normative meanings.
 PLUS
     end
     if $3
-      if $options.v3
-        ret << <<TAGGED
+      ($options.v3_used ||= []) << "** need --v3 to tag bcp14"
+      ret << <<TAGGED
 
 *[MUST]: <bcp14>
 *[MUST NOT]: <bcp14>
@@ -114,9 +114,6 @@ PLUS
 *[MAY]: <bcp14>
 *[OPTIONAL]: <bcp14>
 TAGGED
-      else
-        warn "** need --v3 to tag bcp14"
-      end
     end
     ret
   else
@@ -463,7 +460,7 @@ end
 require 'optparse'
 require 'ostruct'
 
-$options = OpenStruct.new
+$options ||= OpenStruct.new
 op = OptionParser.new do |opts|
   opts.banner = <<BANNER
 Usage: kramdown-rfc2629 [options] file.md|file.mkd > file.xml
@@ -518,6 +515,12 @@ if input =~ /\A<\?xml/          # if this is a whole XML file, protect it
   input = "{::nomarkdown}\n#{input}\n{:/nomarkdown}\n"
 end
 
+if $options.v3_used && !$options.v3
+  warn $options.v3_used
+  $options.v3_used = nil
+  $options.v3 = true
+end
+
 if coding_override
   input = input.encode(Encoding.find(coding_override), fallback: FALLBACK)
 end
@@ -531,6 +534,11 @@ end
 doc = Kramdown::Document.new(input, options)
 $stderr.puts doc.warnings.to_yaml unless doc.warnings.empty?
 output = doc.to_rfc2629
+
+if $options.v3_used && !$options.v3
+  warn $options.v3_used
+  $options.v3 = true
+end
 
 if coding_override
   output = output.encode(Encoding.find(coding_override), fallback: FALLBACK)
