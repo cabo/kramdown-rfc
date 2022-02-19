@@ -1,0 +1,9 @@
+#!/usr/bin/env ruby
+# -*- coding: utf-8 -*-
+require 'ostruct'
+
+$options ||= OpenStruct.new
+
+$options.v3 = true
+require 'kramdown-rfc/command'
+
