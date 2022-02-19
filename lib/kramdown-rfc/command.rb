@@ -480,12 +480,24 @@ BANNER
   opts.on("-3", "--[no-]v3", "Use RFCXML v3 processing rules") do |v|
     $options.v3 = v
   end
+  opts.on("-2", "--[no-]v2", "Use RFCXML v2 processing rules") do |v|
+    $options.v2 = v
+  end
 end
 op.parse!
 
-if $options.verbose && $options.v3
-  warn "*** not much RFCXMLv3 stuff implemented yet"
+if $options.v2 && $options.v3
+  warn "*** can't have v2 and eat v3 cake"
+  $options.v2 = false
 end
+
+if $options.v3.nil? && !$options.v2
+  if Time.now.to_i >= 1645567342 # Time.parse("2022-02-22T22:02:22Z").to_i
+    $options.v3 = true           # new default from the above date
+  end
+end
+
+warn "*** v2 #{$options.v2.inspect} v3 #{$options.v3.inspect}" if $options.verbose
 
 input = ARGF.read
 if input[0] == "\uFEFF"
