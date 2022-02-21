@@ -1,11 +1,12 @@
-# kramdown-rfc2629
+# kramdown-rfc
 
 [kramdown][] is a [markdown][] parser by Thomas Leitner, which has a
 number of backends for generating HTML, Latex, and markdown again.
 
-**kramdown-rfc2629** is an additional backend to that: It allows the
+**kramdown-rfc** is an additional backend to that: It allows the
 generation of [XML2RFC][] XML markup (originally known as [RFC 2629][]
-compliant markup, now documented in [RFC 7749][]).
+compliant markup, with a newer version documented in [RFC 7749][];
+version 3 now documented in [RFC 7991][] etc. and [v3][]).
 
 Who would care?  Anybody who is writing Internet-Drafts and RFCs in
 the [IETF][] and prefers (or has co-authors who prefer) to do part of
@@ -13,33 +14,33 @@ their work in markdown.
 
 # Usage
 
-Start by installing the kramdown-rfc2629 gem (this automatically
+Start by installing the kramdown-rfc gem (this automatically
 installs appropriate versions of referenced gems such as kramdown as
 well):
 
-    gem install kramdown-rfc2629
+    gem install kramdown-rfc
 
 (Add a `sudo` and a space in front of that command if you don't have
 all the permissions needed.)
 
-The guts of kramdown-rfc2629 are in one Ruby file,
+The guts of kramdown-rfc are in one Ruby file,
 `lib/kramdown-rfc2629.rb` --- this melds nicely into the extension
-structure provided by kramdown.  `bin/kramdown-rfc2629` started out as
+structure provided by kramdown.  `bin/kramdown-rfc` started out as
 a simple command-line program showing how to use this, but can now do
 much more (see below).
 
-To use kramdown-rfc2629, you'll need Ruby (at least version 2.3, but
+To use kramdown-rfc, you'll need Ruby (at least version 2.3, but
 preferably a current version), and maybe
 [XML2RFC][] if you want to see the fruits of your work.
 
-    kramdown-rfc2629 mydraft.mkd >mydraft.xml
+    kramdown-rfc mydraft.mkd >mydraft.xml
     xml2rfc mydraft.xml
 
 (The most popular file name extension that IETF people have for
 markdown is .md -- for those who tend to think about GNU machine
 descriptions here, any extension such as .mkd will do, too.)
 
-A more brief interface for both calling kramdown-rfc2629 and XML2RFC
+A more brief interface for both calling kramdown-rfc and XML2RFC
 is provided by `kdrfc`:
 
     kdrfc mydraft.mkd
@@ -52,14 +53,12 @@ is provided by `kdrfc`:
 
 Since RFC 8650, RFCs are using an updated grammar as defined in RFC
 7991 to 7998 and further updated informally since, colloquially called "[v3][]".
-As RFC 2629 is no longer the governing standard, kramdown-rfc2629 is
+As RFC 2629 is no longer the governing standard, what was called kramdown-rfc2629 is
 now called kramdown-rfc.  The latter command defaults to v3 processing
-rules; from 2022-02-22T22:02:22 on, kramdown-rfc2629 does as well (1.6.1).
+rules; from 2022-02-22T22:02:22 on, the old kramdown-rfc2629 driver program does as well (1.6.1).
 (-3/--v3 and -2/--v2 select v3 and v2 explicitly; the latter should
 only be needed if there is a reason to to make a document look
 like it's 2016.)
-
-[v3]: https://xml2rfc.tools.ietf.org/xml2rfc-doc.html
 
 See also [v3 announcement mail][].
 
@@ -70,15 +69,15 @@ See also [v3 announcement mail][].
 For historical interest
 `stupid.mkd` was an early markdown version of an actual Internet-Draft
 (for a protocol called [STuPiD][] \[sic!]).  This demonstrated some,
-but not all features of kramdown-rfc2629.  Since markdown/kramdown
-does not cater for all the structure of an RFC 7749 style document,
+but not all features of kramdown-rfc.  Since markdown/kramdown
+does not cater for all the structure of an RFC 7991 style document,
 some of the markup is in XML, and the example switches between XML and
 markdown using kramdown's `{::nomarkdown}` and `{:/nomarkdown}` (this
 is ugly, but works well enough).  `stupid.xml` and `stupid.txt` show
-what kramdown-rfc2629 and xml2rfc make out of this.
+what kramdown-rfc and xml2rfc make out of this.
 
 `stupid-s.mkd` is the same document in the new sectionized format
-supported by kramdown-rfc2629.  The document metadata are in a short
+supported by kramdown-rfc.  The document metadata are in a short
 piece of YAML at the start, and from there, `abstract`, `middle`,
 references (`normative` and `informative`) and `back` are sections
 delimited in the markdown file.  See the example for how this works.
@@ -86,7 +85,7 @@ The sections `normative` and `informative` can be populated right from
 the metadata, so there is never a need to write XML any more.
 Much less scary, and no `{:/nomarkdown}` etc. is needed any more.
 Similarly, `stupid-s.xml` and `stupid-s.txt` show what
-kramdown-rfc2629 and xml2rfc make out of this.
+kramdown-rfc and xml2rfc make out of this.
 
 `draft-ietf-core-block-xx.mkd` is a real-world example of a current
 Internet-Draft done this way.  For RFC and Internet-Draft references,
@@ -151,7 +150,7 @@ or
         email: pthubert@cisco.com
 
 (the hash keys are the XML GIs from RFC 7749, with a flattened
-structure.  As RFC 7749 requires giving both the full name and
+structure.  As RFC 7749 requiresd giving both the full name and
 surname/initials, we use `ins` as an abbreviation for
 "initials/surname".  Yes, the toolchain is Unicode-capable, even if
 the final RFC output is still in ASCII.)
@@ -165,7 +164,7 @@ might otherwise be interpreted as a number, losing the + sign).
 
 The references section is built from the references listed in the YAML
 header and from references made inline to RFCs and I-Ds in the
-markdown text.  Since kramdown-rfc2629 cannot know whether a reference
+markdown text.  Since kramdown-rfc cannot know whether a reference
 is normative or informative, no entry is generated by default in the
 references section.  By indicating a normative reference as in
 `{{!RFC2119}}` or an informative one as in `{{?RFC1925}}`, you can
@@ -337,7 +336,7 @@ not have the tools installed in its docker instance.
 
 More details have been collected on the [wiki][svg].
 
-[svg]: https://github.com/cabo/kramdown-rfc2629/wiki/SVG
+[svg]: https://github.com/cabo/kramdown-rfc/wiki/SVG
 
 (1.2.9:)
 The YAML header now allows specifying [kramdown_options][].
@@ -553,7 +552,7 @@ note that this creates ugly blank space in some HTML converters).
 
 The code is not very polished, but now quite stable; it has been successfully used for a
 number of non-trivial Internet-Drafts and RFCs.  You probably still need to
-skim [RFC 7749][] if you want to write an Internet-Draft, but you
+skim [v3][] if you want to write an Internet-Draft, but you
 don't really need to understand XML very much.  Knowing the basics of
 YAML helps with the metadata (but you'll understand it from the
 examples).
@@ -583,7 +582,7 @@ of the work.  Please [contact the
 author](mailto:cabo@tzi.org?subject=Markdown%20for%20RFCXML) if you want
 to try it.
 
-Actually, if the XML was generated by kramdown-rfc2629, you can simply
+Actually, if the XML was generated by kramdown-rfc, you can simply
 extract the input markdown from that XML file (but will of course lose
 any edits that have been made to the XML file after generation):
 
@@ -593,20 +592,20 @@ any edits that have been made to the XML file after generation):
 # Tools
 
 Joe Hildebrand has a
-[grunt][] plugin for kramdown-rfc2629 at:
+[grunt][] plugin for kramdown-rfc at:
 https://github.com/hildjj/grunt-kramdown-rfc2629
 .
 Get started with it at:
 https://github.com/hildjj/grunt-init-rfc
 .
 This provides a self-refreshing web page with the
-kramdown-rfc2629/xml2rfc rendition of the draft you are editing.
+kramdown-rfc/xml2rfc rendition of the draft you are editing.
 
 [grunt]: http://gruntjs.com
 
 Martin Thomson has an [I-D Template][] for github repositories that enable
 collaboration on draft development.
-This supports kramdown-rfc2629 out of the
+This supports kramdown-rfc out of the
 box.  Just name your draft like `draft-ietf-unicorn-protocol-latest.md` and
 follow the installation instructions.
 
@@ -619,12 +618,12 @@ no-brainer, so I'm not the only one who has written code for this.
 
 [Miek Gieben][] has done a [similar thing][pandoc2rfc] employing
 pandoc, now documented in [RFC 7328][].  He uses multiple input files instead of
-kramdown-rfc2629's sectionized input format.  He keeps the metadata in
+kramdown-rfc's sectionized input format.  He keeps the metadata in
 a separate XML file, similar to the way the previous version of
-kramdown-rfc2629 stored (and still can store) the metadata in XML in
+kramdown-rfc stored (and still can store) the metadata in XML in
 the markdown document.  He also uses a slightly different referencing
 syntax, which is closer to what markdown does elsewhere but more
-verbose (this syntax is now also supported in kramdown-rfc2629).
+verbose (this syntax is now also supported in kramdown-rfc).
 (Miek now also has a new thing going on with mostly different syntax,
 see [mmark][] and its [github repository][mmark-git].)
 
@@ -636,14 +635,16 @@ Other human-oriented markup input languages that are being used for authoring RF
 # License
 
 Since kramdown version 1.0, kramdown itself is MIT licensed, which
-made it possible to license kramdown-rfc2629 under the same license.
+made it possible to license kramdown-rfc under the same license.
 
 [kramdown]: https://kramdown.gettalong.org
 [kdsyntax]: http://kramdown.gettalong.org/syntax.html
 [kdsyntax-ial]: http://kramdown.gettalong.org/syntax.html#inline-attribute-lists
 [stupid]: http://tools.ietf.org/id/draft-hartke-xmpp-stupid-00
-[RFC 2629]: http://xml.resource.org/public/rfc/html/rfc2629.html
-[RFC 7749]: http://tools.ietf.org/html/rfc7749
+[RFC 2629]: https://www.rfc-editor.org/rfc/rfc2629.html
+[RFC 7749]: https://www.rfc-editor.org/rfc/rfc7749.html
+[RFC 7991]: https://www.rfc-editor.org/rfc/rfc7991.html
+[v3]: https://xml2rfc.tools.ietf.org/xml2rfc-doc.html
 [markdown]: http://en.wikipedia.org/wiki/Markdown
 [IETF]: http://www.ietf.org
 [Miek Gieben]: http://www.miek.nl/
