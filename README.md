@@ -48,6 +48,19 @@ is provided by `kdrfc`:
 
     kdrfc -r mydraft.mkd
 
+# Versions of RFCXML
+
+Since RFC 8650, RFCs are using an updated grammar as defined in RFC
+7991 to 7998 and further updated informally since, colloquially called "[v3][]".
+As RFC 2629 is no longer the governing standard, kramdown-rfc2629 is
+now called kramdown-rfc.  The latter command defaults to v3 processing
+rules; from 2022-02-22T22:02:22 on, kramdown-rfc2629 does as well (1.6.1).
+(-3/--v3 and -2/--v2 select v3 and v2 explicitly; the latter should
+only be needed if there is a reason to to make a document look
+like it's 2016.)
+
+[v3]: https://xml2rfc.tools.ietf.org/xml2rfc-doc.html
+
 # Examples
 
 For historical interest
