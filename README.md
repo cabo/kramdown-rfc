@@ -61,6 +61,10 @@ like it's 2016.)
 
 [v3]: https://xml2rfc.tools.ietf.org/xml2rfc-doc.html
 
+See also [v3 announcement mail][].
+
+[v3 announcement mail]: https://mailarchive.ietf.org/arch/msg/rfc-markdown/JC__LDDGuUbSFqyaEntF9r4kwKw
+
 # Examples
 
 For historical interest
