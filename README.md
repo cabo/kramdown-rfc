@@ -606,7 +606,7 @@ kramdown-rfc/xml2rfc rendition of the draft you are editing.
 Martin Thomson has an [I-D Template][] for github repositories that enable
 collaboration on draft development.
 This supports kramdown-rfc out of the
-box.  Just name your draft like `draft-ietf-unicorn-protocol-latest.md` and
+box.  Just name your draft like `draft-ietf-unicorn-protocol.md` and
 follow the installation instructions.
 
 [I-D Template]: https://github.com/martinthomson/i-d-template
