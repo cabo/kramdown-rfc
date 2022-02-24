@@ -808,7 +808,7 @@ COLORS
             out ="#{' '*indent}<dd><t/></dd>\n" # you can't make this one up
           end
           opts[:haddt] = true
-          out << "#{' '*indent}<dt#{el_html_attributes(el)}>\n#{inner(el, indent, opts)}#{' '*indent}</dt>\n"
+          out << "#{' '*indent}<dt#{el_html_attributes(el)}>#{inner(el, indent, opts)}</dt>\n"
         else
         close = "#{' '*indent}</t>\n" * @in_dt
         @in_dt = 1
