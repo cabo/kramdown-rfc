@@ -26,7 +26,7 @@ author:
   city: City [REPLACE/DELETE]
   region: Region [REPLACE/DELETE] # not always available
   code: Postal code [REPLACE/DELETE]
-  country: FJ # use TLD (except UK) or country name
+  country: DE # use TLD (except UK) or country name
   phone: Phone [REPLACE/DELETE]
   email: Email [REPLACE/DELETE]
   uri: URI [REPLACE/DELETE]
