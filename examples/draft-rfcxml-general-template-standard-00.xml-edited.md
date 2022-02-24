@@ -89,6 +89,17 @@ information in {{exampleRefMin}} and {{exampleRefOrg}}. [REPLACE]
 * Bulleted list item [REPLACE/DELETE]
 * Bulleted list item [REPLACE/DELETE]
 
+
+{:vspace}
+First term:
+: Definition of the first term
+
+Second term:
+: Definition of the second term
+<!-- Emit the leading {:vspace} for a compact definition list,
+     i.e., to start definitions on same line as the term -->
+
+
 | Table head 1 [REPLACE] | Table head2 [REPLACE] |
 | Cell 11 [REPLACE]      | Cell 12 [REPLACE]     |
 | Cell 21 [REPLACE]      | Cell 22 [REPLACE]     |
