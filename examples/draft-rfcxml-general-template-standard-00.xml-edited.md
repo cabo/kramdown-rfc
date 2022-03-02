@@ -96,7 +96,7 @@ First term:
 
 Second term:
 : Definition of the second term
-<!-- Emit the leading {:vspace} for a compact definition list,
+<!-- Omit the leading {:vspace} for a compact definition list,
      i.e., to start definitions on same line as the term -->
 
 
