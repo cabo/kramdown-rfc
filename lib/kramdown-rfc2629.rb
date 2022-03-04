@@ -914,6 +914,17 @@ COLORS
         gi = el.attr.delete('gi')
         res = inner(el, indent, opts)
         target = el.attr['target']
+        if target[0..1] == "{{"
+          # XXX ignoring all attributes and content
+          s = ::Kramdown::Converter::Rfc2629::process_markdown(target)
+          # if res != '' && s[-2..-1] == '/>'
+          #   if s =~ /\A<([-A-Za-z0-9_.]+) /
+          #     gi ||= $1
+          #   end
+          #   s[-2..-1] = ">#{res}</#{gi}>"
+          # end
+          return s
+        end
         if target[0] == "#"     # handle [](#foo) as xref as in RFC 7328
           el.attr['target'] = target = target[1..-1]
           if target.downcase == res.downcase
