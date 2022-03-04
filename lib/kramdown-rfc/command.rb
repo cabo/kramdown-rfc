@@ -283,6 +283,8 @@ def xml_from_sections(input)
   ref_replacements = { }
   anchor_to_bibref = { }
 
+  displayref = {}
+
   [:ref, :normative, :informative].each do |sn|
     if refs = ps.has(sn)
       warn "*** bad section #{sn}: #{refs.inspect}" unless refs.respond_to? :each
@@ -299,6 +301,9 @@ def xml_from_sections(input)
           end
           if bibref = v.delete("=")
             anchor_to_bibref[k] = bibref
+          end
+          if dr = v.delete("display")
+            displayref[k] = dr
           end
         end
       end

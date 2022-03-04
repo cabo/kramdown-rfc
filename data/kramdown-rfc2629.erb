@@ -169,6 +169,10 @@
 
   <back>
 
+<% displayref.each do |k, v| -%>
+    <displayreference target="<%=k%>" to="<%=v%>"/>
+<% end -%>
+
 <% if sh = sechash.delete("normative") -%>
     <references title='Normative References'>
 
