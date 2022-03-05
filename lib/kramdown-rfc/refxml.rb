@@ -93,6 +93,10 @@ module KramdownRFC
   def self.handle_ins(aups, ins_k, initials_k, surname_k)
     if ins = aups[ins_k]
       parts = ins.split('.').map(&:strip) # split on dots first
+      if parts == []
+        warn "*** an empty '#{ins_k}:' value is not useful, try leaving it out"
+        return
+      end
       # Coalesce H.-P.
       i = 1; while i < parts.size
         if parts[i][0] == "-"
@@ -115,6 +119,10 @@ module KramdownRFC
   def self.handle_name(aups, fn_k, initials_k, surname_k)
     if name = aups.rest[fn_k]
       names = name.split(/ *\| */, 2) # boundary for given/last name
+      if names == []
+        warn "*** an empty '#{fn_k}:' value is not useful, try leaving it out"
+        return
+      end
       if names[1]
         aups.rest[fn_k] = name = names.join(" ") # remove boundary
         if surname = aups.rest[surname_k]
@@ -125,6 +133,10 @@ module KramdownRFC
         aups.rest[surname_k] = names[1]
       end
       parts = name.split
+      if parts == []
+        warn "*** a blank '#{fn_k}:' value is not useful, try leaving it out"
+        return
+      end
       surname = aups.rest[surname_k] || parts[-1]
       s = surname.split
       aups.rest[initials_k] ||= initials_from_parts_and_surname(aups, parts, s)
