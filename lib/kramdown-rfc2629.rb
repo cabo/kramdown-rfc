@@ -722,7 +722,12 @@ COLORS
             attrstring = html_attributes({'slugifiedName' => sl})
           end
           # noabbrev: true -- Workaround for https://trac.ietf.org/trac/xml2rfc/ticket/683
-          irefs = "<name#{attrstring}>#{inner(el, indent, opts.merge(noabbrev: true))}</name>" #
+          nm = inner(el, indent, opts.merge(noabbrev: true))
+          if ttl = el.attr['title']
+            warn "*** Section has two titles: >>#{ttl}<< and >>#{nm}<<"
+            warn "*** Do you maybe have a loose IAL?"
+          end
+          irefs = "<name#{attrstring}>#{nm}</name>" #
         else
         clean, irefs = clean_pcdata(inner_a(el, indent, opts))
         el.attr['title'] = clean
