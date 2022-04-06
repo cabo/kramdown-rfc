@@ -1,15 +1,17 @@
+#!/usr/bin/env ruby
+# -*- coding: utf-8 -*-
 require 'rexml/document'
 
 d = REXML::Document.new(ARGF.read)
 
-REXML::XPath.each(d.root, "//section[@anchor]") do |sec|
+d.root.get_elements("//section[@anchor]").each do |sec|
   anchor = sec['anchor']
   irefs = {}
-  REXML::XPath.each(sec, ".//xref[@target='#{anchor}'][@format='none']") do |xr|
+  sec.get_elements(".//xref[@target='#{anchor}'][@format='none']").each do |xr|
     ne = xr.next_element
-    if ne && (item = ne['item'])
-      irefs[item] = true
-      ne.parent.delete_element(ne)
+    if ne && ne.name == "iref" && (item = ne['item'])
+      irefs[item] = ne['subitem'] # XXX one subitem only
+      ne.remove
       chi = xr.children
       chi[1..-1].reverse.each do |ch|
         xr.parent.insert_after(xr, ch)
@@ -18,9 +20,10 @@ REXML::XPath.each(d.root, "//section[@anchor]") do |sec|
     end
   end
   irefs.each do |k, v|
-    sec.insert_after(REXML::XPath.each(sec, "name").first, 
+    sec.insert_after(sec.get_elements("name").first, 
                      e = REXML::Element.new("iref", sec))
     e.attributes["item"] = k
+    e.attributes["subitem"] = v
     e.attributes["primary"] = 'true'
   end
 end
