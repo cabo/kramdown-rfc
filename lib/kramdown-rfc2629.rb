@@ -37,7 +37,7 @@ module Kramdown
       def replace_abbreviations(el, regexps = nil)
         unless regexps          # DUPLICATED AND MODIFIED CODE FROM UPSTREAM, CHECK ON UPSTREAM UPGRADE
           sorted_abbrevs = @root.options[:abbrev_defs].keys.sort {|a, b| b.length <=> a.length }
-          regexps = [Regexp.union(*sorted_abbrevs.map {|k| 
+          regexps = [Regexp.union(*sorted_abbrevs.map {|k|
                                     /#{Regexp.escape(k).gsub(/\\\s/, "[\\s\\p{Z}]+").force_encoding(Encoding::UTF_8)}/})]
           # warn regexps.inspect
           regexps << /(?=(?:\W|^)#{regexps.first}(?!\w))/ # regexp should only match on word boundaries
@@ -674,14 +674,14 @@ COLORS
         text = inner(el, indent, opts)
         if $options.v3
           gi = el.attr.delete('gi')
-          if gi && gi != 'ul'
+          if gi && gi != 'blockquote'
             "#{' '*indent}<#{gi}#{el_html_attributes(el)}>\n#{text}#{' '*indent}</#{gi}>\n"
           else
-            "#{' '*indent}<ul#{el_html_attributes_with(el, {"empty" => 'true'})}><li>\n#{text}#{' '*indent}</li></ul>\n"
+            "#{' '*indent}<blockquote#{el_html_attributes(el)}>\n#{text}#{' '*indent}</blockquote>\n"
           end
         else
-        text = "<t></t>" unless text =~ /</ # empty block quote
-        "#{' '*indent}<t><list style='empty'#{el_html_attributes(el)}>\n#{text}#{' '*indent}</list></t>\n"
+          text = "<t></t>" unless text =~ /</ # empty block quote
+          "#{' '*indent}<t><list style='empty'#{el_html_attributes(el)}>\n#{text}#{' '*indent}</list></t>\n"
         end
       end
 
