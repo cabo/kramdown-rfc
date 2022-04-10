@@ -229,7 +229,7 @@ def xml_from_sections(input)
   unless ENV["KRAMDOWN_NO_SOURCE"]
     require 'kramdown-rfc/gzip-clone'
     require 'base64'
-    compressed_input = Gzip.compress(input)
+    compressed_input = Gzip.compress_m0(input)
     $source = Base64.encode64(compressed_input)
   end
 

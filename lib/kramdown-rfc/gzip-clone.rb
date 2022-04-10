@@ -24,11 +24,11 @@ require 'stringio'
       Zlib::GzipReader.new(StringIO.new(source)).read
     end
 
-    # Compresses a string using gzip.
-    def self.compress(source, level=Zlib::DEFAULT_COMPRESSION, strategy=Zlib::DEFAULT_STRATEGY, mtime=0)
+    # Compresses a string using gzip, setting mtime to 0
+    def self.compress_m0(source, level=Zlib::DEFAULT_COMPRESSION, strategy=Zlib::DEFAULT_STRATEGY)
       output = Stream.new
       gz = Zlib::GzipWriter.new(output, level, strategy)
-      gz.mtime = mtime
+      gz.mtime = 0
       gz.write(source)
       gz.close
       output.string
