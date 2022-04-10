@@ -25,9 +25,10 @@ require 'stringio'
     end
 
     # Compresses a string using gzip.
-    def self.compress(source, level=Zlib::DEFAULT_COMPRESSION, strategy=Zlib::DEFAULT_STRATEGY)
+    def self.compress(source, level=Zlib::DEFAULT_COMPRESSION, strategy=Zlib::DEFAULT_STRATEGY, mtime=0)
       output = Stream.new
       gz = Zlib::GzipWriter.new(output, level, strategy)
+      gz.mtime = mtime
       gz.write(source)
       gz.close
       output.string
