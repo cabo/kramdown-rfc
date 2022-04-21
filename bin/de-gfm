@@ -5,19 +5,22 @@ Encoding.default_external = "UTF-8" # wake up, smell the coffee
 require 'kramdown'
 require 'kramdown-parser-gfm'
 
-if ARGV[0] == '-k'              # kramdown
+options = ''
+while /\A-([4bck]+)\z/ === ARGV[0]
+  ARGV.shift
+  options << $1
+end
+
+if /k/ === options              # kramdown
   MARKDOWN_BR = "\\\\\n"
-  ARGV.shift
 end
 
-if ARGV[0] == '-c'              # commonmark
+if /c/ === options              # commonmark
   MARKDOWN_BR = "\\\n"
-  ARGV.shift
 end
 
-if ARGV[0] == '-b'              # universal HTML
+if /b/ === options              # universal HTML
   MARKDOWN_BR = "<br/>\n"
-  ARGV.shift
 end
 
 MARKDOWN_BR ||= "  \n"          # original Gruber
