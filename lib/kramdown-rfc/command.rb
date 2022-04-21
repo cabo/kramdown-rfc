@@ -485,7 +485,7 @@ Usage: kramdown-rfc2629 [options] file.md|file.mkd > file.xml
 Version: #{KDRFC_VERSION}
 BANNER
   opts.on("-V", "--version", "Show version and exit") do |v|
-    puts "kramdown-rfc2629 #{KDRFC_VERSION}"
+    puts "kramdown-rfc #{KDRFC_VERSION}"
     exit
   end
   opts.on("-H", "--help", "Show option summary and exit") do |v|
