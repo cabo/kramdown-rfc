@@ -40,4 +40,9 @@ module Kramdown
   end
 end
 
-puts Kramdown::Document.new(ARGF.read, input: 'GFM', gfm_quirks: 'paragraph_end').to_kramdown
+list_indent = 2
+list_indent = 4 if /4/ === options
+
+doc = Kramdown::Document.new(ARGF.read, input: 'GFM', gfm_quirks: 'paragraph_end',
+                             list_indent: list_indent)
+puts doc.to_kramdown
