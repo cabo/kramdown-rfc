@@ -113,7 +113,7 @@ module Kramdown
         end
       end
 
-      XREF_START = /\{\{(?:(?:\{(.*?)\}(?:\{(.*?)\})?)|(\X*?))((?:\}\})|\})/u
+      XREF_START = /\{\{(?:(?:\{(.*?\n??.*?)\}(?:\{(.*?\n??.*?)\})?)|(\X*?))((?:\}\})|\})/u
 
       # Introduce new {{target}} syntax for empty xrefs, which would
       # otherwise be an ugly ![!](target) or ![ ](target)
@@ -124,9 +124,9 @@ module Kramdown
           warn "*** #{@src[0]}: unmatched braces #{@src[4].inspect}"
         end
         if contact_name = @src[1]
-          attr = {'fullname' => contact_name}
+          attr = {'fullname' => contact_name.gsub("\n", " ")}
           if ascii_name = @src[2]
-            attr["asciiFullname"] = ascii_name
+            attr["asciiFullname"] = ascii_name.gsub("\n", " ")
           end
           el = Element.new(:contact, nil, attr)
         else
