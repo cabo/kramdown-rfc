@@ -29,7 +29,7 @@
     ps["consensus"] = true if MUST_CONSENSUS[cat]
   end
   rfcattrs = ps.attrs("ipr", "docName=docname", "category=cat",
-                      "consensus", "submissionType=submissiontype", "xml:lang=lang",
+                      "consensus", "submissionType=submissiontype=stream", "xml:lang=lang",
                       "number", "obsoletes", "updates", "seriesNo=seriesno")
   TRUE_FALSE = {nil => "true", false => "false", true => "true",
                 "yes" => "true", "no" => "false"}
