@@ -27,13 +27,15 @@ module KramdownRFC
     def has(pn)
       @f[pn.to_s]
     end
+    def has?(pn)
+      @f.key?(pn.to_s)
+    end
     def escattr(str)
       escape_html(str.to_s, :attribute)
     end
-    def van(pn)                   # pn is a parameter name, possibly with an =alias
-      an, pn = pn.to_s.split("=")
-      pn ||= an
-      [self[pn] || self[an], an]
+    def van(pn)         # pn is a parameter name, possibly with =aliases
+      names = pn.to_s.split("=")
+      [self[names.reverse.find{|nm| has?(nm)}], names.first]
     end
     def attr(pn)
       val, an = van(pn)
