@@ -12,6 +12,7 @@ require 'kramdown-rfc/refxml'
 ACCEPT_CITE_JSON = {"Accept" => "application/citeproc+json"}
 
 $verbose = false
+$fuzzy = false
 $handle = "a"
 $xml = false
 
@@ -25,6 +26,9 @@ ARGV.each do |doi|
       warn '*** please "gem install open-uri-cached" to enable caching'
     end
     next
+  when "-f"
+    $fuzzy = true
+    next
   when "-v"
     $verbose = true
     next
@@ -36,7 +40,7 @@ ARGV.each do |doi|
     $xml = true
     next
   when /\A-/
-    warn "*** Usage: doilit [-c] [-v] [-h=handle|-x=xmlhandle] doi..."
+    warn "*** Usage: doilit [-c] [-f] [-v] [-h=handle|-x=xmlhandle] doi..."
     exit 1
   end
   cite = JSON.parse(URI("https://dx.doi.org/#{doi}").open(ACCEPT_CITE_JSON).read)
@@ -66,6 +70,13 @@ ARGV.each do |doi|
     end
   end
   if iss = cite["issued"]
+    if dp = iss["date-parts"]
+      if Integer === (dp = dp[0])[0]
+        lit["date"] = ["%04d" % dp[0], *dp[1..-1].map {|p| "%02d" % p}].join("-")
+      end
+    end
+  end
+  if !lit.key?("date") && $fuzzy && (iss = cite["created"])
     if dp = iss["date-parts"]
       if Integer === (dp = dp[0])[0]
         lit["date"] = ["%04d" % dp[0], *dp[1..-1].map {|p| "%02d" % p}].join("-")
