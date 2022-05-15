@@ -254,6 +254,10 @@ def xml_from_sections(input)
     end
   end
 
+  if o = ps[:'autolink-iref-cleanup']
+    $options.autolink_iref_cleanup = o
+  end
+
   coding_override = ps.has(:coding)
   smart_quotes = ps[:smart_quotes]
   typographic_symbols = ps[:typographic_symbols]
@@ -568,6 +572,15 @@ output = doc.to_rfc2629
 if $options.v3_used && !$options.v3
   warn $options.v3_used
   $options.v3 = true
+end
+
+if $options.autolink_iref_cleanup
+  require 'rexml/document'
+  require 'kramdown-rfc/autolink-iref-cleanup'
+
+  d = REXML::Document.new(output)
+  autolink_iref_cleanup(d)
+  output = d.to_s
 end
 
 if coding_override
