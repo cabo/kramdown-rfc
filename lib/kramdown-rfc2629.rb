@@ -721,7 +721,7 @@ COLORS
           if sl = el.attr.delete('slugifiedName') # could do general name- play
             attrstring = html_attributes({'slugifiedName' => sl})
           end
-          # noabbrev: true -- Workaround for https://trac.ietf.org/trac/xml2rfc/ticket/683
+          # noabbrev: true -- Workaround for https://github.com/ietf-tools/xml2rfc/issues/683
           nm = inner(el, indent, opts.merge(noabbrev: true))
           if ttl = el.attr['title']
             warn "*** Section has two titles: >>#{ttl}<< and >>#{nm}<<"
