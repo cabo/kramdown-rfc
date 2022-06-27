@@ -1057,7 +1057,7 @@ COLORS
       def self.bcp_std_ref(t, n)
         warn "*** #{t} anchors not supported in v2 format" unless $options.v3
         [name = "reference.#{t}.#{"%04d" % n.to_i}.xml",
-         "#{XML_RESOURCE_ORG_PREFIX}/bibxml-rfcsubseries-new/#{name}"] # FOR NOW
+         "#{XML_RESOURCE_ORG_PREFIX}/bibxml-rfcsubseries/#{name}"] # FOR NOW
       end
 
       # [subdirectory name, cache ttl in seconds, does it provide for ?anchor=]
@@ -1094,7 +1094,8 @@ COLORS
       }
 
       # XML_RESOURCE_ORG_HOST = ENV["XML_RESOURCE_ORG_HOST"] || "xml.resource.org"
-      XML_RESOURCE_ORG_HOST = ENV["XML_RESOURCE_ORG_HOST"] || "xml2rfc.tools.ietf.org"
+      # XML_RESOURCE_ORG_HOST = ENV["XML_RESOURCE_ORG_HOST"] || "xml2rfc.tools.ietf.org"
+      XML_RESOURCE_ORG_HOST = ENV["XML_RESOURCE_ORG_HOST"] || "bib.ietf.org"
       XML_RESOURCE_ORG_PREFIX = ENV["XML_RESOURCE_ORG_PREFIX"] ||
                                 "https://#{XML_RESOURCE_ORG_HOST}/public/rfc"
       KRAMDOWN_USE_TOOLS_SERVER = ENV["KRAMDOWN_USE_TOOLS_SERVER"]
