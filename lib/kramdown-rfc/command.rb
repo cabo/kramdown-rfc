@@ -149,6 +149,7 @@ NMDTAGS = ["{:/nomarkdown}\n\n", "\n\n{::nomarkdown}\n"]
 NORMINFORM = { "!" => :normative, "?" => :informative }
 
 def yaml_load(input, *args)
+ begin
   if YAML.respond_to?(:safe_load)
     begin
       YAML.safe_load(input, *args)
@@ -158,6 +159,10 @@ def yaml_load(input, *args)
   else
     YAML.load(input)
   end
+ rescue Psych::SyntaxError => e
+   warn "*** YAML syntax error: #{e}"
+   exit 65 # EX_DATAERR
+ end
 end
 
 def process_kramdown_options(coding_override = nil,
