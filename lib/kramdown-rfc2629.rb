@@ -22,6 +22,8 @@ require 'open3'                 # for math
 require 'json'                  # for math
 require 'rexml/document'        # for SVG and bibxml acrobatics
 
+require 'kramdown-rfc/doi'      # for fetching information for a DOI
+
 class Object
   def deep_clone
     Marshal.load(Marshal.dump(self))
@@ -1002,6 +1004,12 @@ COLORS
         warn "(#{"%.3f" % (t2 - t1)} s)" if KRAMDOWN_PERSISTENT_VERBOSE
       end
 
+      def get_doi(refname)
+        lit = doi_fetch_and_convert(refname, fuzzy: true)
+        anchor = "DOI_#{refname.gsub("/", "_")}"
+        KramdownRFC::ref_to_xml(anchor, lit)
+      end
+
       # this is now slightly dangerous as multiple urls could map to the same cachefile
       def get_and_cache_resource(url, cachefile, tvalid = 7200, tn = Time.now)
         fn = "#{REFCACHEDIR}/#{cachefile}"
@@ -1016,7 +1024,17 @@ COLORS
             fetch_timeout = 60 # seconds; long timeout needed for Travis
           end
           $stderr.puts "#{fn}: #{message} from #{url}"
-          if ENV["HAVE_WGET"]
+          if Array === url
+            begin
+              case url[0]
+              when :DOI
+                ref = get_doi(url[1])
+                File.write(fn, ref)
+              end
+            rescue Exception => e
+              warn "*** Error fetching #{url[0]} #{url[1].inspect}: #{e}"
+            end
+          elsif ENV["HAVE_WGET"]
             `cd #{REFCACHEDIR}; wget -t 3 -T #{fetch_timeout} -Nnv "#{url}"` # ignore errors if offline (hack)
             begin
               File.utime nil, nil, fn
@@ -1089,7 +1107,8 @@ COLORS
         "NIST" => "bibxml2",
         "OASIS" => "bibxml2",
         "PKCS" => "bibxml2",
-        "DOI" => ["bibxml7", 86400, true], # 24 h cache at source anyway
+        "DOI" => ["bibxml7", 86400, true, ->(fn, n){ [fn, [:DOI, n] ] }
+                 ], # emulate old 24 h cache
         "IANA" => ["bibxml8", 86400, true], # ditto
       }
 
