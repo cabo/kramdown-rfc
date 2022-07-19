@@ -102,11 +102,13 @@
 <%     mail_subdomain, mail_domain = mail_host.split(".", 2) -%>
 <%     group = venue[:group] || mail_local # XXX -%>
 <%     arch = venue[:arch] || "https://mailarchive.ietf.org/arch/browse/#{mail_local}/" -%>
+<%     subscribe = venue[:subscribe] || "https://www.ietf.org/mailman/listinfo/#{mail_local}/" -%>
 <%     GROUPS = {"ietf" => "Working ", "irtf" => "Research "} -%>
 <%     gtype ||= "#{GROUPS[mail_subdomain]}Group" -%>
         Discussion of this document takes place on the
         <%=group%> <%=gtype%> mailing list (<eref target="mailto:<%=mail%>"/>),
         which is archived at <eref target="<%=arch%>"/>.
+        Subscribe at <eref target="<%=subscribe%>"/>.
 <%   end -%>
 <%   if homepage -%>
         <%=gtype%> information can be found at <eref target="<%=homepage%>"/>.
