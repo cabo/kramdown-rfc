@@ -1107,7 +1107,7 @@ COLORS
         "NIST" => "bibxml2",
         "OASIS" => "bibxml2",
         "PKCS" => "bibxml2",
-        "DOI" => ["bibxml7", 86400, true, ->(fn, n){ [fn, [:DOI, n] ] }
+        "DOI" => ["bibxml7", 86400, true, ->(fn, n){ ["computed-#{fn}", [:DOI, n] ] }, true # always_altproc
                  ], # emulate old 24 h cache
         "IANA" => ["bibxml8", 86400, true], # ditto
       }
@@ -1141,14 +1141,16 @@ COLORS
           anchor.gsub!('/', '_')              # should take out all illegals
           to_insert = ""
           src.scan(/(W3C|3GPP|[A-Z-]+)[.]?([A-Za-z_0-9.\(\)\/\+-]+)/) do |t, n|
+            never_altproc = n.sub!(/^[.]/, "")
             fn = "reference.#{t}.#{n}.xml"
-            sub, ttl, _can_anchor, altproc = XML_RESOURCE_ORG_MAP[t]
+            sub, ttl, _can_anchor, altproc, always_altproc = XML_RESOURCE_ORG_MAP[t]
             ttl ||= KRAMDOWN_REFCACHETTL  # everything but RFCs might change a lot
             puts "*** Huh: #{fn}" unless sub
-            if altproc && !KRAMDOWN_USE_TOOLS_SERVER
+            if altproc && !never_altproc && (!KRAMDOWN_USE_TOOLS_SERVER || always_altproc)
               fn, url = altproc.call(fn, n)
             else
               url = "#{XML_RESOURCE_ORG_PREFIX}/#{sub}/#{fn}"
+              fn = "alt-#{fn}" if never_altproc || KRAMDOWN_USE_TOOLS_SERVER
             end
             # if can_anchor # create anchor server-side for stand_alone: false
             #   url << "?anchor=#{anchor}"
