@@ -1162,6 +1162,7 @@ COLORS
             begin
               d = REXML::Document.new(to_insert)
               d.xml_decl.nowrite
+              d.delete d.doctype
               d.root.attributes["anchor"] = anchor
               if t == "RFC" or t == "I-D"
                 if KRAMDOWN_NO_TARGETS
