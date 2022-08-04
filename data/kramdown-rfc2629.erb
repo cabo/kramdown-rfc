@@ -99,16 +99,23 @@
        mail_local, mail_host = mail.split("@", 2)
      end
      if mail_host -%>
-<%     mail_subdomain, mail_domain = mail_host.split(".", 2) -%>
-<%     group = venue[:group] || mail_local # XXX -%>
-<%     arch = venue[:arch] || "https://mailarchive.ietf.org/arch/browse/#{mail_local}/" -%>
-<%     subscribe = venue[:subscribe] || "https://www.ietf.org/mailman/listinfo/#{mail_local}/" -%>
-<%     GROUPS = {"ietf" => "Working ", "irtf" => "Research "} -%>
-<%     gtype ||= "#{GROUPS[mail_subdomain]}Group" -%>
+<%     default_links = {
+                         "iab.org" => true,
+                         "ietf.org" => true,
+                         "irtf.org" => true,
+                       }[mail_host]
+       mail_subdomain, mail_domain = mail_host.split(".", 2)
+       group = venue[:group] || mail_local # XXX
+       arch = venue[:arch] || default_links && "https://mailarchive.ietf.org/arch/browse/#{mail_local}/"
+       subscribe = venue[:subscribe] || default_links && "https://www.ietf.org/mailman/listinfo/#{mail_local}/"
+       GROUPS = {"ietf" => "Working ", "irtf" => "Research "}
+       gtype ||= "#{GROUPS[mail_subdomain]}Group" -%>
         Discussion of this document takes place on the
-        <%=group%> <%=gtype%> mailing list (<eref target="mailto:<%=mail%>"/>),
-        which is archived at <eref target="<%=arch%>"/>.
+        <%=group%> <%=gtype%> mailing list (<eref target="mailto:<%=mail%>"/>)<% if arch -%>,
+        which is archived at <eref target="<%=arch%>"/><% end -%>.
+<% if subscribe -%>
         Subscribe at <eref target="<%=subscribe%>"/>.
+<% end -%>
 <%   end -%>
 <%   if homepage -%>
         <%=gtype%> information can be found at <eref target="<%=homepage%>"/>.
