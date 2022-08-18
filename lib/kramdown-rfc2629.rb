@@ -506,6 +506,7 @@ COLORS
           elsif t == "protocol-aasvg"
             result1, err, _s = Open3.capture3("#{DEFAULT_AASVG}#{svg_opt}", stdin_data: result);
             dont_clean = true
+            dont_check = true
           else
             result1 = nil
           end
@@ -515,6 +516,7 @@ COLORS
         when "aasvg"
           result1, err, _s = Open3.capture3("#{DEFAULT_AASVG}#{svg_opt}", stdin_data: result);
           dont_clean = true
+          dont_check = true
         when "ditaa"        # XXX: This needs some form of option-setting
           result1, err, _s = Open3.capture3("ditaa #{file.path} --svg -o -#{svg_opt}", stdin_data: result);
         when "mscgen"
