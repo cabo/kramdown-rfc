@@ -456,7 +456,7 @@ COLORS
 
       def memoize(meth, *args)
         require 'digest'
-        Dir.mkdir(REFCACHEDIR) unless Dir.exists?(REFCACHEDIR)
+        Dir.mkdir(REFCACHEDIR) unless Dir.exist?(REFCACHEDIR)
         kdrfc_version = Gem.loaded_specs["kramdown-rfc2629"].version.to_s.gsub('.', '_') rescue "UNKNOWN"
         fn = "#{REFCACHEDIR}/kdrfc-#{kdrfc_version}-#{meth}-#{Digest::SHA256.hexdigest(Marshal.dump(args))[0...40]}.cache"
         begin
@@ -1015,7 +1015,7 @@ COLORS
       # this is now slightly dangerous as multiple urls could map to the same cachefile
       def get_and_cache_resource(url, cachefile, tvalid = 7200, tn = Time.now)
         fn = "#{REFCACHEDIR}/#{cachefile}"
-        Dir.mkdir(REFCACHEDIR) unless Dir.exists?(REFCACHEDIR)
+        Dir.mkdir(REFCACHEDIR) unless Dir.exist?(REFCACHEDIR)
         f = File.stat(fn) rescue nil unless KRAMDOWN_REFCACHE_REFETCH
         if !KRAMDOWN_OFFLINE && (!f || tn - f.mtime >= tvalid)
           if f
