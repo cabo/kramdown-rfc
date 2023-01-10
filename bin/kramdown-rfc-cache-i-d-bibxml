@@ -80,9 +80,9 @@ active_names.each do |name|
     namepart = $1
     version = $2
     name0 = "reference.I-D.#{namepart}.xml"
-    noisy(name0) if File.exists?(name0)
+    noisy(name0) if File.exist?(name0)
     name1 = "reference.I-D.draft-#{namepart}-#{version}.xml"
-    if File.exists?(name1)
+    if File.exist?(name1)
       noisy(name1)
       FileUtils.touch(name0)    # because name1 already exists, we believe name0 is fresh
     else
