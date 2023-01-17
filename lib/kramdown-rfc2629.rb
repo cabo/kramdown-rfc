@@ -1390,9 +1390,9 @@ COLORS
         end
         iref ||= "<iref#{html_attributes(item: item, subitem: subitem)}/>"
         if target
-          "<xref#{html_attributes(target: target, format: "none")}>#{value}</xref>#{iref}"
+          "#{iref}<xref#{html_attributes(target: target, format: "none")}>#{value}</xref>"
         else
-          "#{value}#{iref}"
+          "#{iref}#{value}"
         end
       end
 
