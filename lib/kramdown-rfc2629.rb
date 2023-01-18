@@ -1124,6 +1124,7 @@ COLORS
       KRAMDOWN_REFCACHETTL = (e = ENV["KRAMDOWN_REFCACHETTL"]) ? e.to_i : 3600
 
       KRAMDOWN_NO_TARGETS = ENV['KRAMDOWN_NO_TARGETS']
+      KRAMDOWN_KEEP_TARGETS = ENV['KRAMDOWN_KEEP_TARGETS']
 
       def convert_img(el, indent, opts) # misuse the tag!
         if a = el.attr
@@ -1167,7 +1168,7 @@ COLORS
               d.delete d.doctype
               d.root.attributes["anchor"] = anchor
               if t == "RFC" or t == "I-D"
-                if KRAMDOWN_NO_TARGETS
+                if KRAMDOWN_NO_TARGETS || !KRAMDOWN_KEEP_TARGETS
                   d.root.attributes["target"] = nil
                   REXML::XPath.each(d.root, "/reference/format") { |x|
                     d.root.delete_element(x)
