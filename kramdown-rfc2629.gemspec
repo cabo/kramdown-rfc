@@ -1,6 +1,6 @@
 spec = Gem::Specification.new do |s|
   s.name = 'kramdown-rfc2629'
-  s.version = '1.6.20'
+  s.version = '1.6.21'
   s.summary = "Kramdown extension for generating RFCXML (RFC 799x)."
   s.description = %{An RFCXML (RFC 799x) generating backend for Thomas Leitner's
 "kramdown" markdown parser.  Mostly useful for RFC writers.}
