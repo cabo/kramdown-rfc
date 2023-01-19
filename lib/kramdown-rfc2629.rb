@@ -714,6 +714,20 @@ COLORS
         [clean, irefs]
       end
 
+      def clean_pcdatav3(parts) # hack, will become unnecessary with v3 tables
+        clean = ''
+        parts.each do |p|
+          next if p.empty?
+          d = REXML::Document.new("<foo>#{p}</foo>")
+          t = REXML::XPath.each(d.root, "//text()").to_a.join
+          if t != p
+            warn "** simplified markup #{p.inspect} into #{t.inspect} in table heading"
+          end
+          clean << t
+        end
+        clean
+      end
+
       def convert_header(el, indent, opts)
         # todo: handle appendix tags
         el = el.deep_clone
@@ -892,8 +906,13 @@ COLORS
           end
         end
         if alignment
-          res, irefs = clean_pcdata(inner_a(el, indent, opts))
-          warn "*** lost markup #{irefs} in table heading" unless irefs.empty?
+          xmlres = inner_a(el, indent, opts)
+          if $options.v3
+            res = clean_pcdatav3(xmlres)
+          else
+            res, irefs = clean_pcdata(xmlres)
+            warn "*** lost markup #{irefs} in table heading" unless irefs.empty?
+          end
           "#{' '*indent}<ttcol #{widthopt}align='#{alignment}'#{el_html_attributes(el)}>#{res.empty? ? "&#160;" : res}</ttcol>\n" # XXX need clean_pcdata
         else
           res = inner(el, indent, opts)
