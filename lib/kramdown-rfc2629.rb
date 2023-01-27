@@ -540,7 +540,16 @@ COLORS
         when "math"
           math = Shellwords.escape(result)
           result1, err, _s = Open3.capture3("tex2svg --font STIX --speech=false#{svg_opt} #{Shellwords.escape(' ' << result)}");
-          result, err1, _s = Open3.capture3("utftex #{math}#{txt_opt}")
+          begin
+            result, err1, s = Open3.capture3("utftex #{math}#{txt_opt}")
+            if s.exitstatus != 0
+              warn "** utftex: #{err1.inspect}"
+              raise Errno::ENOENT
+            end
+          rescue Errno::ENOENT
+            warn "** utftex not working, falling back to asciitex"
+            result, err1, _s = Open3.capture3("asciitex -f #{file.path}#{txt_opt}")
+          end
           err << err1
         end
         capture_croak(t, err)
