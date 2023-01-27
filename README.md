@@ -318,7 +318,7 @@ Currently supported labels as of 1.3.9:
   plaintext form is used
 * [mermaid][]: Very experimental; the conversion to SVG is prone to
   generate black-on-black text in this version
-* math: display math using [tex2svg][] for HTML/PDF and [libtexprintf][]
+* math: display math using [tex2svg][] for HTML/PDF and [utftex][]
   for plaintext
 
 [goat]: https://github.com/blampe/goat
@@ -327,7 +327,7 @@ Currently supported labels as of 1.3.9:
 [plantuml]: https://plantuml.com
 [mermaid]: https://github.com/mermaid-js/mermaid-cli
 [tex2svg]: https://github.com/mathjax/MathJax-demos-node/blob/master/direct/tex2svg
-[libtexprintf]: https://github.com/bartp5/libtexprintf
+[utftex]: https://github.com/bartp5/libtexprintf
 
 Note that this feature does not play well with the CI (continuous
 integration) support in Martin Thomson's [I-D Template][], as that may
