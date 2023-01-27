@@ -539,7 +539,8 @@ COLORS
           err << err1.to_s
         when "math"
           result1, err, _s = Open3.capture3("tex2svg --font STIX --speech=false#{svg_opt} #{Shellwords.escape(' ' << result)}");
-          result, err1, _s = Open3.capture3("asciitex -f #{file.path}#{txt_opt}")
+          math = File.read(file.path)
+          result, err1, _s = Open3.capture3("utftex '#{math}'#{txt_opt}")
           err << err1
         end
         capture_croak(t, err)
