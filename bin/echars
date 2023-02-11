@@ -1,0 +1,17 @@
+#!/usr/bin/env ruby
+require 'unicode/name'
+hist = Hash.new(0)
+ARGF.read.each_char do |c|
+  hist[c] += 1 unless c.ord.between?(32, 126)
+end
+hist.delete("\n")
+cl = "*** Latin"
+hist.keys.sort.partition {|c| c =~ /\A\p{Latin}\z/}.each do |l|
+  puts cl unless l.empty?
+  l.each  do |c|
+    puts "#{c}: U+#{"%04X %4d" % [c.ord, hist[c]]
+                   } #{Unicode::Name.correct(c) ||
+                       Unicode::Name.label(c)}"
+  end
+  cl = "*** Non-Latin"
+end
