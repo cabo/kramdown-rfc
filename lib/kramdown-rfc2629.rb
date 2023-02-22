@@ -560,7 +560,11 @@ COLORS
         if result1
           result1 = svg_clean(result1) unless dont_clean
           unless dont_check
-            result1, err, _s = Open3.capture3("svgcheck -Xqa", stdin_data: result1);
+            file = Tempfile.new("kramdown-rfc")
+            file.write(result1)
+            file.close
+            result1, err, _s = Open3.capture3("svgcheck -qa #{file.path}");
+            file.unlink
             # warn ["svgcheck:", result1.inspect]
             capture_croak("svgcheck", err)
           end
