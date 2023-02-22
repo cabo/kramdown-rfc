@@ -490,7 +490,7 @@ require 'ostruct'
 $options ||= OpenStruct.new
 op = OptionParser.new do |opts|
   opts.banner = <<BANNER
-Usage: kramdown-rfc2629 [options] file.md|file.mkd > file.xml
+Usage: kramdown-rfc2629 [options] [MARKDOWNFILE] > file.xml
 Version: #{KDRFC_VERSION}
 BANNER
   opts.on("-V", "--version", "Show version and exit") do |v|
