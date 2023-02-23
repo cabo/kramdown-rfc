@@ -10,7 +10,7 @@ kdrfc.options.txt = true             # default
 
 op = OptionParser.new do |opts|
   opts.banner = <<BANNER
-Usage: kdrfc [options] file.md|file.mkd|file.xml
+Usage: kdrfc [options] file.md|file.xml
 Version: #{KDRFC_VERSION}
 BANNER
   opts.on("-V", "--version", "Show version and exit") do |v|

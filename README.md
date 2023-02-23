@@ -33,7 +33,7 @@ To use kramdown-rfc, you'll need Ruby (at least version 2.3, but
 preferably a current version), and maybe
 [XML2RFC][] if you want to see the fruits of your work.
 
-    kramdown-rfc mydraft.mkd >mydraft.xml
+    kramdown-rfc mydraft.md >mydraft.xml
     xml2rfc mydraft.xml
 
 (The most popular file name extension that IETF people have for
@@ -43,11 +43,11 @@ descriptions here, any extension such as .mkd will do, too.)
 A more brief interface for both calling kramdown-rfc and XML2RFC
 is provided by `kdrfc`:
 
-    kdrfc mydraft.mkd
+    kdrfc mydraft.md
 
 `kdrfc` can also use a remote installation of XML2RFC if needed:
 
-    kdrfc -r mydraft.mkd
+    kdrfc -r mydraft.md
 
 # Versions of RFCXML
 
