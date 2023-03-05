@@ -1,7 +1,9 @@
 require 'uri'
 require 'net/http'
+require 'net/http/persistent'
 require 'open3'
 require 'ostruct'
+require 'json'
 
 module KramdownRFC
 
@@ -65,49 +67,77 @@ def process_xml_locally(input, output, *flags)
   end
 end
 
+# curl https://author-tools.ietf.org/api/render/text -X POST -F "file=@..."
 XML2RFC_WEBSERVICE = ENV["KRAMDOWN_XML2RFC_WEBSERVICE"] ||
-                     'http://xml2rfc.tools.ietf.org/cgi-bin/xml2rfc-dev.cgi'
+                     'https://author-tools.ietf.org/api/render/'
 
 MODE_AS_FORMAT = {
-  nil => {                    # v2
-    "--text" => "txt/ascii",
-    "--html" => "html/ascii",
-  },
-  true => {                     # v3
-    "--text" => "txt/v3ascii",
-    "--html" => "html/v3ascii",
-    "--v2v3" => "v3xml/ascii",
-  }
+    "--text" => "text",
+    "--html" => "html",
+    "--v2v3" => "xml",
+    "--pdf" => "pdf",
 }
 
-# XXX move to author-tools@ietf.org API
-def process_xml_remotely(input, output, *flags)
-  warn "* converting remotely from xml #{input} to txt #{output}" if @options.verbose
-  format = flags[0] || "--text"
-  # warn [:V3, @options.v3].inspect
-  maf = MODE_AS_FORMAT[@options.v3][format]
-  unless maf
-    raise ArgumentError.new("*** don't know how to convert remotely from xml #{input} to txt #{output}")
+def checked_json(t)
+  begin
+    JSON.load(t)
+  rescue => e
+    raise IOError.new("*** JSON result: #{e.detailed_message}, #{diag}")
   end
-  url = URI(XML2RFC_WEBSERVICE)
+end
+
+def persistent_http
+  $http ||= Net::HTTP::Persistent.new name: 'kramdown-rfc'
+end
+
+def process_xml_remotely(input, output, *flags)
+
+  format = flags[0] || "--text"
+  warn "* converting remotely from xml #{input} to #{format} #{output}" if @options.verbose
+  maf = MODE_AS_FORMAT[format]
+  unless maf
+    raise ArgumentError.new("*** don't know how to convert remotely from xml #{input} to #{format} #{output}")
+  end
+  url = URI(XML2RFC_WEBSERVICE + maf)
   req = Net::HTTP::Post.new(url)
-  form = [["modeAsFormat", maf],
-          ["type", "binary"],
-          ["input", File.open(input),
+  form = [["file", File.open(input),
            {filename: "input.xml",
             content_type: "text/plain"}]]
   diag = ["url/form: ", url, form].inspect
   req.set_form(form, 'multipart/form-data')
-  res = Net::HTTP::start(url.hostname, url.port,
-                         :use_ssl => url.scheme == 'https' ) {|http|
-    http.request(req)
-  }
+  warn "* requesting at #{url}" if @options.verbose
+  t0 = Time.now
+  res = persistent_http.request(url, req)
+  warn "* elapsed time: #{Time.now - t0}" if @options.verbose
   case res
+  when Net::HTTPBadRequest
+    result = checked_json(res.body)
+    raise IOError.new("*** Remote Error: #{result["error"]}")
   when Net::HTTPOK
     case res.content_type
-    when 'application/octet-stream'
+    when 'application/json'
       if res.body == ''
         raise IOError.new("*** HTTP response is empty with status #{res.code}, not written")
+      end
+      # warn "* res.body #{res.body}" if @options.verbose
+      result = checked_json(res.body)
+      if logs = result["logs"]
+        if errors = logs["errors"]
+          errors.each do |err|
+            warn("*** Error: #{err}")
+          end
+        end
+        if warnings = logs["warnings"]
+          warnings.each do |w|
+            warn("** Warning: #{w}")
+          end
+        end
+      end
+      raise IOError.new("*** No useful result from remote") unless result["url"]
+      res = persistent_http.request(URI(result["url"]))
+      warn "* result content type #{res.content_type}" if @options.verbose
+      if res.body == ''
+        raise IOError.new("*** Second HTTP response is empty with status #{res.code}, not written")
       end
       File.open(output, "w") do |fo|
         fo.print(res.body)
