@@ -3,6 +3,19 @@ require 'unicode/name'
 require 'unicode/scripts'
 require 'unicode/blocks'
 require 'json'
+require 'differ'
+module Differ
+  module Format
+    module Color
+      class << self
+        def as_change(change)                           # monkey patch
+          as_insert(change) << "\n" << as_delete(change)
+        end
+      end
+    end
+  end
+end
+
 
 def readable(c)
   j = c.to_json
@@ -13,27 +26,43 @@ def readable(c)
   end
 end
 
-hist = Hash.new(0)
-ARGF.read.each_char do |c|
-  hist[c] += 1 unless c.ord.between?(32, 126)
-end
-hist.delete("\n")
-hist.keys.sort.group_by {|c| Unicode::Blocks.block(c)}.each do |block, l|
-  scripts = Set[]
-  l.each do |c|
-    scripts << Unicode::Scripts.scripts(c)
+def explain(s)
+  ret = ''
+  hist = Hash.new(0)
+  s.each_char do |c|
+    hist[c] += 1 unless c.ord.between?(32, 126)
   end
-  if scripts.size == 1
-      puts "*** #{block} (#{scripts.join})"
-  else
-    puts "*** #{block}"
-  end
-  l.each  do |c|
-    s = "#{readable(c)}: U+#{"%04X %4d" % [c.ord, hist[c]]
+  hist.delete("\n")
+  hist.keys.sort.group_by {|c| Unicode::Blocks.block(c)}.each do |block, l|
+    scripts = Set[]
+    l.each do |c|
+      scripts << Unicode::Scripts.scripts(c)
+    end
+    ret << "*** #{block}"
+    ret << " (#{scripts.join})" if scripts.size == 1
+    ret << "\n"
+    l.each  do |c|
+      ret << "#{readable(c)}: U+#{"%04X %4d" % [c.ord, hist[c]]
                    } #{Unicode::Name.correct(c) ||
                        Unicode::Name.label(c)
                    }"
-    s << " (#{Unicode::Scripts.scripts(c).join(", ")})" if scripts.size != 1
-    puts s
+      ret << " (#{Unicode::Scripts.scripts(c).join(", ")})" if scripts.size != 1
+      ret << "\n"
+    end
   end
+  ret
+end
+
+s = ARGF.read
+es = explain(s)
+n = s.unicode_normalize
+en = explain(n)
+if es == en
+  puts es
+else
+  puts "*** Warning: some characters are not normalized and are shown in red."
+  puts "          ...showing a normalized variant (NFC) in green."
+  puts "             Lack of normalization may or may not be a problem."
+  puts "            (Characters may appear to be under wrong block heading.)"
+  puts Differ.diff_by_line(en, es).format_as(:color)
 end
