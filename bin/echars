@@ -1,17 +1,39 @@
 #!/usr/bin/env ruby
 require 'unicode/name'
+require 'unicode/scripts'
+require 'unicode/blocks'
+require 'json'
+
+def readable(c)
+  j = c.to_json
+  if j.size == 3
+    j[1...-1]
+  else
+    j
+  end
+end
+
 hist = Hash.new(0)
 ARGF.read.each_char do |c|
   hist[c] += 1 unless c.ord.between?(32, 126)
 end
 hist.delete("\n")
-cl = "*** Latin"
-hist.keys.sort.partition {|c| c =~ /\A\p{Latin}\z/}.each do |l|
-  puts cl unless l.empty?
-  l.each  do |c|
-    puts "#{c}: U+#{"%04X %4d" % [c.ord, hist[c]]
-                   } #{Unicode::Name.correct(c) ||
-                       Unicode::Name.label(c)}"
+hist.keys.sort.group_by {|c| Unicode::Blocks.block(c)}.each do |block, l|
+  scripts = Set[]
+  l.each do |c|
+    scripts << Unicode::Scripts.scripts(c)
   end
-  cl = "*** Non-Latin"
+  if scripts.size == 1
+      puts "*** #{block} (#{scripts.join})"
+  else
+    puts "*** #{block}"
+  end
+  l.each  do |c|
+    s = "#{readable(c)}: U+#{"%04X %4d" % [c.ord, hist[c]]
+                   } #{Unicode::Name.correct(c) ||
+                       Unicode::Name.label(c)
+                   }"
+    s << " (#{Unicode::Scripts.scripts(c).join(", ")})" if scripts.size != 1
+    puts s
+  end
 end
