@@ -260,6 +260,9 @@ module Kramdown
         if anchor = a.delete('href')
           a['target'] = ::Kramdown::Parser::RFC2629Kramdown.idref_cleanup(anchor)
         end
+        if lang = a.delete('lang-')
+          a['xml:lang'] = lang
+        end
         if av = a.delete('noabbrev')      # pseudo attribute -> opts
           opts = opts.merge(noabbrev: TRUTHY[av]) # updated copy
         end
