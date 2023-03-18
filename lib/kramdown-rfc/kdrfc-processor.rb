@@ -37,11 +37,61 @@ def process_mkd(input, output)
   end
 end
 
-def run_idnits(txt_fn)
-  unless system("idnits", txt_fn)
-    warn "*** problem #$? running idnits"
+def run_idnits(*args)
+  if @options.remote
+    run_idnits_remotely(*args)
+  else
+    run_idnits_locally(*args)
   end
 end
+
+def run_idnits_locally(txt_fn)
+  unless system("idnits1", txt_fn)
+    warn "*** problem #$? running idnits" if @options.verbose
+    warn "*** problem running idnits -- falling back to remote idnits processing"
+    run_idnits_remotely(txt_fn)
+  end
+end
+
+# curl -s https://author-tools.ietf.org/api/idnits -X POST -F file=@draft-ietf-core-comi.txt -F hidetext=true
+IDNITS_WEBSERVICE = ENV["KRAMDOWN_IDNITS_WEBSERVICE"] ||
+                     'https://author-tools.ietf.org/api/idnits'
+
+def run_idnits_remotely(txt_fn)
+  url = URI(IDNITS_WEBSERVICE)
+  req = Net::HTTP::Post.new(url)
+  form = [["file", File.open(txt_fn),
+           {filename: "input.txt",
+            content_type: "text/plain"}],
+          ["hidetext", "true"]]
+  diag = ["url/form: ", url, form].inspect
+  req.set_form(form, 'multipart/form-data')
+  warn "* requesting idnits at #{url}" if @options.verbose
+  t0 = Time.now
+  res = persistent_http.request(url, req)
+  warn "* elapsed time: #{Time.now - t0}" if @options.verbose
+  case res
+  when Net::HTTPBadRequest
+    result = checked_json(res.body)
+    raise IOError.new("*** Remote Error: #{result["error"]}")
+  when Net::HTTPOK
+    case res.content_type
+    when 'text/plain'
+      if res.body == ''
+        raise IOError.new("*** HTTP response is empty with status #{res.code}, not written")
+      end
+      puts res.body
+    else
+      warning = "*** HTTP response has unexpected content_type #{res.content_type} with status #{res.code}, #{diag}"
+      warning << "\n"
+      warning << res.body
+      raise IOError.new(warning)
+    end
+  else
+    raise IOError.new("*** HTTP response: #{res.code}, #{diag}")
+  end
+end
+
 
 def process_xml(*args)
   if @options.remote
@@ -175,6 +225,8 @@ def process(fn)
     xml = "#$1.xml"
     process_mkd(fn, xml)
     process_the_xml(xml, $1) unless @options.xml_only
+  when /(.*)\.txt\z/
+    run_idnits(fn) if @options.idnits
   else
     raise ArgumentError.new("Unknown file type: #{fn}")
   end
