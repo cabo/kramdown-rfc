@@ -46,7 +46,8 @@ def run_idnits(*args)
 end
 
 def run_idnits_locally(txt_fn)
-  unless system("idnits1", txt_fn)
+  warn "* running idnits locally in txt #{txt_fn}" if @options.verbose
+  unless system("idnits", txt_fn)
     warn "*** problem #$? running idnits" if @options.verbose
     warn "*** problem running idnits -- falling back to remote idnits processing"
     run_idnits_remotely(txt_fn)
