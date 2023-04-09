@@ -36,7 +36,7 @@ def svg_clean_ids(s)
       y.attributes["xlink:href"] = "#{name}-#{gensym}"
     end
     found_as_id -= found_as_href
-    warn "*** warning: unused ID: #{found_as_id}" unless found_as_id.empty?
+    warn "*** warning: unused ID: #{found_as_id.to_a.join(", ")}" unless found_as_id.empty?
   end
   d.to_s
 rescue => detail
