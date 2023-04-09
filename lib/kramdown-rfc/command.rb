@@ -262,6 +262,9 @@ def xml_from_sections(input)
   if o = ps[:'autolink-iref-cleanup']
     $options.autolink_iref_cleanup = o
   end
+  if o = ps[:'svg-id-cleanup']
+    $options.svg_id_cleanup = o
+  end
 
   coding_override = ps.has(:coding)
   smart_quotes = ps[:smart_quotes]
@@ -579,12 +582,23 @@ if $options.v3_used && !$options.v3
   $options.v3 = true
 end
 
-if $options.autolink_iref_cleanup
+# only reparse output document if cleanup actions required
+if $options.autolink_iref_cleanup || $options.svg_id_cleanup
   require 'rexml/document'
-  require 'kramdown-rfc/autolink-iref-cleanup'
 
   d = REXML::Document.new(output)
-  autolink_iref_cleanup(d)
+  d.context[:attribute_quote] = :quote  # Set double-quote as the attribute value delimiter
+
+  if $options.autolink_iref_cleanup
+    require 'kramdown-rfc/autolink-iref-cleanup'
+    autolink_iref_cleanup(d)
+  end
+
+  if $options.svg_id_cleanup
+    require 'kramdown-rfc/svg-id-cleanup'
+    svg_id_cleanup(d)
+  end
+
   output = d.to_s
 end
 
