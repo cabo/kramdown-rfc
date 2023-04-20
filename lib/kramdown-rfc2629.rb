@@ -1385,13 +1385,13 @@ COLORS
 
       def nobr_hack(s)          # replace this by actual <nobr> once that exists
         # https://github.com/ietf-tools/xml2rfc/blob/main/xml2rfc/utils.py#L42
-        s.gsub(/([-\s\/])(?!\s)/) { case $1
+        s.gsub(/([-\s\/])(?!\s)/) { case rep = $1
                                    when /\A\s\z/
                                      "\u00A0" # nbsp
                                    when "-"
                                      "\u2011" # nbhy -- XXX this might mangle dashes
                                    else
-                                     "#{$1}\u2060"
+                                     "#{rep}\u2060"
                                    end
         }
       end
