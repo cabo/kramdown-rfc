@@ -1383,6 +1383,19 @@ COLORS
         "<iref#{html_attributes(attr)}/>"
       end
 
+      def nobr_hack(s)          # replace this by actual <nobr> once that exists
+        # https://github.com/ietf-tools/xml2rfc/blob/main/xml2rfc/utils.py#L42
+        s.gsub(/([-\s\/])(?!\s)/) { case $1
+                                   when /\A\s\z/
+                                     "\u00A0" # nbsp
+                                   when "-"
+                                     "\u2011" # nbhy -- XXX this might mangle dashes
+                                   else
+                                     "#{$1}\u2060"
+                                   end
+        }
+      end
+
       def convert_iref(el, indent, opts)
         iref_attr(el.attr['target'])
       end
@@ -1403,6 +1416,16 @@ COLORS
 
         if title == "<bcp14>" && $options.v3
           return "<bcp14>#{value}</bcp14>"
+        end
+
+        hacked_value = value
+
+        if title && title =~ /\A<nobr>(\z|\s)/
+          _nobr, title = title.split(' ', 2)
+          hacked_value = nobr_hack(value)
+          if title.nil? || title.empty?
+            return hacked_value # we have "exhausted" this abbrev -- suppress normal meaning
+          end
         end
 
         if title && title[0] == "#"
@@ -1428,9 +1451,9 @@ COLORS
         end
         iref ||= "<iref#{html_attributes(item: item, subitem: subitem)}/>"
         if target
-          "#{iref}<xref#{html_attributes(target: target, format: "none")}>#{value}</xref>"
+          "#{iref}<xref#{html_attributes(target: target, format: "none")}>#{hacked_value}</xref>"
         else
-          "#{iref}#{value}"
+          "#{iref}#{hacked_value}"
         end
       end
 
