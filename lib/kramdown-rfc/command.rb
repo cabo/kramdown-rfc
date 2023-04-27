@@ -13,13 +13,6 @@ KDRFC_VERSION=Gem.loaded_specs["kramdown-rfc2629"].version rescue "unknown-versi
 
 Encoding.default_external = "UTF-8" # wake up, smell the coffee
 
-# Note that this doesn't attempt to handle HT characters
-def remove_indentation(s)
-  l = s.lines
-  indent = l.grep(/\S/).map {|l| l[/^\s*/].size}.min
-  l.map {|li| li.sub(/^ {0,#{indent}}/, "")}.join
-end
-
 def add_quote(s)
   l = s.lines
   l.map {|li| "> #{li}"}.join

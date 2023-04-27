@@ -1,3 +1,12 @@
+
+# Note that this doesn't attempt to handle HT characters
+def remove_indentation(s)
+  l = s.lines
+  indent = l.grep(/\S/).map {|l| l[/^\s*/].size}.min
+  l.map {|li| li.sub(/^ {0,#{indent}}/, "")}.join
+end
+
+
 FOLD_MSG = "NOTE: '\\' line wrapping per RFC 8792".freeze
 MIN_FOLD_COLUMNS = FOLD_MSG.size
 FOLD_COLUMNS = 69
