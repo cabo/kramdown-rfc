@@ -324,7 +324,7 @@ module Kramdown
         if el.children[-1].type == :raw
           raw = convert1(el.children.pop, indent, opts)
         end
-        "#{convert1(el, indent, opts)}#{end_sections(1, indent)}#{raw}"
+        "#{convert1(el, indent, opts)}#{end_sections(1, indent, el.options[:location])}#{raw}"
       end
 
       def convert1(el, indent, opts = {})
@@ -708,7 +708,7 @@ COLORS
         end
       end
 
-      def end_sections(to_level, indent)
+      def end_sections(to_level, indent, location)
         if indent < 0
           indent = 0
         end
@@ -717,7 +717,7 @@ COLORS
           @sec_level = to_level
           "#{' '*indent}</section>\n" * delta
         else
-          $stderr.puts "Incorrect section nesting: Need to start with 1"
+          $stderr.puts "** #{location+@location_delta}: Bad section nesting: start heading level at 1 and increment by 1"
         end
       end
 
@@ -769,7 +769,7 @@ COLORS
         clean, irefs = clean_pcdata(inner_a(el, indent, opts))
         el.attr['title'] = clean
         end
-        "#{end_sections(el.options[:level], indent)}#{' '*indent}<section#{@sec_level += 1; el_html_attributes(el)}>#{irefs}\n"
+        "#{end_sections(el.options[:level], indent, el.options[:location])}#{' '*indent}<section#{@sec_level += 1; el_html_attributes(el)}>#{irefs}\n"
       end
 
       def convert_hr(el, indent, opts) # misuse for page break
@@ -1282,7 +1282,7 @@ COLORS
       end
 
       def convert_raw(el, indent, opts)
-        end_sections(1, indent) +
+        end_sections(1, indent, el.options[:location]) +
         el.value + (el.options[:category] == :block ? "\n" : '')
       end
 
