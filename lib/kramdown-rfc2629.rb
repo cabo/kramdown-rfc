@@ -664,7 +664,7 @@ COLORS
               if anchor = el.attr['anchor']
                 "##{anchor}"
               elsif lineno = el.options[:location]
-                "approx. line #{lineno}" # XXX
+                "#{correct_location(lineno)}"
               else
                 "UNKNOWN"
               end
@@ -673,11 +673,11 @@ COLORS
               begin
                 JSON.load(result)
               rescue => e
-                err1 = "*** #{loc_str}: JSON isn't: #{e.message[0..40]}\n"
+                err1 = "*** #{loc_str}: JSON isn't: #{JSON.dump(e.message[0..40])}\n"
                 begin
                   JSON.load("{" << result << "}")
                 rescue => e
-                  warn err1 << "***  not even with braces added around: #{e.message[0..40]}"
+                  warn err1 << "***  not even with braces added around: #{JSON.dump(e.message[0..40])}"
                 end
               end
             when "json-from-yaml"
