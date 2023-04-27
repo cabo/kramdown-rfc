@@ -23,6 +23,7 @@ require 'json'                  # for math
 require 'rexml/document'        # for SVG and bibxml acrobatics
 
 require 'kramdown-rfc/doi'      # for fetching information for a DOI
+require 'kramdown-rfc/rfc8792'
 
 class Object
   def deep_clone
@@ -668,30 +669,73 @@ COLORS
               else
                 "UNKNOWN"
               end
+            preprocs = el.attr.delete("pre")
+            checks = el.attr.delete("check")
+            postprocs = el.attr.delete("post")
             case t
             when "json"
-              begin
-                JSON.load(result)
-              rescue => e
-                err1 = "*** #{loc_str}: JSON isn't: #{JSON.dump(e.message[0..40])}\n"
-                begin
-                  JSON.load("{" << result << "}")
-                rescue => e
-                  warn err1 << "***  not even with braces added around: #{JSON.dump(e.message[0..40])}"
-                end
-              end
-            when "json-from-yaml"
-              begin
-                y = YAML.safe_load(result, aliases: true, filename: loc_str)
-                result = JSON.pretty_generate(y)
-                t = "json"      # XXX, this could be another format!
-              rescue => e
-                warn "*** YAML isn't: #{e.message}\n"
-              end
+              checks ||= "json"
+            when /\A(.*)-from-yaml\z/
+              t = $1
+              preprocs ||= "yaml2json"
             end
+            preprocs = (preprocs || '').split("-")
+            checks = (checks || '').split("-")
+            postprocs = (postprocs || '').split("-")
+            result = sourcecode_checkproc(preprocs, checks, postprocs, loc_str, result)
             "#{' '*indent}<figure#{el_html_attributes(el)}><#{gi}#{html_attributes(artwork_attr)}><![CDATA[#{result}#{result =~ /\n\Z/ ? '' : "\n"}]]></#{gi}></figure>\n"
           end
         end
+      end
+
+      def sourcecode_proc(proc, loc_str, result)
+        case proc
+        when "dedent"
+          result = remove_indentation(result)
+        when /\Afold(\d*)(left(\d*))?(dry)?\z/
+          fold = [$1.to_i,            # col 0 for ''
+                  ($3.to_i if $2),    # left 0 for '', nil if no "left"
+                  $4]                 # dry
+          result = fold8792_1(result, *fold)
+        when "yaml2json"
+          begin
+            y = YAML.safe_load(result, aliases: true, filename: loc_str)
+            result = JSON.pretty_generate(y)
+          rescue => e
+            warn "*** #{loc_str}: YAML isn't: #{e.message}\n"
+          end
+        else
+          warn "*** #{loc_str}: unknown proc '#{proc}'"
+        end
+        result
+      end
+
+      def sourcecode_checkproc(preprocs, checks, postprocs, loc_str, result)
+        preprocs.each do |proc|
+          result = sourcecode_proc(proc, loc_str, result)
+        end if preprocs
+        checks.each do |check|
+          case check
+          when "json"
+            # XXX check for 8792; undo if needed!
+            begin
+              JSON.load(result)
+            rescue => e
+              err1 = "*** #{loc_str}: JSON isn't: #{JSON.dump(e.message[0..40])}\n"
+              begin
+                JSON.load("{" << result << "}")
+              rescue => e
+                warn err1 << "***  not even with braces added around: #{JSON.dump(e.message[0..40])}"
+              end
+            end
+          else
+            warn "*** #{loc_str}: unknown check '#{check}'"
+          end
+        end if checks
+        postprocs.each do |proc|
+          result = sourcecode_proc(proc, loc_str, result)
+        end if postprocs
+        result
       end
 
       def mk_artwork(artwork_attr, typ, content)
