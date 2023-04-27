@@ -141,8 +141,8 @@ def do_the_tls_dance
   end
 end
 
-RE_NL = /(?:\n|\r|\r\n)/
-RE_SECTION = /---(?: +(\w+)(-?))?\s*#{RE_NL}(.*?#{RE_NL})(?=---(?:\s+\w+-?)?\s*#{RE_NL}|\Z)/m
+RE_NL = /(?:\r\n|\n|\r)/
+RE_SECTION = /---(?: +(\w+)(-?))? *#{RE_NL}(.*?#{RE_NL})(?=---(?:\s+\w+-?)?\s*#{RE_NL}|\Z)/m
 
 NMDTAGS = ["{:/nomarkdown}\n\n", "\n\n{::nomarkdown}\n"]
 
