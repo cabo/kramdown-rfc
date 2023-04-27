@@ -240,6 +240,12 @@ def xml_from_sections(input)
 
   sections = input.scan(RE_SECTION)
   # resulting in an array; each section is [section-label, nomarkdown-flag, section-text]
+  line = 1                      # skip "---"
+  sections.each do |section|
+    section << line
+    line += 1 + section[2].lines.count
+  end
+  # warn "#{line-1} lines"
 
   # the first section is a YAML with front matter parameters (don't put a label here)
   # We put back the "---" plus gratuitous blank lines to hack the line number in errors
@@ -278,7 +284,7 @@ def xml_from_sections(input)
   # all the other sections are put in a Hash, possibly concatenated from parts there
   sechash = Hash.new{ |h,k| h[k] = ""}
   snames = []                   # a stack of section names
-  sections.each do |sname, nmdflag, text|
+  sections.each do |sname, nmdflag, text, line|
     # warn [:SNAME, sname, nmdflag, text[0..10]].inspect
     nmdin, nmdout = {
       "-" => ["", ""],          # stay in nomarkdown
@@ -289,7 +295,7 @@ def xml_from_sections(input)
     else
       snames.pop                # just "---" -> pop label (previous now current)
     end
-    sechash[snames.last] << "#{nmdin}#{text}#{nmdout}"
+    sechash[snames.last] << "#{nmdin}<?line #{line}?>\n#{text}#{nmdout}"
   end
 
   ref_replacements = { }
@@ -540,7 +546,9 @@ if input[-1] != "\n"
 end
 process_includes(input) unless ENV["KRAMDOWN_SAFE"]
 input.gsub!(/^\{::boilerplate\s+(.*?)\}/) {
-  boilerplate($1)
+  bp = boilerplate($1)
+  delta = bp.lines.count
+  bp + "<?line -#{delta+1}?>\n"
 }
 if input =~ /[\t]/
    warn "*** Input contains HT (\"tab\") characters. Undefined behavior will ensue."
