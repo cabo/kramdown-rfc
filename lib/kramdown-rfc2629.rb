@@ -316,8 +316,13 @@ module Kramdown
         super
         @sec_level = 1
         @location_delta = 100000 # until reset
+        @location_correction = 0 # pre-scanning corrections
         @in_dt = 0
         @footnote_names_in_use = {}
+      end
+
+      def correct_location(location)
+        location + @location_delta + @location_correction
       end
 
       def convert(el, indent = -INDENTATION, opts = {})
@@ -717,7 +722,7 @@ COLORS
           @sec_level = to_level
           "#{' '*indent}</section>\n" * delta
         else
-          $stderr.puts "** #{location+@location_delta}: Bad section nesting: start heading level at 1 and increment by 1"
+          $stderr.puts "** #{correct_location(location)}: Bad section nesting: start heading level at 1 and increment by 1"
         end
       end
 
@@ -886,9 +891,14 @@ COLORS
       end
 
       def convert_xml_comment(el, indent, opts)
-        if el.value =~ /\A<\?line ([0-9]+)\?>\z/
+        if el.value =~ /\A<\?line (([-+]?)[0-9]+)\?>\z/
           lineno = $1.to_i
-          @location_delta = lineno - el.options[:location]
+          case $2
+          when ''               # absolute
+            @location_delta = lineno - el.options[:location]
+          when '+', '-'         # correction (pre-scanning!)
+            @location_correction += lineno
+          end
         end
         if el.options[:category] == :block && !el.options[:parent_is_raw]
           ' '*indent + el.value + "\n"
