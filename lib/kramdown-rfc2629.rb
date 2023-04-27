@@ -315,6 +315,7 @@ module Kramdown
       def initialize(*doc)
         super
         @sec_level = 1
+        @location_delta = 100000 # until reset
         @in_dt = 0
         @footnote_names_in_use = {}
       end
@@ -885,6 +886,10 @@ COLORS
       end
 
       def convert_xml_comment(el, indent, opts)
+        if el.value =~ /\A<\?line ([0-9]+)\?>\z/
+          lineno = $1.to_i
+          @location_delta = lineno - el.options[:location]
+        end
         if el.options[:category] == :block && !el.options[:parent_is_raw]
           ' '*indent + el.value + "\n"
         else
