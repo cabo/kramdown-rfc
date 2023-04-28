@@ -1,0 +1,108 @@
+#!/usr/bin/env ruby -KU
+require 'rexml/document'        # for SVG and bibxml acrobatics
+require 'yaml'
+require 'shellwords'
+require 'fileutils'
+
+def clean(s)
+  s.gsub!(/\//, ":")
+  s.gsub!(/[^:\w]/, "_")        # handles leading dot, too --   s.gsub!(/\A([.]+)/) {"_" * $1.size } otherwise
+  s
+end
+
+target = nil
+dir = nil
+targets = [:list, :files, :zip, :yaml]
+require 'optparse'
+begin
+  op = OptionParser.new do |opts|
+    opts.banner = "Usage: kramdown-rfc-extract-sourcecode [options] document.xml"
+    opts.on("-tFMT", "--to=FMT", targets, "Target format #{targets.map(&:to_s)}") do |v|
+      target = v
+    end
+    opts.on("-dDIR", "--dir=DIR", "Target directory (default: sourcecode)") do |v|
+      dir = v
+    end
+  end
+  op.parse!
+rescue Exception => e
+  warn e
+  exit 1
+end
+if dir
+  target ||= :files
+  unless [:files, :zip].include? target
+    warn "** Unused argument --dir=#{dir}"
+  end
+end
+dir ||= "sourcecode"
+
+target ||= :list
+
+gensym = "unnamed-000"
+taken = Hash.new { |h, k| h[k] = Hash.new }
+warned = Hash.new { |h, k| h[k] = Hash.new }
+d = REXML::Document.new(ARGF)
+REXML::XPath.each(d.root, "//sourcecode|//artwork") do |x|
+  if ty = x[:type]
+    ty = clean(ty)
+    name = x[:name] || gensym.succ!
+    name = clean(name)
+    if taken[ty][name]
+      unless warned[ty][name]
+        warn "Concatenating to #{ty}/#{name}."
+        warned[ty][name] = true
+      end
+    else
+      taken[ty][name] = ''
+    end
+    taken[ty][name] << x.text
+  end
+end
+
+def make_directory_from(dir, taken)
+  if File.exist?(dir)
+    bak = "#{dir}.bak"
+    begin
+      FileUtils.mv(dir, bak)
+    rescue Errno::EEXIST
+      bak.succ!
+      retry
+    end
+  end
+  FileUtils.mkdir_p(dir)
+  taken.each { |dir1, v|
+    FileUtils.mkdir_p("#{dir}/#{dir1}")
+    v.each { |fn, value|
+      IO.write("#{dir}/#{dir1}/#{fn}", value)
+    }
+  }
+end
+
+case target
+when :yaml
+  puts taken.to_yaml
+when :list
+  puts Hash[
+         taken.map {|k, v|
+           [k, v.keys]
+         }
+       ].to_yaml
+when :files
+  make_directory_from(dir, taken)
+when :zip
+  make_directory_from(dir, taken)
+  zip = "#{dir}.zip"
+  if File.exist?(zip)
+    bak = "#{zip}.bak"
+    begin
+      FileUtils.mv(zip, bak)
+    rescue Errno::EEXIST        # This doesn't actually happen.  XXX
+      bak.succ!
+      retry
+    end
+  end
+  cmd = ["zip", "-mr", zip, dir].shelljoin
+  warn cmd
+  system(cmd)
+end
