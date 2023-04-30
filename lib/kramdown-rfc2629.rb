@@ -696,7 +696,7 @@ COLORS
           fold = [$1.to_i,            # col 0 for ''
                   ($3.to_i if $2),    # left 0 for '', nil if no "left"
                   $4]                 # dry
-          result = fold8792_1(result, *fold)
+          result = fix_unterminated_line(fold8792_1(trim_empty_lines_around(result), *fold)) # XXX
         when "yaml2json"
           begin
             y = YAML.safe_load(result, aliases: true, filename: loc_str)
@@ -714,16 +714,19 @@ COLORS
         preprocs.each do |proc|
           result = sourcecode_proc(proc, loc_str, result)
         end if preprocs
+        check_input = result
         checks.each do |check|
           case check
+          when "skipheader"
+            check_input = handle_artwork_sourcecode(check_input).sub(/.*?\n\n/m, '')
           when "json"
-            # XXX check for 8792; undo if needed!
+            # check for 8792; undo if needed:
             begin
-              JSON.load(result)
+              JSON.load(handle_artwork_sourcecode(check_input))
             rescue => e
               err1 = "*** #{loc_str}: JSON isn't: #{JSON.dump(e.message[0..40])}\n"
               begin
-                JSON.load("{" << result << "}")
+                JSON.load("{" << check_input << "}")
               rescue => e
                 warn err1 << "***  not even with braces added around: #{JSON.dump(e.message[0..40])}"
               end
