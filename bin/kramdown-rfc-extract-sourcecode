@@ -3,6 +3,7 @@ require 'rexml/document'        # for SVG and bibxml acrobatics
 require 'yaml'
 require 'shellwords'
 require 'fileutils'
+require_relative '../lib/kramdown-rfc/rfc8792'
 
 def clean(s)
   s.gsub!(/\//, ":")
@@ -12,6 +13,7 @@ end
 
 target = nil
 dir = nil
+unfold = true
 targets = [:list, :files, :zip, :yaml]
 require 'optparse'
 begin
@@ -22,6 +24,9 @@ begin
     end
     opts.on("-dDIR", "--dir=DIR", "Target directory (default: sourcecode)") do |v|
       dir = v
+    end
+    opts.on("-f", "--[no-]unfold", "RFC8972-unfold (default: yes)") do |v|
+      unfold = v
     end
   end
   op.parse!
@@ -56,7 +61,7 @@ REXML::XPath.each(d.root, "//sourcecode|//artwork") do |x|
     else
       taken[ty][name] = ''
     end
-    taken[ty][name] << x.text
+    taken[ty][name] << handle_artwork_sourcecode(x.text, unfold)
   end
 end
 
