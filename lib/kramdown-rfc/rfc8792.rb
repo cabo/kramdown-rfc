@@ -6,8 +6,18 @@ def remove_indentation(s)
   l.map {|li| li.sub(/^ {0,#{indent}}/, "")}.join
 end
 
-def trim_empty_lines_around(s)
-  s.sub(/\A(\r?\n)*/, '').sub(/(\r?\n)*\z/, "\n")
+def trim_empty_lines_around(s)  # this deletes the trailing newline, which may need to be reconstructed
+  s.sub(/\A(\r?\n)*/, '').sub(/(\r?\n)*\z/, '')
+end
+
+def fix_unterminated_line(s)
+  s.sub(/[^\n]\z/) { "#$&\n" } # XXX
+end
+
+def handle_artwork_sourcecode(s, unfold = true)
+  s = trim_empty_lines_around(s)
+  s = unfold8792(s) if unfold
+  fix_unterminated_line(s)
 end
 
 FOLD_MSG = "NOTE: '\\' line wrapping per RFC 8792".freeze
