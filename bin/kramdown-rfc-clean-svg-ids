@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 require 'rexml/document'
+require 'kramdown-rfc/rexml-formatters-conservative'
 require 'kramdown-rfc/svg-id-cleanup'
 
 def svg_clean_ids(s)
@@ -10,7 +11,10 @@ def svg_clean_ids(s)
 
   svg_id_cleanup(d)
 
-  d.to_s
+  tr = REXML::Formatters::Conservative.new
+  o = ''
+  tr.write(d, o)
+  o
 rescue => detail
   warn "*** Can't clean SVG: #{detail}"
   d.to_s
