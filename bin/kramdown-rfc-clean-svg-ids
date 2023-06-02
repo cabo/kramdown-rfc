@@ -18,6 +18,7 @@ def svg_clean_ids(s)
 rescue => detail
   warn "*** Can't clean SVG: #{detail}"
   d.to_s
+  exit 1
 end
 
 puts svg_clean_ids(ARGF.read)
