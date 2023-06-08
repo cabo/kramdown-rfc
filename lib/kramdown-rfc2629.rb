@@ -1265,6 +1265,7 @@ COLORS
               d = REXML::Document.new(to_insert)
               d.xml_decl.nowrite
               d.delete d.doctype
+              d.context[:attribute_quote] = :quote  # Set double-quote as the attribute value delimiter
               d.root.attributes["anchor"] = anchor
               if t == "RFC" or t == "I-D"
                 if KRAMDOWN_NO_TARGETS || !KRAMDOWN_KEEP_TARGETS
