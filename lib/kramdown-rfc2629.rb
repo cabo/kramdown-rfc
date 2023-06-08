@@ -1183,7 +1183,8 @@ COLORS
       XML_RESOURCE_ORG_MAP = {
         "RFC" => ["bibxml", 86400*7, false,
                   ->(fn, n){ [name = "reference.RFC.#{"%04d" % n.to_i}.xml",
-                              "https://www.rfc-editor.org/refs/bibxml/#{name}"] }
+                              "https://bib.ietf.org/public/rfc/bibxml/#{name}"] }
+# was                         "https://www.rfc-editor.org/refs/bibxml/#{name}"] }
                  ],
         "I-D" => ["bibxml3", false, false,
                   ->(fn, n){ [fn,
