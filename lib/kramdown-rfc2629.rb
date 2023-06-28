@@ -552,7 +552,7 @@ COLORS
           result1, err, _s = Open3.capture3("tex2svg --font STIX --speech=false#{svg_opt} #{Shellwords.escape(' ' << result)}");
           begin
             raise Errno::ENOENT if t == "math-asciitex"
-            result, err1, s = Open3.capture3("utftex #{math}#{txt_opt}")
+            result, err1, s = Open3.capture3("utftex -m #{math}#{txt_opt}")
             if s.exitstatus != 0
               warn "** utftex: #{err1.inspect}"
               raise Errno::ENOENT
