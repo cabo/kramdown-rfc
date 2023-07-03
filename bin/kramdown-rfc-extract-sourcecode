@@ -25,7 +25,7 @@ begin
     opts.on("-dDIR", "--dir=DIR", "Target directory (default: sourcecode)") do |v|
       dir = v
     end
-    opts.on("-f", "--[no-]unfold", "RFC8972-unfold (default: yes)") do |v|
+    opts.on("-f", "--[no-]unfold", "RFC8792-unfold (default: yes)") do |v|
       unfold = v
     end
   end
