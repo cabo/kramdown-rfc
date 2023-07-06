@@ -7,9 +7,26 @@ ACCEPT_CITE_JSON = {"Accept" => "application/citeproc+json"}
 def doi_fetch_and_convert(doi, fuzzy: false, verbose: false, site: "https://dx.doi.org")
   doipath = doi.sub(/^([0-9.]+)_/) {"#$1/"} # convert initial _ back to /
   # warn "** SUB #{doi} #{doipath}" if doi != doipath
-  cite = JSON.parse(URI("#{site}/#{doipath}").open(ACCEPT_CITE_JSON).read)
-  puts cite.to_yaml if verbose
-  doi_citeproc_to_lit(cite, fuzzy)
+  begin
+    cite = JSON.parse(URI("#{site}/#{doipath}").open(ACCEPT_CITE_JSON).read)
+    puts cite.to_yaml if verbose
+    doi_citeproc_to_lit(cite, fuzzy)
+  rescue OpenURI::HTTPError => e
+    begin
+      site = "https://dl.acm.org"
+      percent_escaped = doipath.gsub("/", "%2F")
+      path = "#{site}/action/exportCiteProcCitation?targetFile=custom-bibtex&format=bibTex&dois=#{percent_escaped}"
+      op = URI(path).open       # first get a cookie, ignore result
+      # warn [:META, op.meta].inspect
+      cook = op.meta['set-cookie'].split('; ', 2)[0]
+      cite = JSON.parse(URI(path).open("Cookie" => cook).read)
+      cite = cite["items"].first[doipath]
+      puts cite.to_yaml if verbose
+      doi_citeproc_to_lit(cite, fuzzy)
+    rescue
+      raise e
+    end
+  end
 end
 
 def doi_citeproc_to_lit(cite, fuzzy)
