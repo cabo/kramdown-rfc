@@ -92,9 +92,11 @@ def doi_fetch_and_convert(doi, fuzzy: false, verbose: false, site: "https://dx.d
     #   ser[spl[0..-2].join(" ")] = spl[-1]
     # end
   end
+  ["DOI", "ISBN"].each do |st|
+    if a = cite[st]
+      ser[st] = a
     end
   end
-  ser["DOI"] = cite["DOI"]
   if refcontent != []
     lit["refcontent"] = refcontent.join(", ")
   end
