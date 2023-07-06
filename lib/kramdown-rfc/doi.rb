@@ -9,6 +9,10 @@ def doi_fetch_and_convert(doi, fuzzy: false, verbose: false, site: "https://dx.d
   # warn "** SUB #{doi} #{doipath}" if doi != doipath
   cite = JSON.parse(URI("#{site}/#{doipath}").open(ACCEPT_CITE_JSON).read)
   puts cite.to_yaml if verbose
+  doi_citeproc_to_lit(cite, fuzzy)
+end
+
+def doi_citeproc_to_lit(cite, fuzzy)
   lit = {}
   ser = lit["seriesinfo"] = {}
   refcontent = []
