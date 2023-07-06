@@ -11,6 +11,7 @@ $verbose = false
 $fuzzy = false
 $handle = "a"
 $xml = false
+$site = "https://dx.doi.org"
 
 litent = {}
 ARGV.each do |doi|
@@ -28,6 +29,9 @@ ARGV.each do |doi|
   when "-v"
     $verbose = true
     next
+  when /\A-s=(.*)/
+    $site = $1
+    next
   when /\A-h=(.*)/
     $handle = $1
     next
@@ -40,7 +44,7 @@ ARGV.each do |doi|
     exit 1
   end
 
-  lit = doi_fetch_and_convert(doi, fuzzy: $fuzzy, verbose: $verbose)
+  lit = doi_fetch_and_convert(doi, fuzzy: $fuzzy, verbose: $verbose, site: $site)
 
   while litent[$handle]
     $handle.succ!

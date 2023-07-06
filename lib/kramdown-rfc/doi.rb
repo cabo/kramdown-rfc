@@ -4,10 +4,10 @@ require 'yaml'
 
 ACCEPT_CITE_JSON = {"Accept" => "application/citeproc+json"}
 
-def doi_fetch_and_convert(doi, fuzzy: false, verbose: false)
+def doi_fetch_and_convert(doi, fuzzy: false, verbose: false, site: "https://dx.doi.org")
   doipath = doi.sub(/^([0-9.]+)_/) {"#$1/"} # convert initial _ back to /
   # warn "** SUB #{doi} #{doipath}" if doi != doipath
-  cite = JSON.parse(URI("https://dx.doi.org/#{doipath}").open(ACCEPT_CITE_JSON).read)
+  cite = JSON.parse(URI("#{site}/#{doipath}").open(ACCEPT_CITE_JSON).read)
   puts cite.to_yaml if verbose
   lit = {}
   ser = lit["seriesinfo"] = {}
