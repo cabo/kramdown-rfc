@@ -314,7 +314,7 @@ def xml_from_sections(input)
             anchor_to_bibref[k] = bibref
           end
           if dr = v.delete("display")
-            displayref[k] = dr
+            displayref[k.gsub("/", "_")] = dr
           end
         end
       end
