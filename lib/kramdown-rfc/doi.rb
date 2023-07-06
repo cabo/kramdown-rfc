@@ -11,6 +11,7 @@ def doi_fetch_and_convert(doi, fuzzy: false, verbose: false, site: "https://dx.d
   puts cite.to_yaml if verbose
   lit = {}
   ser = lit["seriesinfo"] = {}
+  refcontent = []
   lit["title"] = cite["title"]
   if (st = cite["subtitle"]) && Array === st # defensive
     st.delete('')
@@ -76,19 +77,26 @@ def doi_fetch_and_convert(doi, fuzzy: false, verbose: false, site: "https://dx.d
       spl = ct.split(" ")
       ser[spl[0..-2].join(" ")] = spl[-1]
     end
-  elsif pub = cite["publisher"]
-    info = []
-    if t = cite["type"]
-      info << t
-    end
-    rhs = info.join(", ")
-    if info != []
-      ser[pub] = rhs
-    else
-      spl = pub.split(" ")
-      ser[spl[0..-2].join(" ")] = spl[-1]
+  end
+  if pub = cite["publisher"]
+    refcontent << pub
+    # info = []
+    # if t = cite["type"]
+    #   info << t
+    # end
+    # rhs = info.join(", ")
+    # if info != []
+    #   ser[pub] = rhs
+    # else
+    #   spl = pub.split(" ")
+    #   ser[spl[0..-2].join(" ")] = spl[-1]
+    # end
+  end
     end
   end
   ser["DOI"] = cite["DOI"]
+  if refcontent != []
+    lit["refcontent"] = refcontent.join(", ")
+  end
   lit
 end
