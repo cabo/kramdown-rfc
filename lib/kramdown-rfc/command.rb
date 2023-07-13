@@ -266,7 +266,7 @@ def xml_from_sections(input)
   end
 
   coding_override = ps.has(:coding)
-  smart_quotes = ps[:smart_quotes]
+  smart_quotes = ps[:smart_quotes] || ps[:"smart-quotes"]
   typographic_symbols = ps[:typographic_symbols]
   header_kramdown_options = ps[:kramdown_options]
 
