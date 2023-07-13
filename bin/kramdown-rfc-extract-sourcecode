@@ -4,6 +4,7 @@ require 'yaml'
 require 'shellwords'
 require 'fileutils'
 require_relative '../lib/kramdown-rfc/rfc8792'
+require_relative '../lib/kramdown-rfc/rexml-all-text.rb'
 
 def clean(s)
   s.gsub!(/\//, ":")
@@ -61,7 +62,7 @@ REXML::XPath.each(d.root, "//sourcecode|//artwork") do |x|
     else
       taken[ty][name] = ''
     end
-    taken[ty][name] << handle_artwork_sourcecode(x.text, unfold)
+    taken[ty][name] << handle_artwork_sourcecode(x.all_text, unfold)
   end
 end
 
