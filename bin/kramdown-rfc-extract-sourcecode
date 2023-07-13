@@ -52,7 +52,8 @@ d = REXML::Document.new(ARGF)
 REXML::XPath.each(d.root, "//sourcecode|//artwork") do |x|
   if ty = x[:type]
     ty = clean(ty)
-    name = x[:name] || gensym.succ!
+    name = x[:name]
+    name = gensym.succ! if !name || name.empty?
     name = clean(name)
     if taken[ty][name]
       unless warned[ty][name]
