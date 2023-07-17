@@ -138,7 +138,7 @@ protocols more mature.  It is up to the individual working groups
 to use this information as they see fit".
 RFC7942
   else
-    warn "** Unknwon boilerplate key: #{key}"
+    warn "** Unknown boilerplate key: #{key}"
     "{::boilerplate #{key}}"
   end
 end
