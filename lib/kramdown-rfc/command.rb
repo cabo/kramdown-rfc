@@ -250,6 +250,8 @@ def spacify_re(s)
   s.gsub(' ', '[\u00A0\s]+')
 end
 
+include ::Kramdown::Utils::Html
+
 def xml_from_sections(input)
 
   unless ENV["KRAMDOWN_NO_SOURCE"]
@@ -428,11 +430,14 @@ def xml_from_sections(input)
 
         bibref = anchor_to_bibref[k] || k
         bts, url = bibtagsys(bibref, k, stand_alone)
+        ann = v.delete("annotation") || v.delete("ann") if Hash === v
         if bts && (!v || v == {} || v.respond_to?(:to_str))
           if stand_alone
             a = %{{: anchor="#{k}"}}
+            a[-1...-1] = %{ ann="#{escape_html(ann, :attribute)}"} if ann
             sechash[sn.to_s] << %{\n#{NMDTAGS[0]}\n![:include:](#{bts})#{a}\n#{NMDTAGS[1]}\n}
           else
+            warn "*** please use standalone mode for adding annotations to references" if ann
             bts.gsub!('/', '_')
             (ps.rest["bibxml"] ||= []) << [bts, url]
             sechash[sn.to_s] << %{&#{bts};\n} # ???
@@ -445,6 +450,7 @@ def xml_from_sections(input)
           if bts && !v.delete("override")
             warn "*** warning: explicit settings completely override canned bibxml in reference #{k}"
           end
+          v["ann"] = ann if ann
           sechash[sn.to_s] << KramdownRFC::ref_to_xml(href, v)
         end
       end

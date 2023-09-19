@@ -370,10 +370,19 @@ module Kramdown
         generate_id(value).gsub(/-+/, '-')
       end
 
-      def self.process_markdown(v)             # Uuh.  Heavy coupling.
+      def self.process_markdown1(v)             # Uuh.  Heavy coupling.
         doc = ::Kramdown::Document.new(v, $global_markdown_options)
         $stderr.puts doc.warnings.to_yaml unless doc.warnings.empty?
-        doc.to_rfc2629[3..-6] # skip <t>...</t>\n
+        doc.to_rfc2629
+      end
+
+      def self.process_markdown(v)
+        process_markdown1(v)[3..-6] # skip <t>...</t>\n
+      end
+
+      def self.process_markdown_to_rexml(v)
+        s = process_markdown1(v)
+        REXML::Document.new(s)
       end
 
       SVG_COLORS = Hash.new {|h, k| k}
@@ -1234,6 +1243,7 @@ COLORS
           end
         end
         if alt == ":include:"   # Really bad misuse of tag...
+          ann = el.attr.delete('ann')
           anchor = el.attr.delete('anchor') || (
             # not yet
             warn "*** missing anchor for '#{src}'"
@@ -1281,6 +1291,11 @@ COLORS
                 end
               elsif t == "IANA"
                 d.root.attributes["target"].sub!(%r{\Ahttp://www.iana.org/assignments/}, 'https://www.iana.org/assignments/')
+              end
+              if ann
+                el = ::Kramdown::Converter::Rfc2629::process_markdown_to_rexml(ann).root
+                el.name = "annotation"
+                d.root.add_element(el)
               end
               to_insert = d.to_s
             rescue Exception => e
