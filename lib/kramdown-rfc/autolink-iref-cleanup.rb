@@ -6,7 +6,7 @@ def autolink_iref_cleanup(d)
     anchor = sec['anchor']
     irefs = {}
     sec.get_elements(".//xref[@target='#{anchor}'][@format='none']").each do |xr|
-      ne = xr.next_element
+      ne = xr.previous_element  # 9c87e84 iref now before xref
       if ne && ne.name == "iref" && (item = ne['item'])
         irefs[item] = ne['subitem'] # XXX one subitem only
         ne.remove
