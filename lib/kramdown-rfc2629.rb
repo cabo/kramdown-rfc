@@ -42,8 +42,8 @@ module Kramdown
           sorted_abbrevs = @root.options[:abbrev_defs].keys.sort {|a, b| b.length <=> a.length }
           regexps = [Regexp.union(*sorted_abbrevs.map {|k|
                                     /#{Regexp.escape(k).gsub(/\\\s/, "[\\s\\p{Z}]+").force_encoding(Encoding::UTF_8)}/})]
-          # warn regexps.inspect
           regexps << /(?=(?:\W|^)#{regexps.first}(?!\w))/ # regexp should only match on word boundaries
+          # warn regexps.inspect
         end
         super(el, regexps)
       end
@@ -1498,7 +1498,9 @@ COLORS
 
         hacked_value = value
 
+        nobr = false
         if title && title =~ /\A<nobr>(\z|\s)/
+          nobr = true
           _nobr, title = title.split(' ', 2)
           hacked_value = nobr_hack(value)
           if title.nil? || title.empty?
@@ -1518,11 +1520,19 @@ COLORS
         end
 
         if item = title
-          m = title.scan(Parser::RFC2629Kramdown::IREF_START)
-          if m.empty?
+          pairs = title.split(Parser::RFC2629Kramdown::IREF_START).each_slice(2).to_a
+          replacement = pairs.map {|x,| s = x.strip; s unless s.empty?}.compact.join(" ")
+          irefs = pairs.map {|_,x| x && [x]}.compact
+          warn "@@@ ABBREV MISMATCH #{irefs}" if title.scan(Parser::RFC2629Kramdown::IREF_START) != irefs
+          if irefs.empty?
             subitem = value
           else
-            iref = m.map{|a,| iref_attr(a)}.join('')
+            iref = irefs.map{|a,| iref_attr(a)}.join('')
+          end
+          unless replacement.empty?
+            replacement = nobr_hack(replacement) if nobr # XXX this can break XML
+            replacement = ::Kramdown::Converter::Rfc2629::process_markdown(replacement)
+            hacked_value = replacement
           end
         else
           item = value
