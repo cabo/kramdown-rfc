@@ -8,7 +8,8 @@ require_relative '../lib/kramdown-rfc/rexml-all-text.rb'
 
 def clean(s)
   s.gsub!(/\//, ":")
-  s.gsub!(/[^:\w]/, "_")        # handles leading dot, too --   s.gsub!(/\A([.]+)/) {"_" * $1.size } otherwise
+  s.gsub!(/\A([-.]+)/) {"_" * $1.size }
+  s.gsub!(/[^-.:\w]/, "_")
   s
 end
 
@@ -53,7 +54,10 @@ REXML::XPath.each(d.root, "//sourcecode|//artwork") do |x|
   if ty = x[:type]
     ty = clean(ty)
     name = x[:name]
-    name = gensym.succ! if !name || name.empty?
+    if !name || name.empty?
+      name = gensym.succ!.dup
+      name = "#{name}.#{ty}" unless ty.empty?
+    end
     name = clean(name)
     if taken[ty][name]
       unless warned[ty][name]
