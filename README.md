@@ -150,7 +150,7 @@ or
         email: pthubert@cisco.com
 
 (the hash keys are the XML GIs from RFC 7749, with a flattened
-structure.  As RFC 7749 requiresd giving both the full name and
+structure.  As RFC 7749 requires giving both the full name and
 surname/initials, we use `ins` as an abbreviation for
 "initials/surname".  Yes, the toolchain is Unicode-capable, even if
 the final RFC output is still in ASCII.)
