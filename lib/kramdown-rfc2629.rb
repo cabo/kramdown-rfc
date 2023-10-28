@@ -78,6 +78,11 @@ module Kramdown
         href.gsub(/\A(?:[0-9]|section-|u-|figure-|table-|iref-)/) { "_#{$&}" }
       end
 
+      def rfc_mention(target1)  # only works for RFCnnnn
+        target1 =~ /\A([A-Z]*)(.*)\z/
+        "#$1 #$2 "
+      end
+
       def handle_bares(s, attr, format, href, last_join = nil)
         if s.match(/\A(#{XREF_ANY}) and (#{XREF_ANY})\z/)
           handle_bares($1, {}, nil, href, " and ")
@@ -86,13 +91,14 @@ module Kramdown
         end
 
         href = href.split(' ')[0] # Remove any trailing (...)
+        target1, target2 = href.split("@", 2)
         multi = last_join != nil
         (sn, s) = s.split(' ', 2)
         loop do
           m = s.match(/\A#{XREF_RE_M}(, (?:and )?| and )?/)
           break if not m
 
-          if not multi and not m[2] and not m[3]
+          if not multi and not m[2] and not m[3] and not target2
             # Modify |attr| if there is a single reference.  This can only be
             # used if there is only one section reference and the section part
             # has no title.
@@ -110,9 +116,13 @@ module Kramdown
           multi = true
           s[m[0]] = ''
 
-          attr1 = { 'target' => href, 'section' => m[1], 'sectionFormat' => 'bare', 'text' => m[2] }
+          attr1 = { 'target' => target1, 'section' => m[1], 'sectionFormat' => 'bare', 'text' => m[2] }
           @tree.children << Element.new(:xref, nil, attr1)
-          @tree.children << Element.new(:text, m[3] || last_join || " of ", {})
+          andof = m[3] || last_join || " of "
+          if andof == " of " && target2
+            andof += rfc_mention(target1)
+          end
+          @tree.children << Element.new(:text, andof, {})
         end
       end
 
@@ -135,18 +145,22 @@ module Kramdown
         else
           href = @src[3]
           attr = {}
+          handled_subref = false
           if $options.v3
             # match Section ... of ...; set section, sectionFormat
             case href.gsub(/[\u00A0\s]+/, ' ') # may need nbsp and/or newlines
             when /\A(#{SECTIONS_RE}) of (.*)\z/
               href = $2
               handle_bares($1, attr, "of", href)
+              handled_subref = true
             when /\A(.*), (#{SECTIONS_RE})\z/
               href = $1
               handle_bares($2, attr, "comma", href)
+              handled_subref = true
             when /\A(.*) \((#{SECTIONS_RE})\)\z/
               href = $1
               handle_bares($2, attr, "parens", href)
+              handled_subref = true
             when /#{XREF_RE_M}<(.+)\z/
               href = $3
               if $2
@@ -167,6 +181,13 @@ module Kramdown
           if href.match(/#{XREF_RE_M}\z/)
             href = $1
             attr['text'] = $2
+          end
+          target1, target2 = href.split("@", 2) # should do this only for sectionref...
+          if target2
+            href = target2
+            unless handled_subref
+              @tree.children << Element.new(:text, rfc_mention(target1), {})
+            end
           end
           href = self.class.idref_cleanup(href)
           attr['target'] = href

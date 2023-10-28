@@ -360,18 +360,19 @@ def xml_from_sections(input)
     next if k == "fluff"
     v.gsub!(/{{(#{
       spacify_re(XSR_PREFIX)
-    })?(?:([?!])(-)?|(-))([\w._\-]+)(?:=([\w.\/_\-]+))?(#{
+    })?([\w.\/_\-]+@)?(?:([?!])(-)?|(-))([\w._\-]+)(?:=([\w.\/_\-]+))?(#{
       XREF_TXT_SUFFIX
     })?(#{
       spacify_re(XSR_SUFFIX)
     })?}}/) do |match|
       xsr_prefix = $1
-      norminform = $2
-      replacing = $3 || $4
-      word = $5
-      bibref = $6
-      xrt_suffix = $7
-      xsr_suffix = $8
+      subref = $2
+      norminform = $3
+      replacing = $4 || $5
+      word = $6
+      bibref = $7
+      xrt_suffix = $8
+      xsr_suffix = $9
       if replacing
         if new = ref_replacements[word]
           word = new
@@ -395,7 +396,7 @@ def xml_from_sections(input)
       if norminform
         norm_ref[word] ||= norminform == '!' # one normative ref is enough
       end
-      "{{#{xsr_prefix}#{word}#{xrt_suffix}#{xsr_suffix}}}"
+      "{{#{xsr_prefix}#{subref}#{word}#{xrt_suffix}#{xsr_suffix}}}"
     end
   end
 
