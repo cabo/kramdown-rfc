@@ -67,7 +67,15 @@ REXML::XPath.each(d.root, "//sourcecode|//artwork") do |x|
     else
       taken[ty][name] = ''
     end
-    taken[ty][name] << handle_artwork_sourcecode(x.all_text, unfold)
+    extracted = false
+    REXML::XPath.each(x, "svg") do |svg|
+      # According to v3.rnc, there should be only one...
+      taken[ty][name] << svg.to_s
+      extracted = true
+    end
+    unless extracted
+      taken[ty][name] << handle_artwork_sourcecode(x.all_text, unfold)
+    end
   end
 end
 
