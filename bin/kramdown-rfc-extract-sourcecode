@@ -55,7 +55,13 @@ REXML::XPath.each(d.root, "//sourcecode|//artwork") do |x|
     ty = clean(ty)
     name = x[:name]
     if !name || name.empty?
-      name = gensym.succ!.dup
+      REXML::XPath.each(x, "ancestor::*/name[position() = 1]/@slugifiedName") do |sname|
+        # Should really run our own slugifier if needed
+        name = clean(sname.to_s.sub(/^name-/, ''))
+      end
+      if !name || name.empty?
+        name = gensym.succ!.dup
+      end
       name = "#{name}.#{ty}" unless ty.empty?
     end
     name = clean(name)
