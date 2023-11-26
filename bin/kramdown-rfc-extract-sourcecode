@@ -85,7 +85,8 @@ REXML::XPath.each(d.root, "//sourcecode|//artwork") do |x|
         warn "** #{nameel.to_s[0..50]}"
         unless sname = nameel['slugifiedName']
           alltext = nameel.all_text
-          sname = clean(slugify_like_xml2rfc(alltext, 5))
+          nameel.add_attribute('slugifiedName',
+                               sname = clean("name-" << slugify_like_xml2rfc(alltext, 5)))
         end
         if sname
           name = clean(sname.to_s.sub(/^name-/, ''))
