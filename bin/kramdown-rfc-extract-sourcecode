@@ -78,6 +78,11 @@ d = REXML::Document.new(ARGF)
 REXML::XPath.each(d.root, "//sourcecode|//artwork") do |x|
   if ty = x[:type]
     ty = clean(ty)
+    ext = ty
+    if ty.empty?
+      ty = "=txt"
+      ext = "txt"
+    end
     name = x[:name]
     warn "***"
     if !name || name.empty?
@@ -95,7 +100,7 @@ REXML::XPath.each(d.root, "//sourcecode|//artwork") do |x|
       if !name || name.empty?
         name = gensym.succ!.dup
       end
-      name = "#{name}.#{ty}" unless ty.empty?
+      name = "#{name}.#{ext}"
     end
     name = clean(name)
     if taken[ty][name]
