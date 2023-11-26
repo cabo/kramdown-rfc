@@ -9,7 +9,7 @@ require_relative '../lib/kramdown-rfc/rexml-all-text.rb'
 def clean(s)
   s.gsub!(/\//, ":")
   s.gsub!(/\A([-.]+)/) {"_" * $1.size }
-  s.gsub!(/[^-.:\w]/, "_")
+  s.gsub!(/[^-.:\w]+/, "-")
   s
 end
 
