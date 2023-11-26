@@ -13,6 +13,31 @@ def clean(s)
   s
 end
 
+$seen_slugs = {}
+
+def slugify_like_xml2rfc(s, delta = 0)
+  s = s.unicode_normalize(:nfkd).force_encoding(Encoding::ASCII).scrub('').downcase
+  s.gsub!(/[^-\w\s\/]/, '')
+  s = s.strip
+  s.gsub!(/[-\s\/]/, '-')
+  n = 32 - delta
+  nmax = [s.size, 40 - delta].min
+  while $seen_slugs[slugex = s[0...n]] && n < nmax
+    n += 1
+  end
+  if $seen_slugs[slugex]
+    m = 2
+    while $seen_slugs[slugex = "#{s[0...n]}-#{m}"]
+      m += 1
+      if m == 1000
+        raise ArgumentError, "Can't build distinguishable slug for '#{s}'"
+      end
+    end
+  end
+  $seen_slugs[slugex] = s
+  slugex
+end
+
 target = nil
 dir = nil
 unfold = true
@@ -54,10 +79,17 @@ REXML::XPath.each(d.root, "//sourcecode|//artwork") do |x|
   if ty = x[:type]
     ty = clean(ty)
     name = x[:name]
+    warn "***"
     if !name || name.empty?
-      REXML::XPath.each(x, "ancestor::*/name[position() = 1]/@slugifiedName") do |sname|
-        # Should really run our own slugifier if needed
-        name = clean(sname.to_s.sub(/^name-/, ''))
+      REXML::XPath.each(x, "ancestor::*/name[position() = 1]") do |nameel|
+        warn "** #{nameel.to_s[0..50]}"
+        unless sname = nameel['slugifiedName']
+          alltext = nameel.all_text
+          sname = clean(slugify_like_xml2rfc(alltext, 5))
+        end
+        if sname
+          name = clean(sname.to_s.sub(/^name-/, ''))
+        end
       end
       if !name || name.empty?
         name = gensym.succ!.dup
