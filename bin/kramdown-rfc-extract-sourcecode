@@ -84,18 +84,16 @@ REXML::XPath.each(d.root, "//sourcecode|//artwork") do |x|
       ext = "txt"
     end
     name = x[:name]
-    warn "***"
+    name_is_from_slug = false
     if !name || name.empty?
       REXML::XPath.each(x, "ancestor::*/name[position() = 1]") do |nameel|
-        warn "** #{nameel.to_s[0..50]}"
         unless sname = nameel['slugifiedName']
           alltext = nameel.all_text
           nameel.add_attribute('slugifiedName',
                                sname = clean("name-" << slugify_like_xml2rfc(alltext, 5)))
         end
-        if sname
-          name = clean(sname.to_s.sub(/^name-/, ''))
-        end
+        name = clean(sname.to_s.sub(/^name-/, ''))
+        name_is_from_slug = true
       end
       if !name || name.empty?
         name = gensym.succ!.dup
@@ -104,9 +102,20 @@ REXML::XPath.each(d.root, "//sourcecode|//artwork") do |x|
     end
     name = clean(name)
     if taken[ty][name]
-      unless warned[ty][name]
-        warn "Concatenating to #{ty}/#{name}."
-        warned[ty][name] = true
+      if name_is_from_slug
+        # rename old entry if it was from slug, too?
+        nameparts = name.split(".")
+        ext1 = nameparts.pop || "txt"
+        suffix = "b"
+        while taken[ty][name = [*nameparts[0...-1], "#{nameparts[-1]}-#{suffix}", ext1].join(".")]
+          suffix.succ!
+        end
+        taken[ty][name] = ''
+      else
+        unless warned[ty][name]
+          warn "Concatenating to #{ty}/#{name}."
+          warned[ty][name] = true
+        end
       end
     else
       taken[ty][name] = ''
