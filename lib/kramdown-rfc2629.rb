@@ -702,6 +702,10 @@ COLORS
             checks = el.attr.delete("check")
             postprocs = el.attr.delete("post")
             case t
+            when "cbor"
+              warn "** There is no sourcecode-type “cbor”."
+              warn "**   Do you mean “cbor-diag” (diagnostic notation)"
+              warn "**   or “cbor-pretty” (annotated hex-dump)?"
             when "json"
               checks ||= "json"
             when /\A(.*)-from-yaml\z/
