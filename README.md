@@ -563,7 +563,7 @@ This can for instance be used to obtain unnumbered appendices:
 ```markdown
 Acknowledgements
 ================
-{: numbered="no"}
+{: numbered="false"}
 
 John Mattsson was nice enough to point out the need for this being documented.
 ```
