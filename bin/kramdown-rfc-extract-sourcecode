@@ -77,7 +77,13 @@ warned = Hash.new { |h, k| h[k] = Hash.new }
 d = REXML::Document.new(ARGF)
 REXML::XPath.each(d.root, "//sourcecode|//artwork") do |x|
   if ty = x[:type]
+    is_svg = false
+    REXML::XPath.each(x, "svg") do is_svg = true end
     ty = clean(ty)
+    if is_svg && ty != "svg"
+      warn "** replacing SVG type '#{ty}' by type 'svg'"
+      ty = "svg"
+    end
     ext = ty
     if ty.empty?
       ty = "=txt"
@@ -102,9 +108,12 @@ REXML::XPath.each(d.root, "//sourcecode|//artwork") do |x|
     end
     name = clean(name)
     if taken[ty][name]
-      if name_is_from_slug
-        # rename old entry if it was from slug, too?
+      if name_is_from_slug || is_svg
+        # rename old entry as well if it was from slug?
         nameparts = name.split(".")
+        if is_svg && nameparts[-1] != "svg"
+          nameparts << "svg"
+        end
         ext1 = nameparts.pop || "txt"
         suffix = "b"
         while taken[ty][name = [*nameparts[0...-1], "#{nameparts[-1]}-#{suffix}", ext1].join(".")]
