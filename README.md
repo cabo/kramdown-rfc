@@ -475,8 +475,8 @@ allow for automatic entry of items as normative/informative.
 (1.0.16:) Markdown footnotes are converted into `cref`s (XML2RFC formal
 comments; note that these are only visible if the pi "comments" is set to yes).
 The anchor is taken from the markdown footnote name. The source, if
-needed, can be supplied by an IAD, as in (first example with
-ALD):
+needed, can be supplied by an [IAL][], as in (first example also uses an
+[ALD][]):
 
 ```markdown
 {:cabo: source="cabo"}
@@ -494,7 +494,7 @@ Note that XML2RFC v2 doesn't allow structure in crefs. If you put any,
 you get the escaped verbatim XML...
 
 (1.0.11:) Allow overriding "style" attribute (via IAL =
-[inline attribute list][kdsyntax-ial]) in lists and spans
+[inline attribute list][IAL]) in lists and spans
 as in:
 
 ```markdown
@@ -549,8 +549,9 @@ note that this creates ugly blank space in some HTML converters).
 
 # Risks and Side-Effects
 
-The code is not very polished, but now quite stable; it has been successfully used for a
-number of non-trivial Internet-Drafts and RFCs.  You probably still need to
+The code is not very polished, but now quite stable; it has been
+successfully used for hundreds of non-trivial Internet-Drafts and RFCs.
+You probably still need to
 skim [v3][] if you want to write an Internet-Draft, but you
 don't really need to understand XML very much.  Knowing the basics of
 YAML helps with the metadata (but you'll understand it from the
@@ -568,7 +569,24 @@ Acknowledgements
 John Mattsson was nice enough to point out the need for this being documented.
 ```
 
-[IAL]: https://kramdown.gettalong.org/syntax.html#inline-attribute-lists
+
+Note that this specific example is covered by a predefined
+kramdown-rfc ["attribute list definition" (ALD)][ALD]:
+
+```markdown
+{:unnumbered: numbered="false"}
+```
+
+so the conventional way to write this example would be the somewhat simpler:
+
+```markdown
+Acknowledgements
+================
+{:unnumbered}
+
+John Mattsson was nice enough to point out the need for this being documented.
+```
+
 
 # Upconversion
 
@@ -638,7 +656,8 @@ made it possible to license kramdown-rfc under the same license.
 
 [kramdown]: https://kramdown.gettalong.org
 [kdsyntax]: http://kramdown.gettalong.org/syntax.html
-[kdsyntax-ial]: http://kramdown.gettalong.org/syntax.html#inline-attribute-lists
+[IAL]: https://kramdown.gettalong.org/syntax.html#inline-attribute-lists
+[ALD]: https://kramdown.gettalong.org/syntax.html#attribute-list-definitions
 [stupid]: http://tools.ietf.org/id/draft-hartke-xmpp-stupid-00
 [RFC 2629]: https://www.rfc-editor.org/rfc/rfc2629.html
 [RFC 7749]: https://www.rfc-editor.org/rfc/rfc7749.html
