@@ -17,7 +17,8 @@ module KramdownRFC
   def self.ref_to_xml(k, v)
     vps = KramdownRFC::ParameterSet.new(v)
     erb = ERB.trim_new <<-REFERB, '-'
-<reference anchor="<%= escattr(k) %>" <%= vps.attr("target") %>>
+<reference anchor="<%= escattr(k) %>" <%=
+        vps.attrstf("target", "quoteTitle=quote-title=quotetitle=qt") %>>
   <front>
     <%= vps.ele("title") -%>
 
