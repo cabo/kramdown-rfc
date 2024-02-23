@@ -288,6 +288,13 @@ def xml_from_sections(input)
     end
   end
 
+  if r = ENV["KRAMDOWN_RFC_DOCREV"]
+    warn "** building document revision -#{r}"
+    unless n = ps.has(:docname) and n.sub!(/-latest\z/, "-#{r}")
+      warn "** -d#{r}: docname #{n.inspect} doesn't have a '-latest' suffix"
+    end
+  end
+
   if o = ps[:'autolink-iref-cleanup']
     $options.autolink_iref_cleanup = o
   end

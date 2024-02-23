@@ -57,6 +57,9 @@ BANNER
   opts.on("-2", "--[no-]v2", "Use RFCXML v2 processing rules") do |v|
     kdrfc.options.v2 = v
   end
+  opts.on("-dNN", "--docrev=NN", /[0-9][0-9]/, "Replace -latest by -NN in docname") do |v|
+    ENV["KRAMDOWN_RFC_DOCREV"] = v
+  end
 end
 op.parse!
 
