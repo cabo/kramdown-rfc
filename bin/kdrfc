@@ -45,8 +45,11 @@ BANNER
   opts.on("-h", "--[no-]html", "Convert to html as well") do |v|
     kdrfc.options.html = v
   end
-  opts.on("-t", "--[no-]txt", "Convert to txt as well") do |v|
+  opts.on("-t", "--[no-]txt", "Convert to txt as well (default)") do |v|
     kdrfc.options.txt = v
+  end
+  opts.on("-n", "Do not convert to txt (--no-txt)") do |v|
+    kdrfc.options.txt = !v
   end
   opts.on("-3", "--[no-]v3", "Use RFCXML v3 processing rules") do |v|
     kdrfc.options.v3 = v
