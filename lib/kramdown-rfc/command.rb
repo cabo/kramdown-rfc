@@ -70,7 +70,8 @@ end
 def boilerplate(key)
   ret = ''
   case key.downcase
-  when /\Abcp14(info)?(\+)?(-tagged)?\z/i
+  when /\Abcp14(info)?(\+)?(-tagged)?(-bcp)?\z/i
+    #            $1    $2     $3       $4
     if $1
       ret << <<RFC8174ise
 Although this document is not an IETF Standards Track publication, it
@@ -107,6 +108,13 @@ PLUS
 *[MAY]: <bcp14>
 *[OPTIONAL]: <bcp14>
 TAGGED
+    end
+    if $4                       # experimental; idnits complains:
+      #  ** The document seems to lack a both a reference to RFC 2119 and the
+      #     recommended RFC 2119 boilerplate, even if it appears to use RFC 2119
+      #     keywords -- however, there's a paragraph with a matching beginning.
+      #     Boilerplate error?
+      ret.sub!("{{!RFC2119}} {{!RFC8174}}", "{{!BCP14}}")
     end
     ret
   when /\Arfc\s*7942(info)?\z/i
