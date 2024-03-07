@@ -579,6 +579,10 @@ end
 warn "*** v2 #{$options.v2.inspect} v3 #{$options.v3.inspect}" if $options.verbose
 
 input = ARGF.read
+input.scrub! do |c|
+  warn "*** replaced invalid UTF-8 byte sequence #{c.inspect} by U+FFFD REPLACEMENT CHARACTER"
+  0xFFFD.chr(Encoding::UTF_8)
+end
 if input[0] == "\uFEFF"
    warn "*** There is a leading byte order mark. Ignored."
    input[0..0] = ''
