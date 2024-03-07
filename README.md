@@ -12,6 +12,11 @@ Who would care?  Anybody who is writing Internet-Drafts and RFCs in
 the [IETF][] and prefers (or has co-authors who prefer) to do part of
 their work in markdown.
 
+kramdown-rfc is documented on this page, and also on
+[the wiki][].
+
+[the wiki]: https://github.com/cabo/kramdown-rfc/wiki
+
 # Usage
 
 Start by installing the kramdown-rfc gem (this automatically
