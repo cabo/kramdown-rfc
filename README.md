@@ -180,7 +180,7 @@ and then just write `{{RFC2119}}` or `{{RFC1925}}`.  (Yes, there is a
 colon in the YAML, because this is a hash that could provide other
 information.)
 
-Since version 1.1, references imported from the [XML2RFC][] databases
+Since version 1.1, references imported from the [BibXML][] databases
 can be supplied with a replacement label (anchor name).  E.g., RFC 793
 could be referenced as `{{!TCP=RFC0793}}`, further references then just
 can say `{{TCP}}`; both will get `[TCP]` as the label.  In the
@@ -205,7 +205,7 @@ Notes about this feature:
   maintaining live references then may require some manual editing to
   get rid of the custom anchors.
 
-If your references are not in the [XML2RFC][] databases and do not
+If your references are not in the [BibXML][] databases and do not
 have a DOI (that also happens to have correct data) either, you need
 to spell it out like in the examples below:
 
@@ -667,7 +667,7 @@ made it possible to license kramdown-rfc under the same license.
 [IETF]: http://www.ietf.org
 [Miek Gieben]: http://www.miek.nl/
 [pandoc2rfc]: https://github.com/miekg/pandoc2rfc/
-[XML2RFC]: http://xml.resource.org
+[XML2RFC]: https://github.com/ietf-tools/xml2rfc
 [RFC 7328]: http://tools.ietf.org/html/rfc7328
 [mmark-git]: https://github.com/miekg/mmark
 [mmark]: https://mmark.nl
@@ -676,3 +676,4 @@ made it possible to license kramdown-rfc under the same license.
 [asciidoctor-rfc]: https://github.com/metanorma/asciidoctor-rfc
 [asciidoc]: http://www.methods.co.nz/asciidoc/
 [orgmode]: http://orgmode.org
+[BibXML]: https://bib.ietf.org/
