@@ -33,6 +33,44 @@ end
 
 module Kramdown
 
+  Kramdown::Options.define(:nested_ol_types, Object, %w[1], <<~EOF) do |val|
+      Values for type= attribute for nested ordered lists (ol).
+      The value needs to be an array of <ol type= values, expressed as one of:
+      1. A YAML array
+      2. A string that will be split on commas (with optional blank space following)
+      3. A string that will be split on blank space
+
+      Default: ["1"]
+      Used by: RFCXML converter
+    EOF
+    val = case val
+          when String
+            if val[0] == "[" && val[-1] == "]"
+              begin
+                val = YAML.safe_load(val)
+              rescue Psych::SyntaxError
+                warn "** YAML syntax error in nested_ol_types=#{val.inspect}"
+                val = %w[1]
+              end
+            else
+              val = val.split(/, */)
+              val = val[0].split(/ +/) if val.size == 1
+            end
+            Kramdown::Options.simple_array_validator(val, :nested_ol_types)
+          when Array
+            val.map!{ |x| x.to_s }
+            val = Kramdown::Options.simple_array_validator(val, :nested_ol_types)
+          else
+            raise Kramdown::Error, "Invalid value for option '#{:nested_ol_types}': '#{val.inspect}'"
+          end
+    if val == []
+      val = %w[1]
+      warn "** Option #{:nested_ol_types} cannot be empty, defaulting to #{val.inspect}"
+    end
+    val
+  end
+
+
   module Parser
 
     class RFC2629Kramdown < Kramdown
