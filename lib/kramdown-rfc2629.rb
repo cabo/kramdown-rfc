@@ -913,7 +913,22 @@ COLORS
           "#{' '*indent}<t><list#{attrstring}>\n#{inner(el, indent, opts)}#{' '*indent}</list></t>\n"
         end
       end
-      alias :convert_ol :convert_ul
+
+      def convert_ol(el, indent, opts)
+        nested_types = opts[:nested_ol_types] || ["1"]
+        # warn "** ol opts #{opts.inspect} types #{nested_types.inspect}"
+        if nested_attr = el.attr.delete('nestedOlTypes')
+          nested_types = ::Kramdown::Options.parse(:nested_ol_types, nested_attr)
+        end
+        if nested_types = nested_types.dup
+          # warn "** nested_types #{nested_types.inspect}"
+          nested_here = nested_types.shift
+          opts = opts.merge(nested_ol_types: nested_types << nested_here)
+          el.attr['type'] ||= nested_here
+          # warn "** actual ol type #{el.attr['type'].inspect}"
+        end
+        convert_ul(el, indent, opts)
+      end
 
       def convert_dl(el, indent, opts)
         if $options.v3
