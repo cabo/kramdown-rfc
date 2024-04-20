@@ -347,7 +347,10 @@ module Kramdown
         location + @location_delta + @location_correction
       end
 
-      def convert(el, indent = -INDENTATION, opts = {})
+      def convert(el)
+        opts = el.options[:options]
+        # warn "** tree opts #{opts.inspect}"
+        indent = -INDENTATION
         if el.children[-1].type == :raw
           raw = convert1(el.children.pop, indent, opts)
         end
