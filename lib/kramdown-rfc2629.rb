@@ -33,6 +33,53 @@ end
 
 module Kramdown
 
+  Kramdown::Options.define(:ol_start_at_first_marker, Kramdown::Options::Boolean, false, <<~EOF)
+      If this option is `true`, an ordered list (<ol) will use the
+      number in its first marker (1 for 1. etc.) as the default value
+      of the start= attribute.
+
+      Default: false (for backward compatibility)
+      Used by: RFCXML converter
+    EOF
+
+  Kramdown::Options.define(:nested_ol_types, Object, %w[1], <<~EOF) do |val|
+      Values for type= attribute for nested ordered lists (ol).
+      The value needs to be an array of <ol type= values, expressed as one of:
+      1. A YAML array
+      2. A string that will be split on commas (with optional blank space following)
+      3. A string that will be split on blank space
+
+      Default: ["1"]
+      Used by: RFCXML converter
+    EOF
+    val = case val
+          when String
+            if val[0] == "[" && val[-1] == "]"
+              begin
+                val = YAML.safe_load(val)
+              rescue Psych::SyntaxError
+                warn "** YAML syntax error in nested_ol_types=#{val.inspect}"
+                val = %w[1]
+              end
+            else
+              val = val.split(/, */)
+              val = val[0].split(/ +/) if val.size == 1
+            end
+            Kramdown::Options.simple_array_validator(val, :nested_ol_types)
+          when Array
+            val.map!{ |x| x.to_s }
+            val = Kramdown::Options.simple_array_validator(val, :nested_ol_types)
+          else
+            raise Kramdown::Error, "Invalid value for option '#{:nested_ol_types}': '#{val.inspect}'"
+          end
+    if val == []
+      val = %w[1]
+      warn "** Option #{:nested_ol_types} cannot be empty, defaulting to #{val.inspect}"
+    end
+    val
+  end
+
+
   module Parser
 
     class RFC2629Kramdown < Kramdown
@@ -42,8 +89,8 @@ module Kramdown
           sorted_abbrevs = @root.options[:abbrev_defs].keys.sort {|a, b| b.length <=> a.length }
           regexps = [Regexp.union(*sorted_abbrevs.map {|k|
                                     /#{Regexp.escape(k).gsub(/\\\s/, "[\\s\\p{Z}]+").force_encoding(Encoding::UTF_8)}/})]
-          # warn regexps.inspect
           regexps << /(?=(?:\W|^)#{regexps.first}(?!\w))/ # regexp should only match on word boundaries
+          # warn regexps.inspect
         end
         super(el, regexps)
       end
@@ -78,6 +125,11 @@ module Kramdown
         href.gsub(/\A(?:[0-9]|section-|u-|figure-|table-|iref-)/) { "_#{$&}" }
       end
 
+      def rfc_mention(target1)  # only works for RFCnnnn
+        target1 =~ /\A([A-Z]*)(.*)\z/
+        "#$1 #$2 "
+      end
+
       def handle_bares(s, attr, format, href, last_join = nil)
         if s.match(/\A(#{XREF_ANY}) and (#{XREF_ANY})\z/)
           handle_bares($1, {}, nil, href, " and ")
@@ -86,13 +138,14 @@ module Kramdown
         end
 
         href = href.split(' ')[0] # Remove any trailing (...)
+        target1, target2 = href.split("@", 2)
         multi = last_join != nil
         (sn, s) = s.split(' ', 2)
         loop do
           m = s.match(/\A#{XREF_RE_M}(, (?:and )?| and )?/)
           break if not m
 
-          if not multi and not m[2] and not m[3]
+          if not multi and not m[2] and not m[3] and not target2
             # Modify |attr| if there is a single reference.  This can only be
             # used if there is only one section reference and the section part
             # has no title.
@@ -110,9 +163,13 @@ module Kramdown
           multi = true
           s[m[0]] = ''
 
-          attr1 = { 'target' => href, 'section' => m[1], 'sectionFormat' => 'bare', 'text' => m[2] }
+          attr1 = { 'target' => target1, 'section' => m[1], 'sectionFormat' => 'bare', 'text' => m[2] }
           @tree.children << Element.new(:xref, nil, attr1)
-          @tree.children << Element.new(:text, m[3] || last_join || " of ", {})
+          andof = m[3] || last_join || " of "
+          if andof == " of " && target2
+            andof += rfc_mention(target1)
+          end
+          @tree.children << Element.new(:text, andof, {})
         end
       end
 
@@ -135,18 +192,22 @@ module Kramdown
         else
           href = @src[3]
           attr = {}
+          handled_subref = false
           if $options.v3
             # match Section ... of ...; set section, sectionFormat
             case href.gsub(/[\u00A0\s]+/, ' ') # may need nbsp and/or newlines
             when /\A(#{SECTIONS_RE}) of (.*)\z/
               href = $2
               handle_bares($1, attr, "of", href)
+              handled_subref = true
             when /\A(.*), (#{SECTIONS_RE})\z/
               href = $1
               handle_bares($2, attr, "comma", href)
+              handled_subref = true
             when /\A(.*) \((#{SECTIONS_RE})\)\z/
               href = $1
               handle_bares($2, attr, "parens", href)
+              handled_subref = true
             when /#{XREF_RE_M}<(.+)\z/
               href = $3
               if $2
@@ -167,6 +228,13 @@ module Kramdown
           if href.match(/#{XREF_RE_M}\z/)
             href = $1
             attr['text'] = $2
+          end
+          target1, target2 = href.split("@", 2) # should do this only for sectionref...
+          if target2
+            href = target2
+            unless handled_subref
+              @tree.children << Element.new(:text, rfc_mention(target1), {})
+            end
           end
           href = self.class.idref_cleanup(href)
           attr['target'] = href
@@ -326,7 +394,14 @@ module Kramdown
         location + @location_delta + @location_correction
       end
 
-      def convert(el, indent = -INDENTATION, opts = {})
+      def convert(el)
+        opts = el.options[:options]
+        # warn "** tree opts #{opts.inspect}"
+        if nested_ol_types = @options[:nested_ol_types]
+          opts[:nested_ol_types] ||= nested_ol_types
+          # warn "** tree opts out #{opts.inspect}"
+        end
+        indent = -INDENTATION
         if el.children[-1].type == :raw
           raw = convert1(el.children.pop, indent, opts)
         end
@@ -370,10 +445,19 @@ module Kramdown
         generate_id(value).gsub(/-+/, '-')
       end
 
-      def self.process_markdown(v)             # Uuh.  Heavy coupling.
+      def self.process_markdown1(v)             # Uuh.  Heavy coupling.
         doc = ::Kramdown::Document.new(v, $global_markdown_options)
         $stderr.puts doc.warnings.to_yaml unless doc.warnings.empty?
-        doc.to_rfc2629[3..-6] # skip <t>...</t>\n
+        doc.to_rfc2629
+      end
+
+      def self.process_markdown(v)
+        process_markdown1(v)[3..-6] # skip <t>...</t>\n
+      end
+
+      def self.process_markdown_to_rexml(v)
+        s = process_markdown1(v)
+        REXML::Document.new(s)
       end
 
       SVG_COLORS = Hash.new {|h, k| k}
@@ -548,11 +632,10 @@ COLORS
                                             stdin_data: result);
           err << err1.to_s
         when "math", "math-asciitex"
-          math = Shellwords.escape(result)
           result1, err, _s = Open3.capture3("tex2svg --font STIX --speech=false#{svg_opt} #{Shellwords.escape(' ' << result)}");
           begin
             raise Errno::ENOENT if t == "math-asciitex"
-            result, err1, s = Open3.capture3("utftex #{math}#{txt_opt}")
+            result, err1, s = Open3.capture3("utftex -m #{txt_opt}", stdin_data: result)
             if s.exitstatus != 0
               warn "** utftex: #{err1.inspect}"
               raise Errno::ENOENT
@@ -673,6 +756,10 @@ COLORS
             checks = el.attr.delete("check")
             postprocs = el.attr.delete("post")
             case t
+            when "cbor"
+              warn "** There is no sourcecode-type “cbor”."
+              warn "**   Do you mean “cbor-diag” (diagnostic notation)"
+              warn "**   or “cbor-pretty” (annotated hex-dump)?"
             when "json"
               checks ||= "json"
             when /\A(.*)-from-yaml\z/
@@ -839,7 +926,26 @@ COLORS
           "#{' '*indent}<t><list#{attrstring}>\n#{inner(el, indent, opts)}#{' '*indent}</list></t>\n"
         end
       end
-      alias :convert_ol :convert_ul
+
+      def convert_ol(el, indent, opts)
+        if @options[:ol_start_at_first_marker] and (first_list_marker =
+                                                    el.options[:first_list_marker])
+          el.attr['start'] ||= first_list_marker[/\d+/]
+        end
+        nested_types = opts[:nested_ol_types] || ["1"]
+        # warn "** ol opts #{opts.inspect} types #{nested_types.inspect}"
+        if nested_attr = el.attr.delete('nestedOlTypes')
+          nested_types = ::Kramdown::Options.parse(:nested_ol_types, nested_attr)
+        end
+        if nested_types = nested_types.dup
+          # warn "** nested_types #{nested_types.inspect}"
+          nested_here = nested_types.shift
+          opts = opts.merge(nested_ol_types: nested_types << nested_here)
+          el.attr['type'] ||= nested_here
+          # warn "** actual ol type #{el.attr['type'].inspect}"
+        end
+        convert_ul(el, indent, opts)
+      end
 
       def convert_dl(el, indent, opts)
         if $options.v3
@@ -1183,7 +1289,8 @@ COLORS
       XML_RESOURCE_ORG_MAP = {
         "RFC" => ["bibxml", 86400*7, false,
                   ->(fn, n){ [name = "reference.RFC.#{"%04d" % n.to_i}.xml",
-                              "https://www.rfc-editor.org/refs/bibxml/#{name}"] }
+                              "https://bib.ietf.org/public/rfc/bibxml/#{name}"] }
+# was                         "https://www.rfc-editor.org/refs/bibxml/#{name}"] }
                  ],
         "I-D" => ["bibxml3", false, false,
                   ->(fn, n){ [fn,
@@ -1234,6 +1341,7 @@ COLORS
           end
         end
         if alt == ":include:"   # Really bad misuse of tag...
+          ann = el.attr.delete('ann')
           anchor = el.attr.delete('anchor') || (
             # not yet
             warn "*** missing anchor for '#{src}'"
@@ -1265,6 +1373,7 @@ COLORS
               d = REXML::Document.new(to_insert)
               d.xml_decl.nowrite
               d.delete d.doctype
+              d.context[:attribute_quote] = :quote  # Set double-quote as the attribute value delimiter
               d.root.attributes["anchor"] = anchor
               if t == "RFC" or t == "I-D"
                 if KRAMDOWN_NO_TARGETS || !KRAMDOWN_KEEP_TARGETS
@@ -1280,6 +1389,11 @@ COLORS
                 end
               elsif t == "IANA"
                 d.root.attributes["target"].sub!(%r{\Ahttp://www.iana.org/assignments/}, 'https://www.iana.org/assignments/')
+              end
+              if ann
+                el = ::Kramdown::Converter::Rfc2629::process_markdown_to_rexml(ann).root
+                el.name = "annotation"
+                d.root.add_element(el)
               end
               to_insert = d.to_s
             rescue Exception => e
@@ -1482,7 +1596,9 @@ COLORS
 
         hacked_value = value
 
+        nobr = false
         if title && title =~ /\A<nobr>(\z|\s)/
+          nobr = true
           _nobr, title = title.split(' ', 2)
           hacked_value = nobr_hack(value)
           if title.nil? || title.empty?
@@ -1502,11 +1618,19 @@ COLORS
         end
 
         if item = title
-          m = title.scan(Parser::RFC2629Kramdown::IREF_START)
-          if m.empty?
+          pairs = title.split(Parser::RFC2629Kramdown::IREF_START).each_slice(2).to_a
+          replacement = pairs.map {|x,| s = x.strip; s unless s.empty?}.compact.join(" ")
+          irefs = pairs.map {|_,x| x && [x]}.compact
+          warn "@@@ ABBREV MISMATCH #{irefs}" if title.scan(Parser::RFC2629Kramdown::IREF_START) != irefs
+          if irefs.empty?
             subitem = value
           else
-            iref = m.map{|a,| iref_attr(a)}.join('')
+            iref = irefs.map{|a,| iref_attr(a)}.join('')
+          end
+          unless replacement.empty?
+            replacement = nobr_hack(replacement) if nobr # XXX this can break XML
+            replacement = ::Kramdown::Converter::Rfc2629::process_markdown(replacement)
+            hacked_value = replacement
           end
         else
           item = value

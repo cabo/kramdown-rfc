@@ -4,11 +4,38 @@ require 'yaml'
 require 'shellwords'
 require 'fileutils'
 require_relative '../lib/kramdown-rfc/rfc8792'
+require_relative '../lib/kramdown-rfc/rexml-all-text.rb'
 
 def clean(s)
   s.gsub!(/\//, ":")
-  s.gsub!(/[^:\w]/, "_")        # handles leading dot, too --   s.gsub!(/\A([.]+)/) {"_" * $1.size } otherwise
+  s.gsub!(/\A([-.]+)/) {"_" * $1.size }
+  s.gsub!(/[^-.:\w]+/, "-")
   s
+end
+
+$seen_slugs = {}
+
+def slugify_like_xml2rfc(s, delta = 0)
+  s = s.unicode_normalize(:nfkd).force_encoding(Encoding::ASCII).scrub('').downcase
+  s.gsub!(/[^-\w\s\/]/, '')
+  s = s.strip
+  s.gsub!(/[-\s\/]/, '-')
+  n = 32 - delta
+  nmax = [s.size, 40 - delta].min
+  while $seen_slugs[slugex = s[0...n]] && n < nmax
+    n += 1
+  end
+  if $seen_slugs[slugex]
+    m = 2
+    while $seen_slugs[slugex = "#{s[0...n]}-#{m}"]
+      m += 1
+      if m == 1000
+        raise ArgumentError, "Can't build distinguishable slug for '#{s}'"
+      end
+    end
+  end
+  $seen_slugs[slugex] = s
+  slugex
 end
 
 target = nil
@@ -25,7 +52,7 @@ begin
     opts.on("-dDIR", "--dir=DIR", "Target directory (default: sourcecode)") do |v|
       dir = v
     end
-    opts.on("-f", "--[no-]unfold", "RFC8972-unfold (default: yes)") do |v|
+    opts.on("-f", "--[no-]unfold", "RFC8792-unfold (default: yes)") do |v|
       unfold = v
     end
   end
@@ -50,18 +77,67 @@ warned = Hash.new { |h, k| h[k] = Hash.new }
 d = REXML::Document.new(ARGF)
 REXML::XPath.each(d.root, "//sourcecode|//artwork") do |x|
   if ty = x[:type]
+    is_svg = false
+    REXML::XPath.each(x, "svg") do is_svg = true end
     ty = clean(ty)
-    name = x[:name] || gensym.succ!
+    if is_svg && ty != "svg"
+      warn "** replacing SVG type '#{ty}' by type 'svg'"
+      ty = "svg"
+    end
+    ext = ty
+    if ty.empty?
+      ty = "=txt"
+      ext = "txt"
+    end
+    name = x[:name]
+    name_is_from_slug = false
+    if !name || name.empty?
+      REXML::XPath.each(x, "ancestor::*/name[position() = 1]") do |nameel|
+        unless sname = nameel['slugifiedName']
+          alltext = nameel.all_text
+          nameel.add_attribute('slugifiedName',
+                               sname = clean("name-" << slugify_like_xml2rfc(alltext, 5)))
+        end
+        name = clean(sname.to_s.sub(/^name-/, ''))
+        name_is_from_slug = true
+      end
+      if !name || name.empty?
+        name = gensym.succ!.dup
+      end
+      name = "#{name}.#{ext}"
+    end
     name = clean(name)
     if taken[ty][name]
-      unless warned[ty][name]
-        warn "Concatenating to #{ty}/#{name}."
-        warned[ty][name] = true
+      if name_is_from_slug || is_svg
+        # rename old entry as well if it was from slug?
+        nameparts = name.split(".")
+        if is_svg && nameparts[-1] != "svg"
+          nameparts << "svg"
+        end
+        ext1 = nameparts.pop || "txt"
+        suffix = "b"
+        while taken[ty][name = [*nameparts[0...-1], "#{nameparts[-1]}-#{suffix}", ext1].join(".")]
+          suffix.succ!
+        end
+        taken[ty][name] = ''
+      else
+        unless warned[ty][name]
+          warn "Concatenating to #{ty}/#{name}."
+          warned[ty][name] = true
+        end
       end
     else
       taken[ty][name] = ''
     end
-    taken[ty][name] << handle_artwork_sourcecode(x.text, unfold)
+    extracted = false
+    REXML::XPath.each(x, "svg") do |svg|
+      # According to v3.rnc, there should be only one...
+      taken[ty][name] << svg.to_s
+      extracted = true
+    end
+    unless extracted
+      taken[ty][name] << handle_artwork_sourcecode(x.all_text, unfold)
+    end
   end
 end
 

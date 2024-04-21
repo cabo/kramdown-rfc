@@ -40,10 +40,18 @@ module KramdownRFC
     def attr(pn)
       val, an = van(pn)
       @av[an.intern] = val
-      %{#{an}="#{escattr(val)}"}    if val
+      %{#{an}="#{escattr(val)}"}    if val # see attrtf below
     end
     def attrs(*pns)
       pns.map{ |pn| attr(pn) if pn }.compact.join(" ")
+    end
+    def attrtf(pn)              # can do an overriding false value
+      val, an = van(pn)
+      @av[an.intern] = val
+      %{#{an}="#{escattr(val)}"}    unless val.nil?
+    end
+    def attrstf(*pns)
+      pns.map{ |pn| attrtf(pn) if pn }.compact.join(" ")
     end
     def ele(pn, attr=nil, defcontent=nil, markdown=false)
       val, an = van(pn)

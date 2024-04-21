@@ -12,6 +12,11 @@ Who would care?  Anybody who is writing Internet-Drafts and RFCs in
 the [IETF][] and prefers (or has co-authors who prefer) to do part of
 their work in markdown.
 
+kramdown-rfc is documented on this page, and also on
+[the wiki][].
+
+[the wiki]: https://github.com/cabo/kramdown-rfc/wiki
+
 # Usage
 
 Start by installing the kramdown-rfc gem (this automatically
@@ -150,7 +155,7 @@ or
         email: pthubert@cisco.com
 
 (the hash keys are the XML GIs from RFC 7749, with a flattened
-structure.  As RFC 7749 requiresd giving both the full name and
+structure.  As RFC 7749 requires giving both the full name and
 surname/initials, we use `ins` as an abbreviation for
 "initials/surname".  Yes, the toolchain is Unicode-capable, even if
 the final RFC output is still in ASCII.)
@@ -180,7 +185,7 @@ and then just write `{{RFC2119}}` or `{{RFC1925}}`.  (Yes, there is a
 colon in the YAML, because this is a hash that could provide other
 information.)
 
-Since version 1.1, references imported from the [XML2RFC][] databases
+Since version 1.1, references imported from the [BibXML][] databases
 can be supplied with a replacement label (anchor name).  E.g., RFC 793
 could be referenced as `{{!TCP=RFC0793}}`, further references then just
 can say `{{TCP}}`; both will get `[TCP]` as the label.  In the
@@ -205,7 +210,7 @@ Notes about this feature:
   maintaining live references then may require some manual editing to
   get rid of the custom anchors.
 
-If your references are not in the [XML2RFC][] databases and do not
+If your references are not in the [BibXML][] databases and do not
 have a DOI (that also happens to have correct data) either, you need
 to spell it out like in the examples below:
 
@@ -475,8 +480,8 @@ allow for automatic entry of items as normative/informative.
 (1.0.16:) Markdown footnotes are converted into `cref`s (XML2RFC formal
 comments; note that these are only visible if the pi "comments" is set to yes).
 The anchor is taken from the markdown footnote name. The source, if
-needed, can be supplied by an IAD, as in (first example with
-ALD):
+needed, can be supplied by an [IAL][], as in (first example also uses an
+[ALD][]):
 
 ```markdown
 {:cabo: source="cabo"}
@@ -494,7 +499,7 @@ Note that XML2RFC v2 doesn't allow structure in crefs. If you put any,
 you get the escaped verbatim XML...
 
 (1.0.11:) Allow overriding "style" attribute (via IAL =
-[inline attribute list][kdsyntax-ial]) in lists and spans
+[inline attribute list][IAL]) in lists and spans
 as in:
 
 ```markdown
@@ -549,8 +554,9 @@ note that this creates ugly blank space in some HTML converters).
 
 # Risks and Side-Effects
 
-The code is not very polished, but now quite stable; it has been successfully used for a
-number of non-trivial Internet-Drafts and RFCs.  You probably still need to
+The code is not very polished, but now quite stable; it has been
+successfully used for hundreds of non-trivial Internet-Drafts and RFCs.
+You probably still need to
 skim [v3][] if you want to write an Internet-Draft, but you
 don't really need to understand XML very much.  Knowing the basics of
 YAML helps with the metadata (but you'll understand it from the
@@ -563,12 +569,29 @@ This can for instance be used to obtain unnumbered appendices:
 ```markdown
 Acknowledgements
 ================
-{: numbered="no"}
+{: numbered="false"}
 
 John Mattsson was nice enough to point out the need for this being documented.
 ```
 
-[IAL]: https://kramdown.gettalong.org/syntax.html#inline-attribute-lists
+
+Note that this specific example is covered by a predefined
+kramdown-rfc ["attribute list definition" (ALD)][ALD]:
+
+```markdown
+{:unnumbered: numbered="false"}
+```
+
+so the conventional way to write this example would be the somewhat simpler:
+
+```markdown
+Acknowledgements
+================
+{:unnumbered}
+
+John Mattsson was nice enough to point out the need for this being documented.
+```
+
 
 # Upconversion
 
@@ -638,7 +661,8 @@ made it possible to license kramdown-rfc under the same license.
 
 [kramdown]: https://kramdown.gettalong.org
 [kdsyntax]: http://kramdown.gettalong.org/syntax.html
-[kdsyntax-ial]: http://kramdown.gettalong.org/syntax.html#inline-attribute-lists
+[IAL]: https://kramdown.gettalong.org/syntax.html#inline-attribute-lists
+[ALD]: https://kramdown.gettalong.org/syntax.html#attribute-list-definitions
 [stupid]: http://tools.ietf.org/id/draft-hartke-xmpp-stupid-00
 [RFC 2629]: https://www.rfc-editor.org/rfc/rfc2629.html
 [RFC 7749]: https://www.rfc-editor.org/rfc/rfc7749.html
@@ -648,7 +672,7 @@ made it possible to license kramdown-rfc under the same license.
 [IETF]: http://www.ietf.org
 [Miek Gieben]: http://www.miek.nl/
 [pandoc2rfc]: https://github.com/miekg/pandoc2rfc/
-[XML2RFC]: http://xml.resource.org
+[XML2RFC]: https://github.com/ietf-tools/xml2rfc
 [RFC 7328]: http://tools.ietf.org/html/rfc7328
 [mmark-git]: https://github.com/miekg/mmark
 [mmark]: https://mmark.nl
@@ -657,3 +681,4 @@ made it possible to license kramdown-rfc under the same license.
 [asciidoctor-rfc]: https://github.com/metanorma/asciidoctor-rfc
 [asciidoc]: http://www.methods.co.nz/asciidoc/
 [orgmode]: http://orgmode.org
+[BibXML]: https://bib.ietf.org/

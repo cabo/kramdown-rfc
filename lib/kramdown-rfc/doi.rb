@@ -4,13 +4,35 @@ require 'yaml'
 
 ACCEPT_CITE_JSON = {"Accept" => "application/citeproc+json"}
 
-def doi_fetch_and_convert(doi, fuzzy: false, verbose: false)
+def doi_fetch_and_convert(doi, fuzzy: false, verbose: false, site: "https://dx.doi.org")
   doipath = doi.sub(/^([0-9.]+)_/) {"#$1/"} # convert initial _ back to /
   # warn "** SUB #{doi} #{doipath}" if doi != doipath
-  cite = JSON.parse(URI("https://dx.doi.org/#{doipath}").open(ACCEPT_CITE_JSON).read)
-  puts cite.to_yaml if verbose
+  begin
+    cite = JSON.parse(URI("#{site}/#{doipath}").open(ACCEPT_CITE_JSON).read)
+    puts cite.to_yaml if verbose
+    doi_citeproc_to_lit(cite, fuzzy)
+  rescue OpenURI::HTTPError => e
+    begin
+      site = "https://dl.acm.org"
+      percent_escaped = doipath.gsub("/", "%2F")
+      path = "#{site}/action/exportCiteProcCitation?targetFile=custom-bibtex&format=bibTex&dois=#{percent_escaped}"
+      op = URI(path).open       # first get a cookie, ignore result
+      # warn [:META, op.meta].inspect
+      cook = op.meta['set-cookie'].split('; ', 2)[0]
+      cite = JSON.parse(URI(path).open("Cookie" => cook).read)
+      cite = cite["items"].first[doipath]
+      puts cite.to_yaml if verbose
+      doi_citeproc_to_lit(cite, fuzzy)
+    rescue
+      raise e
+    end
+  end
+end
+
+def doi_citeproc_to_lit(cite, fuzzy)
   lit = {}
   ser = lit["seriesinfo"] = {}
+  refcontent = []
   lit["title"] = cite["title"]
   if (st = cite["subtitle"]) && Array === st # defensive
     st.delete('')
@@ -76,19 +98,28 @@ def doi_fetch_and_convert(doi, fuzzy: false, verbose: false)
       spl = ct.split(" ")
       ser[spl[0..-2].join(" ")] = spl[-1]
     end
-  elsif pub = cite["publisher"]
-    info = []
-    if t = cite["type"]
-      info << t
-    end
-    rhs = info.join(", ")
-    if info != []
-      ser[pub] = rhs
-    else
-      spl = pub.split(" ")
-      ser[spl[0..-2].join(" ")] = spl[-1]
+  end
+  if pub = cite["publisher"]
+    refcontent << pub
+    # info = []
+    # if t = cite["type"]
+    #   info << t
+    # end
+    # rhs = info.join(", ")
+    # if info != []
+    #   ser[pub] = rhs
+    # else
+    #   spl = pub.split(" ")
+    #   ser[spl[0..-2].join(" ")] = spl[-1]
+    # end
+  end
+  ["DOI", "ISBN"].each do |st|
+    if a = cite[st]
+      ser[st] = a
     end
   end
-  ser["DOI"] = cite["DOI"]
+  if refcontent != []
+    lit["refcontent"] = refcontent.join(", ")
+  end
   lit
 end

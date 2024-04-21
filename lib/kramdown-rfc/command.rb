@@ -68,9 +68,10 @@ end
 
 
 def boilerplate(key)
+  ret = ''
   case key.downcase
-  when /\Abcp14(info)?(\+)?(-tagged)?\z/i
-    ret = ''
+  when /\Abcp14(info)?(\+)?(-tagged)?(-bcp)?\z/i
+    #            $1    $2     $3       $4
     if $1
       ret << <<RFC8174ise
 Although this document is not an IETF Standards Track publication, it
@@ -108,9 +109,44 @@ PLUS
 *[OPTIONAL]: <bcp14>
 TAGGED
     end
+    if $4                       # experimental; idnits complains:
+      #  ** The document seems to lack a both a reference to RFC 2119 and the
+      #     recommended RFC 2119 boilerplate, even if it appears to use RFC 2119
+      #     keywords -- however, there's a paragraph with a matching beginning.
+      #     Boilerplate error?
+      ret.sub!("{{!RFC2119}} {{!RFC8174}}", "{{!BCP14}}")
+    end
     ret
+  when /\Arfc\s*7942(info)?\z/i
+    if $1
+      ret << <<INFO
+(Boilerplate as per {{Section 2.1 of RFC7942}}:)
+
+INFO
+    end
+    ret << <<RFC7942
+This section records the status of known implementations of the
+protocol defined by this specification at the time of posting of
+this Internet-Draft, and is based on a proposal described in
+{{?RFC7942}}.  The description of implementations in this section is
+intended to assist the IETF in its decision processes in
+progressing drafts to RFCs.  Please note that the listing of any
+individual implementation here does not imply endorsement by the
+IETF.  Furthermore, no effort has been spent to verify the
+information presented here that was supplied by IETF contributors.
+This is not intended as, and must not be construed to be, a
+catalog of available implementations or their features.  Readers
+are advised to note that other implementations may exist.
+
+According to {{?RFC7942}}, "this will allow reviewers and working
+groups to assign due consideration to documents that have the
+benefit of running code, which may serve as evidence of valuable
+experimentation and feedback that have made the implemented
+protocols more mature.  It is up to the individual working groups
+to use this information as they see fit".
+RFC7942
   else
-    warn "** Unknwon boilerplate key: #{key}"
+    warn "** Unknown boilerplate key: #{key}"
     "{::boilerplate #{key}}"
   end
 end
@@ -222,6 +258,8 @@ def spacify_re(s)
   s.gsub(' ', '[\u00A0\s]+')
 end
 
+include ::Kramdown::Utils::Html
+
 def xml_from_sections(input)
 
   unless ENV["KRAMDOWN_NO_SOURCE"]
@@ -258,6 +296,13 @@ def xml_from_sections(input)
     end
   end
 
+  if r = ENV["KRAMDOWN_RFC_DOCREV"]
+    warn "** building document revision -#{r}"
+    unless n = ps.has(:docname) and n.sub!(/-latest\z/, "-#{r}")
+      warn "** -d#{r}: docname #{n.inspect} doesn't have a '-latest' suffix"
+    end
+  end
+
   if o = ps[:'autolink-iref-cleanup']
     $options.autolink_iref_cleanup = o
   end
@@ -266,7 +311,7 @@ def xml_from_sections(input)
   end
 
   coding_override = ps.has(:coding)
-  smart_quotes = ps[:smart_quotes]
+  smart_quotes = ps[:smart_quotes] || ps[:"smart-quotes"]
   typographic_symbols = ps[:typographic_symbols]
   header_kramdown_options = ps[:kramdown_options]
 
@@ -314,7 +359,7 @@ def xml_from_sections(input)
             anchor_to_bibref[k] = bibref
           end
           if dr = v.delete("display")
-            displayref[k] = dr
+            displayref[k.gsub("/", "_")] = dr
           end
         end
       end
@@ -330,18 +375,19 @@ def xml_from_sections(input)
     next if k == "fluff"
     v.gsub!(/{{(#{
       spacify_re(XSR_PREFIX)
-    })?(?:([?!])(-)?|(-))([\w._\-]+)(?:=([\w.\/_\-]+))?(#{
+    })?([\w.\/_\-]+@)?(?:([?!])(-)?|(-))([\w._\-]+)(?:=([\w.\/_\-]+))?(#{
       XREF_TXT_SUFFIX
     })?(#{
       spacify_re(XSR_SUFFIX)
     })?}}/) do |match|
       xsr_prefix = $1
-      norminform = $2
-      replacing = $3 || $4
-      word = $5
-      bibref = $6
-      xrt_suffix = $7
-      xsr_suffix = $8
+      subref = $2
+      norminform = $3
+      replacing = $4 || $5
+      word = $6
+      bibref = $7
+      xrt_suffix = $8
+      xsr_suffix = $9
       if replacing
         if new = ref_replacements[word]
           word = new
@@ -365,7 +411,7 @@ def xml_from_sections(input)
       if norminform
         norm_ref[word] ||= norminform == '!' # one normative ref is enough
       end
-      "{{#{xsr_prefix}#{word}#{xrt_suffix}#{xsr_suffix}}}"
+      "{{#{xsr_prefix}#{subref}#{word}#{xrt_suffix}#{xsr_suffix}}}"
     end
   end
 
@@ -400,11 +446,14 @@ def xml_from_sections(input)
 
         bibref = anchor_to_bibref[k] || k
         bts, url = bibtagsys(bibref, k, stand_alone)
+        ann = v.delete("annotation") || v.delete("ann") if Hash === v
         if bts && (!v || v == {} || v.respond_to?(:to_str))
           if stand_alone
             a = %{{: anchor="#{k}"}}
+            a[-1...-1] = %{ ann="#{escape_html(ann, :attribute)}"} if ann
             sechash[sn.to_s] << %{\n#{NMDTAGS[0]}\n![:include:](#{bts})#{a}\n#{NMDTAGS[1]}\n}
           else
+            warn "*** please use standalone mode for adding annotations to references" if ann
             bts.gsub!('/', '_')
             (ps.rest["bibxml"] ||= []) << [bts, url]
             sechash[sn.to_s] << %{&#{bts};\n} # ???
@@ -417,6 +466,7 @@ def xml_from_sections(input)
           if bts && !v.delete("override")
             warn "*** warning: explicit settings completely override canned bibxml in reference #{k}"
           end
+          v["ann"] = ann if ann
           sechash[sn.to_s] << KramdownRFC::ref_to_xml(href, v)
         end
       end
@@ -529,6 +579,10 @@ end
 warn "*** v2 #{$options.v2.inspect} v3 #{$options.v3.inspect}" if $options.verbose
 
 input = ARGF.read
+input.scrub! do |c|
+  warn "*** replaced invalid UTF-8 byte sequence #{c.inspect} by U+FFFD REPLACEMENT CHARACTER"
+  0xFFFD.chr(Encoding::UTF_8)
+end
 if input[0] == "\uFEFF"
    warn "*** There is a leading byte order mark. Ignored."
    input[0..0] = ''
