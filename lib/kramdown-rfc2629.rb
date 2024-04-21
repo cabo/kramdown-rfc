@@ -388,6 +388,10 @@ module Kramdown
       def convert(el)
         opts = el.options[:options]
         # warn "** tree opts #{opts.inspect}"
+        if nested_ol_types = @options[:nested_ol_types]
+          opts[:nested_ol_types] ||= nested_ol_types
+          # warn "** tree opts out #{opts.inspect}"
+        end
         indent = -INDENTATION
         if el.children[-1].type == :raw
           raw = convert1(el.children.pop, indent, opts)
