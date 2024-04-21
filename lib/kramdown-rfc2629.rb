@@ -33,6 +33,15 @@ end
 
 module Kramdown
 
+  Kramdown::Options.define(:ol_start_at_first_marker, Kramdown::Options::Boolean, false, <<~EOF)
+      If this option is `true`, an ordered list (<ol) will use the
+      number in its first marker (1 for 1. etc.) as the default value
+      of the start= attribute.
+
+      Default: false (for backward compatibility)
+      Used by: RFCXML converter
+    EOF
+
   Kramdown::Options.define(:nested_ol_types, Object, %w[1], <<~EOF) do |val|
       Values for type= attribute for nested ordered lists (ol).
       The value needs to be an array of <ol type= values, expressed as one of:
@@ -919,6 +928,10 @@ COLORS
       end
 
       def convert_ol(el, indent, opts)
+        if @options[:ol_start_at_first_marker] and (first_list_marker =
+                                                    el.options[:first_list_marker])
+          el.attr['start'] ||= first_list_marker[/\d+/]
+        end
         nested_types = opts[:nested_ol_types] || ["1"]
         # warn "** ol opts #{opts.inspect} types #{nested_types.inspect}"
         if nested_attr = el.attr.delete('nestedOlTypes')
