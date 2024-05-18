@@ -152,6 +152,18 @@ def num_expand(s)
   s.gsub(/\d+/) {|n| "%09d" % n.to_i}
 end
 
+def want_one(secs, what)
+  case secs.size
+  when 0
+    error_out "*** cannot match #{what}"
+    "*** DOESN'T EXIST ***"
+  when 1
+    yield secs.first
+  else
+    error_out "*** multiple matches for #{what}"
+    "*** MULTIPLE MATCHES ***"
+  end
+end
 require 'open3'
 
 module OpenURI
@@ -233,16 +245,8 @@ per_reference.keys.sort_by {|x| num_expand(x)}.each do |trg|
         REXML::XPath.match(refdoc.root, "//section[@pn=$pn]",
                            {}, {"pn" => c})}
       what = "#{secpn.join(" or ")} in #{trg}"
-      add << " (#{case secs.size
-                  when 0
-                    error_out "*** cannot match #{what}"
-                    "*** DOESN'T EXIST ***"
-                  when 1
-                    sec = secs.first
+      add << " (#{want_one(secs, what) do |sec|
                     sec[:title] || sec.elements["name"].all_text
-                  else
-                    error_out "*** multiple matches for #{what}"
-                    "*** MULTIPLE MATCHES ***"
                   end})"
     elsif refhtmldoc      # find section name in HTML from anchor s
       secpn = section_number_to_htmlid(s)
@@ -251,15 +255,8 @@ per_reference.keys.sort_by {|x| num_expand(x)}.each do |trg|
                                 {"xmlns" => "http://www.w3.org/1999/xhtml"},
                                 {"pn" => secpn})
       what = "#{secpn} in #{trg}"
-      add << " (#{case secs.size
-                  when 0
-                    error_out "*** cannot match #{what}"
-                    "*** DOESN'T EXIST ***"
-                  when 1
-                    secs.first.text.sub(/^\.\s+/, '')
-                  else
-                    error_out "*** multiple matches for #{what}"
-                    "*** MULTIPLE MATCHES ***"
+      add << " (#{want_one(secs, what) do |sec|
+                    sec.text.sub(/^\.\s+/, '')
                   end})"
     end
     puts "* #{/^[0-9]/ =~ s ? "Section" : "Appendix"} #{s}#{add}"
