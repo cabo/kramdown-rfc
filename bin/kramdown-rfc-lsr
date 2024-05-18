@@ -152,7 +152,7 @@ module OpenURI
         fn = [OpenURI::Cache.cache_path, uri.sub(/.*\//, '')].join('/')
         File.open(fn, 'wb'){|f| f.write unprepped }
         _prep_out, s = Open3.capture2("xml2rfc", "--prep", fn)
-        fail s unless s.success?
+        fail s.inspect unless s.success?
         new_fn = fn.sub(/\.xml$/, ".prepped.xml")
         Cache.set(newuri, File.open(new_fn))
       )
