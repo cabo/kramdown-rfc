@@ -1,5 +1,12 @@
 #!/usr/bin/env ruby -KU
 # frozen_string_literal: true
+
+# List Section References from a RFCXML document
+#
+# (PoC, in urgent need of refactoring)
+# Requires xml2rfc and tidy commands in path
+# Use without open-uri-cached is untested
+
 require 'rexml/document'        # for SVG and bibxml acrobatics
 require 'yaml'
 require 'json'
