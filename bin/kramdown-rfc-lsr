@@ -173,11 +173,14 @@ per_reference.keys.sort_by {|x| num_expand(x)}.each do |trg|
     add << " (#{REXML::XPath.match(refdoc.root, "//title").first.all_text})"
   rescue OpenURI::HTTPError => e
     begin
-      refjson = URI(uri.sub(/\.xml$/, ".json")).open.read
+      jsonuri = uri.sub(/\.xml$/, ".json")
+      refjson = URI(jsonuri).open.read
       refdata = JSON.load(refjson)
-      add << " (#{refdata["title"]})"
-    rescue Exception => e
+      add << " (#{refdata["title"].strip})"
+    rescue OpenURI::HTTPError => e
       add << " [No XML or JSON]"
+    rescue Exception => e
+      warn "*** error getting #{jsonuri.inspect}: #{e}"
     end
   rescue Exception => e
     warn "*** error getting #{uri.inspect}: #{e}"
