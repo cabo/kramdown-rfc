@@ -7,7 +7,7 @@
 # Requires xml2rfc and tidy commands in path
 # Use without open-uri-cached is untested
 
-require 'rexml/document'        # for SVG and bibxml acrobatics
+require 'rexml/document'
 require 'yaml'
 require 'json'
 require 'shellwords'
@@ -160,8 +160,6 @@ module OpenURI
     end
   end
 end
-
-# p OpenURI.prepped("https://www.ietf.org/archive/id/draft-bormann-t2trg-deref-id-02.xml").read
 
 per_reference.keys.sort_by {|x| num_expand(x)}.each do |trg|
   uri, sname = references[trg]
