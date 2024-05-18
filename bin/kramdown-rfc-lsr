@@ -168,30 +168,30 @@ require 'open3'
 
 module OpenURI
   class << self
-    def prepped(uri, *rest)
-      newuri = uri.to_s.sub(/\.xml$/, ".prepped.xml")
+    def processed(uri, old, camo, *rest)
+      newuri = uri.to_s.sub(old, camo) # camo name for processed data
       response = Cache.get(newuri) || (
-        unprepped = open_uri(uri, *rest).read
+        unprocessed = open_uri(uri, *rest).read
         fn = [OpenURI::Cache.cache_path, uri.sub(/.*\//, '')].join('/')
-        File.open(fn, 'wb'){|f| f.write unprepped }
-        _prep_out, s = Open3.capture2("xml2rfc", "--prep", fn)
-        fail s.inspect unless s.success?
-        new_fn = fn.sub(/\.xml$/, ".prepped.xml")
+        File.open(fn, 'wb'){|f| f.write unprocessed }
+        new_fn = yield newuri, fn
         Cache.set(newuri, File.open(new_fn))
       )
       response
     end
-    def tidied(uri, *rest)
-      newuri = uri.to_s.sub(/\.html$/, ".tidied.html")
-      response = Cache.get(newuri) || (
-        unprepped = open_uri(uri, *rest).read
-        fn = [OpenURI::Cache.cache_path, uri.sub(/.*\//, '')].join('/')
-        File.open(fn, 'wb'){|f| f.write unprepped }
+    def prepped(uri)
+      processed(uri, /\.xml$/, ".prepped.xml") do |newuri, fn|
+        _prep_out, s = Open3.capture2("xml2rfc", "--prep", fn)
+        fail s.inspect unless s.success?
+        fn.sub(/\.xml$/, ".prepped.xml") # xml2rfc creates new file
+      end
+    end
+    def tidied(uri)
+      processed(uri, /\.html$/, ".tidied.html") do |newuri, fn|
         _prep_out, s = Open3.capture2("tidy", "-mq", "-asxml", "-f", "/dev/null", fn)
-        fail s.inspect unless s.exited?
-        Cache.set(newuri, File.open(fn))
-      )
-      response
+        fail s.inspect unless s.exited? # can't check success
+        fn                              # -m makes in-place change
+      end
     end
   end
 end
