@@ -134,6 +134,28 @@ def num_expand(s)
   s.gsub(/\d+/) {|n| "%09d" % n.to_i}
 end
 
+require 'open3'
+
+module OpenURI
+  class << self
+    def prepped(uri, *rest)
+      newuri = uri.to_s.sub(/\.xml$/, ".prepped.xml")
+      response = Cache.get(newuri) || (
+        unprepped = open_uri(uri, *rest).read
+        fn = [OpenURI::Cache.cache_path, uri.sub(/.*\//, '')].join('/')
+        File.open(fn, 'wb'){|f| f.write unprepped }
+        _prep_out, s = Open3.capture2("xml2rfc", "--prep", fn)
+        fail s unless s.success?
+        new_fn = fn.sub(/\.xml$/, ".prepped.xml")
+        Cache.set(newuri, File.open(new_fn))
+      )
+      response
+    end
+  end
+end
+
+# p OpenURI.prepped("https://www.ietf.org/archive/id/draft-bormann-t2trg-deref-id-02.xml").read
+
 per_reference.keys.sort_by {|x| num_expand(x)}.each do |trg|
   uri, sname = references[trg]
   add = +''
@@ -143,6 +165,11 @@ per_reference.keys.sort_by {|x| num_expand(x)}.each do |trg|
   begin
     ref = URI(uri).open.read
     refdoc = REXML::Document.new(ref)
+    if REXML::XPath.match(refdoc.root, "/rfc/front/abstract[@pn]").size == 0
+      ref = OpenURI.prepped(uri).read
+      refdoc = REXML::Document.new(ref)
+      add << " [+prep]"
+    end
     add << " (#{REXML::XPath.match(refdoc.root, "//title").first.all_text})"
   rescue OpenURI::HTTPError => e
     begin
