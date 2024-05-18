@@ -126,7 +126,7 @@ references = Hash[REXML::XPath.match(doc.root, "//reference").map {|r|
 
 heading1 = "# #{xmlsource}"
 title = REXML::XPath.first(doc.root, "//title")
-heading1 << " (#{title.all_text})" if title
+heading1 << "\n(#{title.all_text})" if title
 puts heading1
 
 per_reference = Hash.new { |h, k| h[k] = Set[]}
@@ -184,6 +184,7 @@ module OpenURI
   end
 end
 
+# go through section-referenced documents in sequence
 per_reference.keys.sort_by {|x| num_expand(x)}.each do |trg|
   uri, sname = references[trg]
   add = +''
@@ -223,49 +224,45 @@ per_reference.keys.sort_by {|x| num_expand(x)}.each do |trg|
       warn "*** error tidying up HTML for #{htmluri.inspect}: #{e}"
     end
   end
-  per_reference[trg].to_a.sort_by {|x| num_expand(x)}.each do |s| # XXX numerically
-    secterm = if /^[0-9]/ =~ s
-                "Section"
-              else
-                "Appendix"
-              end
+  # go through individual section references in sequence
+  per_reference[trg].to_a.sort_by {|x| num_expand(x)}.each do |s|
     add = +''
     if refdoc      # find section name in XML from anchor s
       secpn = section_number_to_pn_candidates(s)
       secs = secpn.flat_map{ |c|
         REXML::XPath.match(refdoc.root, "//section[@pn=$pn]",
                            {}, {"pn" => c})}
-      secname = nil
-      case secs.size
-      when 0
-        error_out "*** cannot match #{secpn} in #{trg}"
-        secname = "*** DOESN'T EXIST ***"
-      when 1
-        sec = secs.first
-        secname = sec[:title] || sec.elements["name"].all_text
-      else
-        error_out "*** multiple matches for #{secpn} in #{trg}"
-        secname = "*** MULTIPLE MATCHES ***"
-      end
-      add << " (#{secname})"
+      what = "#{secpn.join(" or ")} in #{trg}"
+      add << " (#{case secs.size
+                  when 0
+                    error_out "*** cannot match #{what}"
+                    "*** DOESN'T EXIST ***"
+                  when 1
+                    sec = secs.first
+                    sec[:title] || sec.elements["name"].all_text
+                  else
+                    error_out "*** multiple matches for #{what}"
+                    "*** MULTIPLE MATCHES ***"
+                  end})"
     elsif refhtmldoc      # find section name in HTML from anchor s
       secpn = section_number_to_htmlid(s)
-      secs = REXML::XPath.match(refhtmldoc.root, "//xmlns:a[@id=$pn]/ancestor::xmlns:span", {"xmlns" => "http://www.w3.org/1999/xhtml"}, {"pn" => secpn})
-      secname = nil
-      case secs.size
-      when 0
-        error_out "*** cannot match #{secpn} in #{trg}"
-        secname = "*** DOESN'T EXIST ***"
-      when 1
-        sec = secs.first
-        secname = sec.text.sub(/^\.\s+/, '')
-      else
-        error_out "*** multiple matches for #{secpn} in #{trg}"
-        secname = "*** MULTIPLE MATCHES ***"
-      end
-      add << " (#{secname})"
+      secs = REXML::XPath.match(refhtmldoc.root,
+                                "//xmlns:a[@id=$pn]/ancestor::xmlns:span",
+                                {"xmlns" => "http://www.w3.org/1999/xhtml"},
+                                {"pn" => secpn})
+      what = "#{secpn} in #{trg}"
+      add << " (#{case secs.size
+                  when 0
+                    error_out "*** cannot match #{what}"
+                    "*** DOESN'T EXIST ***"
+                  when 1
+                    secs.first.text.sub(/^\.\s+/, '')
+                  else
+                    error_out "*** multiple matches for #{what}"
+                    "*** MULTIPLE MATCHES ***"
+                  end})"
     end
-    puts "* #{secterm} #{s}#{add}"
+    puts "* #{/^[0-9]/ =~ s ? "Section" : "Appendix"} #{s}#{add}"
   end
 end
 
