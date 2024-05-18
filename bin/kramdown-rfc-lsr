@@ -1,0 +1,185 @@
+#!/usr/bin/env ruby -KU
+# frozen_string_literal: true
+require 'rexml/document'        # for SVG and bibxml acrobatics
+require 'yaml'
+require 'json'
+require 'shellwords'
+require 'fileutils'
+begin
+  require 'open-uri/cached'
+rescue LoadError
+  warn '*** please "gem install open-uri-cached" to enable caching'
+  require 'open-uri'
+end
+require_relative '../lib/kramdown-rfc/rexml-all-text.rb'
+
+target = :shortname
+require 'optparse'
+begin
+  op = OptionParser.new do |opts|
+    opts.banner = "Usage: kramdown-rfc-lsr [options] xml-source"
+    opts.on("-u", "--url", "Source is URL") do |v|
+      target = :url
+    end
+    opts.on("-s", "--shortname", "Source is shortname (default)") do |v|
+      target = :shortname
+    end
+    opts.on("-f", "--file", "Source is filename") do |v|
+      target = :file
+    end
+  end
+  op.parse!
+rescue Exception => e
+  warn e
+  exit 1
+end
+
+$exit_code = 0
+
+if target != :file && ARGV.size != 1
+  puts op
+  exit 1
+end
+xmlsource = ARGV[0]
+if target == :shortname
+  xmlsource = case xmlsource
+              when /^(?:rfc)?(\d+)$/i
+                "https://www.rfc-editor.org/rfc/rfc#{$1.to_i.to_s}.xml"
+              when /^(?:draft-|I-D.|)(.*-\d\d)$/
+                "https://www.ietf.org/archive/id/draft-#$1.xml"
+              # XXX find xml source for most recent version!
+              else
+                warn "*** Can't parse shortname #{xmlsource.inspect}"
+                puts op
+                exit 1
+              end
+  target = :url
+end
+
+begin
+  xml = case target
+        when :file
+          ARGF.read
+        when :url
+          URI(xmlsource).open.read
+        else
+          fail
+        end
+rescue Exception => e
+  warn "#{xmlsource.inspect}: #{e}"
+  exit 1
+end
+
+doc = REXML::Document.new(xml)
+
+def series_info_to_URI(si)
+  case si[:name]
+  when "RFC"
+    "https://www.rfc-editor.org/rfc/rfc#{si[:value]}.xml"
+  when "Internet-Draft"
+    "https://www.ietf.org/archive/id/#{si[:value]}.xml"
+  end
+end
+
+
+def series_info_to_name(si)
+  case si[:name]
+  when "RFC"
+    "RFC#{si[:value]}"
+  when "Internet-Draft"
+    si[:value]
+  end
+end
+
+def section_number_to_pn(s)
+  if /^[0-9]/ =~ s
+    "section-#{s}"
+  elsif /[.]/ =~ s
+    "section-#{s.downcase}"
+  else
+    "section-appendix.#{s.downcase}"
+  end
+end
+
+references = Hash[REXML::XPath.match(doc.root, "//reference").map {|r|
+                    si = REXML::XPath.match(r, "seriesInfo").map {|s|
+                      series_info_to_URI(s)}.compact.first
+                    sn = REXML::XPath.match(r, "seriesInfo").map {|s|
+                      series_info_to_name(s)}.compact.first
+                    [r[:anchor], si ? [si, sn] : nil]
+}]                              # XXX duplicates?
+
+puts "# #{xmlsource}"
+
+per_reference = Hash.new { |h, k| h[k] = Set[]}
+
+REXML::XPath.each(doc.root, "//xref[@section]") do |x|
+  trg = x[:target]
+  if x[:relative]
+    puts "\n## #{x[:target]}#{x[:relative]}: #{x[:section]}"
+  else
+    # p x
+    per_reference[trg] << x[:section]
+  end
+end
+
+def error_out(s)
+  warn ""
+  warn s
+  warn ""
+  $exit_code = 1
+end
+
+per_reference.keys.sort.each do |trg|
+  uri, sname = references[trg]
+  add = +''
+  if sname != trg
+    add << " [#{sname}]"
+  end
+  begin
+    ref = URI(uri).open.read
+    refdoc = REXML::Document.new(ref)
+    add << " (#{REXML::XPath.match(refdoc.root, "//title").first.all_text})"
+  rescue OpenURI::HTTPError => e
+    begin
+      refjson = URI(uri.sub(/\.xml$/, ".json")).open.read
+      refdata = JSON.load(refjson)
+      add << " (#{refdata["title"]})"
+    rescue Exception => e
+      add << " [No XML or JSON]"
+    end
+  rescue Exception => e
+    warn "*** error getting #{uri.inspect}: #{e}"
+  end
+  puts "\n## #{trg}#{add}"
+  per_reference[trg].to_a.sort.each do |s| # XXX numerically
+    secterm = if /^[0-9]/ =~ s
+                "Section"
+              else
+                "Appendix"
+              end
+    add = +''
+    if refdoc
+      # find section name from anchor s
+      # secname = "DUMMY" # REXML::XPath.match(refdoc.root, "//section").first.all_text
+      secpn = section_number_to_pn(s)
+      secs = REXML::XPath.match(refdoc.root, "//section[@pn=$pn]", {}, {"pn" => secpn})
+      secname = nil
+      case secs.size
+      when 0
+        error_out "*** cannot match #{secpn} in #{trg}"
+        secname = "*** DOESN'T EXIST ***"
+      when 1
+        sec = secs.first
+        secname = sec[:title] || sec.elements["name"].all_text
+      else
+        error_out "*** multiple matches for #{secpn} in #{trg}"
+        secname = "*** MULTIPLE MATCHES ***"
+      end
+      add << " (#{secname})"
+    end
+    puts "* #{secterm} #{s}#{add}"
+  end
+end
+
+exit $exit_code
