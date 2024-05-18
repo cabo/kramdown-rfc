@@ -130,7 +130,11 @@ def error_out(s)
   $exit_code = 1
 end
 
-per_reference.keys.sort.each do |trg|
+def num_expand(s)
+  s.gsub(/\d+/) {|n| "%09d" % n.to_i}
+end
+
+per_reference.keys.sort_by {|x| num_expand(x)}.each do |trg|
   uri, sname = references[trg]
   add = +''
   if sname != trg
@@ -152,7 +156,7 @@ per_reference.keys.sort.each do |trg|
     warn "*** error getting #{uri.inspect}: #{e}"
   end
   puts "\n## #{trg}#{add}"
-  per_reference[trg].to_a.sort.each do |s| # XXX numerically
+  per_reference[trg].to_a.sort_by {|x| num_expand(x)}.each do |s| # XXX numerically
     secterm = if /^[0-9]/ =~ s
                 "Section"
               else
