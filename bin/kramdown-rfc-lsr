@@ -108,6 +108,14 @@ def section_number_to_pn(s)
   end
 end
 
+def section_number_to_htmlid(s)
+  if /^[0-9]/ =~ s
+    "section-#{s}"
+  else
+    "appendix-#{s.upcase}"
+  end
+end
+
 references = Hash[REXML::XPath.match(doc.root, "//reference").map {|r|
                     si = REXML::XPath.match(r, "seriesInfo").map {|s|
                       series_info_to_URI(s)}.compact.first
@@ -158,6 +166,18 @@ module OpenURI
       )
       response
     end
+    def tidied(uri, *rest)
+      newuri = uri.to_s.sub(/\.html$/, ".tidied.html")
+      response = Cache.get(newuri) || (
+        unprepped = open_uri(uri, *rest).read
+        fn = [OpenURI::Cache.cache_path, uri.sub(/.*\//, '')].join('/')
+        File.open(fn, 'wb'){|f| f.write unprepped }
+        _prep_out, s = Open3.capture2("tidy", "-mq", "-asxml", "-f", "/dev/null", fn)
+        fail s.inspect unless s.exited?
+        Cache.set(newuri, File.open(fn))
+      )
+      response
+    end
   end
 end
 
@@ -191,6 +211,15 @@ per_reference.keys.sort_by {|x| num_expand(x)}.each do |trg|
     warn "*** error getting #{uri.inspect}: #{e}"
   end
   puts "\n## #{trg}#{add}"
+  unless refdoc
+    begin
+      htmluri = uri.sub(/\.xml$/, ".html")
+      refhtml = OpenURI.tidied(htmluri).read
+      refhtmldoc = REXML::Document.new(refhtml)
+    rescue Exception => e
+      warn "*** error tidying up HTML for #{htmluri.inspect}: #{e}"
+    end
+  end
   per_reference[trg].to_a.sort_by {|x| num_expand(x)}.each do |s| # XXX numerically
     secterm = if /^[0-9]/ =~ s
                 "Section"
@@ -211,6 +240,22 @@ per_reference.keys.sort_by {|x| num_expand(x)}.each do |trg|
       when 1
         sec = secs.first
         secname = sec[:title] || sec.elements["name"].all_text
+      else
+        error_out "*** multiple matches for #{secpn} in #{trg}"
+        secname = "*** MULTIPLE MATCHES ***"
+      end
+      add << " (#{secname})"
+    elsif refhtmldoc
+      secpn = section_number_to_htmlid(s)
+      secs = REXML::XPath.match(refhtmldoc.root, "//xmlns:a[@id=$pn]/ancestor::xmlns:span", {"xmlns" => "http://www.w3.org/1999/xhtml"}, {"pn" => secpn})
+      secname = nil
+      case secs.size
+      when 0
+        error_out "*** cannot match #{secpn} in #{trg}"
+        secname = "*** DOESN'T EXIST ***"
+      when 1
+        sec = secs.first
+        secname = sec.text.sub(/^\.\s+/, '')
       else
         error_out "*** multiple matches for #{secpn} in #{trg}"
         secname = "*** MULTIPLE MATCHES ***"
