@@ -98,13 +98,13 @@ def series_info_to_name(si)
   end
 end
 
-def section_number_to_pn(s)
+def section_number_to_pn_candidates(s)
   if /^[0-9]/ =~ s
-    "section-#{s}"
+    ["section-#{s}"]
   elsif /[.]/ =~ s
-    "section-#{s.downcase}"
+    ["section-#{s.downcase}", "section-appendix.#{s.downcase}"]
   else
-    "section-appendix.#{s.downcase}"
+    ["section-appendix.#{s.downcase}"]
   end
 end
 
@@ -230,11 +230,11 @@ per_reference.keys.sort_by {|x| num_expand(x)}.each do |trg|
                 "Appendix"
               end
     add = +''
-    if refdoc
-      # find section name from anchor s
-      # secname = "DUMMY" # REXML::XPath.match(refdoc.root, "//section").first.all_text
-      secpn = section_number_to_pn(s)
-      secs = REXML::XPath.match(refdoc.root, "//section[@pn=$pn]", {}, {"pn" => secpn})
+    if refdoc      # find section name in XML from anchor s
+      secpn = section_number_to_pn_candidates(s)
+      secs = secpn.flat_map{ |c|
+        REXML::XPath.match(refdoc.root, "//section[@pn=$pn]",
+                           {}, {"pn" => c})}
       secname = nil
       case secs.size
       when 0
@@ -248,7 +248,7 @@ per_reference.keys.sort_by {|x| num_expand(x)}.each do |trg|
         secname = "*** MULTIPLE MATCHES ***"
       end
       add << " (#{secname})"
-    elsif refhtmldoc
+    elsif refhtmldoc      # find section name in HTML from anchor s
       secpn = section_number_to_htmlid(s)
       secs = REXML::XPath.match(refhtmldoc.root, "//xmlns:a[@id=$pn]/ancestor::xmlns:span", {"xmlns" => "http://www.w3.org/1999/xhtml"}, {"pn" => secpn})
       secname = nil
