@@ -124,7 +124,10 @@ references = Hash[REXML::XPath.match(doc.root, "//reference").map {|r|
                     [r[:anchor], si ? [si, sn] : nil]
 }]                              # XXX duplicates?
 
-puts "# #{xmlsource}"
+heading1 = "# #{xmlsource}"
+title = REXML::XPath.first(doc.root, "//title")
+heading1 << " (#{title.all_text})" if title
+puts heading1
 
 per_reference = Hash.new { |h, k| h[k] = Set[]}
 
