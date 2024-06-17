@@ -459,6 +459,24 @@ def xml_from_sections(input)
             sechash[sn.to_s] << %{&#{bts};\n} # ???
           end
         else
+          if v && Integer === v
+            case href
+            when /\AErr(.*)/
+              epno = $1
+              rfcno = v.to_s
+              v = {
+                "target" => "https://www.rfc-editor.org/errata/eid#{epno}",
+                "title" => "RFC Errata Report #{epno}",
+                "quote-title" => false,
+                "seriesinfo" => { "RFC" => rfcno },
+                "date" => false
+              }
+            else
+              # superfluous -- would be caught by next "unless"
+              warn "*** don't know how to expand numeric ref #{k}"
+              next
+            end
+          end
           unless v && Hash === v
             warn "*** don't know how to expand ref #{k}"
             next
