@@ -376,6 +376,7 @@ def xml_from_sections(input)
     v.gsub!(/{{(#{
       spacify_re(XSR_PREFIX)
     })?([\w.\/_\-]+@)?(?:([?!])(-)?|(-))([\w._\-]+)(?:=([\w.\/_\-]+))?(#{
+    #  2                 3     4    5   6              7
       XREF_TXT_SUFFIX
     })?(#{
       spacify_re(XSR_SUFFIX)
@@ -459,6 +460,9 @@ def xml_from_sections(input)
             sechash[sn.to_s] << %{&#{bts};\n} # ???
           end
         else
+          if v.nil? && (bri = bibref.to_i) != 0
+            v = bri
+          end # hack in {{?Err6543=8610}}
           if v && Integer === v
             case href
             when /\AErr(.*)/
@@ -478,7 +482,7 @@ def xml_from_sections(input)
             end
           end
           unless v && Hash === v
-            warn "*** don't know how to expand ref #{k}"
+            warn "*** don't know how to expand ref #{k} #{v.inspect}"
             next
           end
           if bts && !v.delete("override")
