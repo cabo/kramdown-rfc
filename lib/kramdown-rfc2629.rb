@@ -32,6 +32,7 @@ class Object
 end
 
 module Kramdown
+  RFCXML_SPAN_ELEMENTS = Set.new(Kramdown::Parser::Html::Constants::HTML_SPAN_ELEMENTS)
 
   Kramdown::Options.define(:ol_start_at_first_marker, Kramdown::Options::Boolean, false, <<~EOF)
       If this option is `true`, an ordered list (<ol) will use the
@@ -837,7 +838,12 @@ COLORS
         if $options.v3
           gi = el.attr.delete('gi')
           if gi && gi != 'ul'
-            "#{' '*indent}<#{gi}#{el_html_attributes(el)}>\n#{text}#{' '*indent}</#{gi}>\n"
+            if RFCXML_SPAN_ELEMENTS === gi
+              text.sub!(/\A\s*<t>(.*)<\/t>\s*\z/) {$1} # XXX unwrap inner text from block
+              "#{' '*indent}<t><#{gi}#{el_html_attributes(el)}>#{text}</#{gi}></t>\n"
+            else
+              "#{' '*indent}<#{gi}#{el_html_attributes(el)}>\n#{text}#{' '*indent}</#{gi}>\n"
+            end
           else
             "#{' '*indent}<ul#{el_html_attributes_with(el, {"empty" => 'true'})}><li>\n#{text}#{' '*indent}</li></ul>\n"
           end
