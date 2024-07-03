@@ -183,20 +183,32 @@
     <displayreference target="<%=k%>" to="<%=v%>"/>
 <% end -%>
 
-<% if sh = sechash.delete("normative") -%>
+<% shn = sechash.delete("normative")
+   shi = sechash.delete("informative")
+   shc = shn && shi
+   if shc
+-%>
+<references title='References' anchor="sec-combined-references">
+<% end -%>
+
+<% if shn -%>
     <references title='Normative References' anchor="sec-normative-references">
 
-<%= sh %>
+<%= shn %>
 
     </references>
 <% end -%>
 
-<% if sh = sechash.delete("informative") -%>
+<% if shi -%>
     <references title='Informative References' anchor="sec-informative-references">
 
-<%= sh %>
+<%= shi %>
 
     </references>
+<% end -%>
+
+<% if shc -%>
+</references>
 <% end -%>
 
 <%= sechash.delete("back") %>
