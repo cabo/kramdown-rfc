@@ -882,6 +882,9 @@ COLORS
         clean = ''
         parts.each do |p|
           next if p.empty?
+          if p == "<br />"
+            p = "\u2028"        # XXX
+          end
           d = REXML::Document.new("<foo>#{p}</foo>")
           t = REXML::XPath.each(d.root, "//text()").to_a.join
           if t != p
