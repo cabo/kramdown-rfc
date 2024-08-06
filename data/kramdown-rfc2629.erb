@@ -225,6 +225,7 @@
 <%= sh -%>
 <% if $options.v3 && consec
      ps.arr("contributor") do |au|
+      if Hash === au
        aups = KramdownRFC::authorps_from_hash(au)
    -%>
 <%= KramdownRFC::person_element_from_aups("contact", aups) -%>
@@ -237,7 +238,17 @@
 CONTRIBUTION
     end -%>
 <%   aups.warn_if_leftovers  -%>
+<%   else -%>
+<%=  <<TEXT
+{:/nomarkdown}
+
+#{au}
+
+{::nomarkdown}
+TEXT
+-%>
 <%   end -%>
+<%  end -%>
 <% end -%>
     </section>
 <% end -%>
