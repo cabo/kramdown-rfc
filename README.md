@@ -667,7 +667,7 @@ made it possible to license kramdown-rfc under the same license.
 [RFC 2629]: https://www.rfc-editor.org/rfc/rfc2629.html
 [RFC 7749]: https://www.rfc-editor.org/rfc/rfc7749.html
 [RFC 7991]: https://www.rfc-editor.org/rfc/rfc7991.html
-[v3]: https://xml2rfc.tools.ietf.org/xml2rfc-doc.html
+[v3]: https://authors.ietf.org/rfcxml-vocabulary
 [markdown]: http://en.wikipedia.org/wiki/Markdown
 [IETF]: http://www.ietf.org
 [Miek Gieben]: http://www.miek.nl/
