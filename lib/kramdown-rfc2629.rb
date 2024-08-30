@@ -621,11 +621,23 @@ COLORS
           outpath = file.path + ".svg"
           result1 = File.read(outpath) rescue '' # don't die before providing error message
           File.unlink(outpath) rescue nil        # ditto
-        when "plantuml", "plantuml-utxt"
+        when "plantuml", "plantuml-utxt", "plantuml-ascii-art"
+          if t == "plantuml-ascii-art"
+            result, ascii_art = result.split(/^~{3,} ascii-art\n/, 2)
+            unless ascii_art
+              warn "*** Didn't find ascii-art in plantuml-ascii-art #{result.inspect}"
+              ascii_art = result.to_s
+            end
+          end
           plantuml = "@startuml\n#{result}\n@enduml"
           result1, err, _s = Open3.capture3("plantuml -pipe -tsvg#{svg_opt}", stdin_data: plantuml);
-          result, err1, _s = Open3.capture3("plantuml -pipe -tutxt#{txt_opt}", stdin_data: plantuml) if t == "plantuml-utxt"
-          err << err1.to_s
+          case t
+          when "plantuml-utxt"
+            result, err1, _s = Open3.capture3("plantuml -pipe -tutxt#{txt_opt}", stdin_data: plantuml)
+            err << err1.to_s
+          when "plantuml-ascii-art"
+            result = ascii_art
+          end
         when "railroad", "railroad-utf8"
           result1, err1, _s = Open3.capture3("kgt -l abnf -e svg#{svg_opt}", stdin_data: result);
           result1 = svg_clean_kgt(result1); dont_clean = true
@@ -719,7 +731,7 @@ COLORS
           case t
           when "aasvg", "ditaa", "goat",
                "math", "math-asciitex", "mermaid",  "mscgen",
-               "plantuml", "plantuml-utxt",
+               "plantuml", "plantuml-utxt", "plantuml-ascii-art",
                "protocol", "protocol-aasvg", "protocol-goat",
                "railroad", "railroad-utf8"
             if gi
