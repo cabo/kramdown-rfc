@@ -2,7 +2,6 @@
 require 'rexml/document'
 require 'yaml'
 require 'optparse'
-require 'pp'
 
 PROGNAME = "kramdown-rfc-extract-figures-tables"
 
@@ -75,6 +74,5 @@ lists.each do |k, v|
   v.each_with_index do |(ref, ti), n|
     ti = "[#{ti}](##{ref})" if ref
     puts "#{n+1}. #{ti}"
-    # XXX add references
   end
 end
