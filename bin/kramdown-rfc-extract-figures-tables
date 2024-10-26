@@ -48,11 +48,11 @@ REXML::XPath.each(d.root, %{//figure|//*[name()="table" or name()="texttable"]})
     # p [gi, out.last]
   end
   gi1 = if gi == "texttable"; "table" else gi end
-  if out == []         # ignore nameless fig, synth name for nameless table
-    if gi == "figure"
-      next                      # What if anchor but no title?
-    end
-    out = ["Table #{lists["table"].size + 1}"]
+  if out == []         # nameless
+    # nameless, anchorless fig doesn't get a number; ignore
+    next if gi == "figure" && !ref
+    # Synthesize name (if not redundant)
+    out = ["#{gi1.capitalize} #{lists[gi1].size + 1}"] if !ref
   end
   # p [gi, out]
   lists[gi1] << [ref, out.join(" ")]
