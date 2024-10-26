@@ -1,0 +1,79 @@
+#!/usr/bin/env ruby -KU
+require 'rexml/document'
+require 'yaml'
+require 'optparse'
+require 'pp'
+
+PROGNAME = "kramdown-rfc-extract-figures-tables"
+
+target = :section
+targets = [:note, :section]
+require 'optparse'
+begin
+  op = OptionParser.new do |opts|
+    opts.banner = "Usage: #{PROGNAME} [options] [-|document.xml]"
+    opts.on("-tFMT", "--to=FMT", targets, "Target format #{targets.map(&:to_s)}") do |v|
+      target = v
+    end
+  end
+  op.parse!
+rescue Exception => e
+  warn e
+  exit 1
+end
+
+class String
+  def spacify
+    gsub(/\s+/, " ")
+  end
+end
+
+lists = Hash.new { |h, k| h[k] = [] }
+d = REXML::Document.new(ARGF)
+unless d.root
+  warn "** #{PROGNAME}: Cannot parse input"
+  exit 1
+end
+REXML::XPath.each(d.root, %{//figure|//*[name()="table" or name()="texttable"]}) do |x|
+  gi = x.name
+  ref = x[:anchor]
+  # p [gi, ref]
+  out = []
+  REXML::XPath.each(x, "name") do |nm|
+    out << nm.children.map{|ch| ch.to_s}.join
+    # p [gi, out.last]
+  end
+  REXML::XPath.each(x, "@title") do |ttl|
+    out << ttl.to_s.spacify
+    # p [gi, out.last]
+  end
+  gi1 = if gi == "texttable"; "table" else gi end
+  if out == []         # ignore nameless fig, synth name for nameless table
+    if gi == "figure"
+      next                      # What if anchor but no title?
+    end
+    out = ["Table #{lists["table"].size + 1}"]
+  end
+  # p [gi, out]
+  lists[gi1] << [ref, out.join(" ")]
+end
+
+lists.each do |k, v|
+  title = "List of #{k.capitalize}s"
+  case target
+  when :note
+    puts
+    puts "--- note_#{title.gsub(" ", "_")}"
+    puts
+  when :section
+    puts
+    puts "# #{title}"
+  else
+    fail
+  end
+  v.each_with_index do |(ref, ti), n|
+    ti = "[#{ti}](##{ref})" if ref
+    puts "#{n+1}. #{ti}"
+    # XXX add references
+  end
+end
