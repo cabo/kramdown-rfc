@@ -68,6 +68,7 @@ lists.each do |k, v|
   when :section
     puts
     puts "# #{title}"
+    puts "{:unnumbered}"
   else
     fail
   end
