@@ -3,7 +3,7 @@ require 'rexml/document'
 require 'yaml'
 require 'optparse'
 
-PROGNAME = "kramdown-rfc-extract-figures-tables"
+PROGNAME = $0 # "kramdown-rfc-extract-figures-tables"
 
 target = :section
 targets = [:section, :note]
