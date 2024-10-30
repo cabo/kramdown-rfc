@@ -79,6 +79,15 @@ end
 
 doc = REXML::Document.new(xml)
 
+REXML::XPath.match(doc.root, '//xi:include').each do |el|
+  begin
+    refdoc = REXML::Document.new(URI(el[:href]).open.read)
+    el.replace_with(refdoc.root)
+  rescue => e
+    warn "*** error getting xinclude #{el} resolved: #{e}"
+  end
+end
+
 def series_info_to_URI(si)
   case si[:name]
   when "RFC"
