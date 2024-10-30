@@ -6,7 +6,7 @@ require 'optparse'
 PROGNAME = "kramdown-rfc-extract-figures-tables"
 
 target = :section
-targets = [:note, :section]
+targets = [:section, :note]
 require 'optparse'
 begin
   op = OptionParser.new do |opts|
