@@ -72,6 +72,7 @@ lists.each do |k, v|
     fail
   end
   v.each_with_index do |(ref, ti), n|
+    ti.sub!(/,?[\p{Zl}\p{Zp}\p{Cc}].*/, "") # first line of caption only
     ti = "[#{ti}](##{ref})" if ref
     puts "#{n+1}. #{ti}"
   end
