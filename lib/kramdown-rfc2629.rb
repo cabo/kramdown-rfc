@@ -1306,9 +1306,16 @@ COLORS
          "#{XML_RESOURCE_ORG_PREFIX}/bibxml-rfcsubseries/#{name}"] # FOR NOW
       end
 
+      KRAMDOWN_REFCACHETTL = (e = ENV["KRAMDOWN_REFCACHETTL"]) ? e.to_i : 3600
+
+      KRAMDOWN_REFCACHETTL_RFC = (e = ENV["KRAMDOWN_REFCACHETTL_RFC"]) ? e.to_i : 86400*7
+      KRAMDOWN_REFCACHETTL_DOI_IANA = (e = ENV["KRAMDOWN_REFCACHETTL_DOI_IANA"]) ? e.to_i : 86400
+      KRAMDOWN_REFCACHETTL_DOI = (e = ENV["KRAMDOWN_REFCACHETTL_DOI"]) ? e.to_i : KRAMDOWN_REFCACHETTL_DOI_IANA
+      KRAMDOWN_REFCACHETTL_IANA = (e = ENV["KRAMDOWN_REFCACHETTL_IANA"]) ? e.to_i : KRAMDOWN_REFCACHETTL_DOI_IANA
+
       # [subdirectory name, cache ttl in seconds, does it provide for ?anchor=]
       XML_RESOURCE_ORG_MAP = {
-        "RFC" => ["bibxml", 86400*7, false,
+        "RFC" => ["bibxml", KRAMDOWN_REFCACHETTL_RFC, false,
                   ->(fn, n){ [name = "reference.RFC.#{"%04d" % n.to_i}.xml",
                               "https://bib.ietf.org/public/rfc/bibxml/#{name}"] }
 # was                         "https://www.rfc-editor.org/refs/bibxml/#{name}"] }
@@ -1317,10 +1324,10 @@ COLORS
                   ->(fn, n){ [fn,
                               "https://datatracker.ietf.org/doc/bibxml3/draft-#{n.sub(/\Adraft-/, '')}.xml"] }
                  ],
-        "BCP" => ["bibxml-rfcsubseries", 86400*7, false,
+        "BCP" => ["bibxml-rfcsubseries", KRAMDOWN_REFCACHETTL_RFC, false,
                   ->(fn, n){ Rfc2629::bcp_std_ref("BCP", n) }
                  ],
-        "STD" => ["bibxml-rfcsubseries", 86400*7, false,
+        "STD" => ["bibxml-rfcsubseries", KRAMDOWN_REFCACHETTL_RFC, false,
                   ->(fn, n){ Rfc2629::bcp_std_ref("STD", n) }
                  ],
         "W3C" => "bibxml4",
@@ -1336,9 +1343,10 @@ COLORS
         "NIST" => "bibxml2",
         "OASIS" => "bibxml2",
         "PKCS" => "bibxml2",
-        "DOI" => ["bibxml7", 86400, true, ->(fn, n){ ["computed-#{fn}", [:DOI, n] ] }, true # always_altproc
+        "DOI" => ["bibxml7", KRAMDOWN_REFCACHETTL_DOI, true,
+                  ->(fn, n){ ["computed-#{fn}", [:DOI, n] ] }, true # always_altproc
                  ], # emulate old 24 h cache
-        "IANA" => ["bibxml8", 86400, true], # ditto
+        "IANA" => ["bibxml8", KRAMDOWN_REFCACHETTL_IANA, true], # ditto
       }
 
       # XML_RESOURCE_ORG_HOST = ENV["XML_RESOURCE_ORG_HOST"] || "xml.resource.org"
@@ -1347,8 +1355,6 @@ COLORS
       XML_RESOURCE_ORG_PREFIX = ENV["XML_RESOURCE_ORG_PREFIX"] ||
                                 "https://#{XML_RESOURCE_ORG_HOST}/public/rfc"
       KRAMDOWN_USE_TOOLS_SERVER = ENV["KRAMDOWN_USE_TOOLS_SERVER"]
-
-      KRAMDOWN_REFCACHETTL = (e = ENV["KRAMDOWN_REFCACHETTL"]) ? e.to_i : 3600
 
       KRAMDOWN_NO_TARGETS = ENV['KRAMDOWN_NO_TARGETS']
       KRAMDOWN_KEEP_TARGETS = ENV['KRAMDOWN_KEEP_TARGETS']
