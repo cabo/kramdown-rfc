@@ -37,6 +37,15 @@ def process_mkd(input, output)
   end
 end
 
+def filename_ct(fn, ext)
+  bn = File.basename(fn, ".*")
+  if r = ENV["KRAMDOWN_RFC_DOCREV"]
+    bn << "-#{r}"
+  end
+  {filename: "#{bn}.#{ext}",
+   content_type: "text/plain"}
+end
+
 def run_idnits(*args)
   if @options.remote
     run_idnits_remotely(*args)
@@ -62,8 +71,7 @@ def run_idnits_remotely(txt_fn)
   url = URI(IDNITS_WEBSERVICE)
   req = Net::HTTP::Post.new(url)
   form = [["file", File.open(txt_fn),
-           {filename: "input.txt",
-            content_type: "text/plain"}],
+           filename_ct(txt_fn, "txt")],
           ["hidetext", "true"]]
   diag = ["url/form: ", url, form].inspect
   req.set_form(form, 'multipart/form-data')
@@ -152,8 +160,7 @@ def process_xml_remotely(input, output, *flags)
   url = URI(XML2RFC_WEBSERVICE + maf)
   req = Net::HTTP::Post.new(url)
   form = [["file", File.open(input),
-           {filename: "input.xml",
-            content_type: "text/plain"}]]
+           filename_ct(input, "xml")]]
   diag = ["url/form: ", url, form].inspect
   req.set_form(form, 'multipart/form-data')
   warn "* requesting at #{url}" if @options.verbose
