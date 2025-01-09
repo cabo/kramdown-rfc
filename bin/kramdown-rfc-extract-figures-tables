@@ -68,6 +68,8 @@ lists.each do |k, v|
     puts
     puts "# #{title}"
     puts "{:unnumbered}"
+    puts
+    puts "{:compact}"
   else
     fail
   end
