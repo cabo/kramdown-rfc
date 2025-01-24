@@ -52,6 +52,12 @@
 <% end -%>
 
 <rfc <%=rfcattrs%>>
+<% ps.arr("v3xml2rfc", false) do |pi, val|
+    Array(val).each do |el|
+-%>
+  <?v3xml2rfc <%=pi%>="<%=ps.escattr(el)%>"?>
+<%  end
+   end -%>
   <front>
     <%= ps.ele("title", ps.attr("abbrev=titleabbrev")) %>
 
