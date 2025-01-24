@@ -18,6 +18,7 @@ class KDRFC
   # )))
 
 KDRFC_PREPEND = [ENV["KDRFC_PREPEND"]].compact
+KDRFC_XML2RFC_FLAGS = Array(ENV["KDRFC_XML2RFC_FLAGS"]&.split(","))
 
 def v3_flag?
   [*(@options.v3 ? ["--v3"] : []),
@@ -113,7 +114,7 @@ end
 def process_xml_locally(input, output, *flags)
   warn "* converting locally from xml #{input} to txt #{output}" if @options.verbose
   begin
-    o, s = Open3.capture2(*KDRFC_PREPEND, "xml2rfc", *v3_flag?, *flags, input)
+    o, s = Open3.capture2(*KDRFC_PREPEND, "xml2rfc", *v3_flag?, *flags, *KDRFC_XML2RFC_FLAGS, input)
     puts o
     if s.success?
       warn "* #{output} written" if @options.verbose
