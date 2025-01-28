@@ -40,6 +40,7 @@ end
 
 target = nil
 dir = nil
+out_type = out_name = nil
 unfold = true
 targets = [:list, :files, :zip, :yaml]
 require 'optparse'
@@ -51,6 +52,10 @@ begin
     end
     opts.on("-dDIR", "--dir=DIR", "Target directory (default: sourcecode)") do |v|
       dir = v
+    end
+    opts.on("-xTYPE/NAME", "--extract=TYPE/NAME", "Extract single item to stdout") do |v|
+      target = :stdout
+      out_type, out_name = v.split("/", 2)
     end
     opts.on("-f", "--[no-]unfold", "RFC8792-unfold (default: yes)") do |v|
       unfold = v
@@ -179,6 +184,27 @@ def make_directory_from(dir, taken)
 end
 
 case target
+when :stdout
+  if dataset = taken[out_type]
+    unless out_name
+      case dataset.size
+      when 0
+        warn "No sourcecodes under #{out_type}"
+        exit(1)
+      when 1
+        out_name ||= dataset.keys.first
+      else
+        warn "Multiple sourcecodes under #{out_type}: #{dataset.keys}"
+        exit(1)
+      end
+    end
+    if data = dataset[out_name]
+      puts data
+      exit
+    end
+  end
+  warn "*** Cannot find sourcecode #{out_type}/#{out_name}"
+  exit(1)
 when :yaml
   puts taken.to_yaml
 when :list
