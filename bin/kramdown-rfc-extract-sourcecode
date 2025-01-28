@@ -74,8 +74,26 @@ target ||= :list
 gensym = "unnamed-000"
 taken = Hash.new { |h, k| h[k] = Hash.new }
 warned = Hash.new { |h, k| h[k] = Hash.new }
-d = REXML::Document.new(ARGF)
-REXML::XPath.each(d.root, "//sourcecode|//artwork") do |x|
+filenames = ARGV.inspect
+begin
+  d = REXML::Document.new(ARGF)
+  dr = d.root
+  unless dr
+    warn "*** Can't parse: #{filenames}"
+    exit(1)
+  end
+rescue Errno::ENOENT
+  warn "*** Not found: #{filenames}"
+  exit(1)
+rescue => e
+  begin
+    warn "*** Can't parse: #{filenames} (#{e.to_s[0..120]})"
+  rescue => e
+    warn "*** Can't parse: #{filenames} (#{e.to_s[0..120]})"
+  end
+  exit(1)
+end
+REXML::XPath.each(dr, "//sourcecode|//artwork") do |x|
   if ty = x[:type]
     is_svg = false
     REXML::XPath.each(x, "svg") do is_svg = true end
