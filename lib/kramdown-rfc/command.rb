@@ -289,6 +289,12 @@ def xml_from_sections(input)
   # the first section is a YAML with front matter parameters (don't put a label here)
   # We put back the "---" plus gratuitous blank lines to hack the line number in errors
   yaml_in = input[/---\s*/] << sections.shift[2]
+  begin
+    require 'kramdown-rfc/yamlcheck'
+    KramdownRFC::YAMLcheck.check_dup_keys(yaml_in)
+  rescue => e
+    warn "** Cannot check for duplicate keys in YAML header (#{e})"
+  end
   ps = KramdownRFC::ParameterSet.new(yaml_load(yaml_in, [Date], [], true))
 
   if v = ps[:v]
