@@ -1203,6 +1203,7 @@ COLORS
 
       KRAMDOWN_OFFLINE = ENV["KRAMDOWN_OFFLINE"]
       KRAMDOWN_REFCACHE_REFETCH = ENV["KRAMDOWN_REFCACHE_REFETCH"]
+      KRAMDOWN_REFCACHE_QUIET = ENV["KRAMDOWN_REFCACHE_QUIET"]
 
       def get_and_write_resource(url, fn)
         options = {}
@@ -1251,7 +1252,7 @@ COLORS
             message = "fetching"
             fetch_timeout = 60 # seconds; long timeout needed for Travis
           end
-          $stderr.puts "#{fn}: #{message} from #{url}"
+          $stderr.puts "#{fn}: #{message} from #{url}" unless KRAMDOWN_REFCACHE_QUIET
           if Array === url
             begin
               case url[0]
