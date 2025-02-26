@@ -1251,7 +1251,7 @@ COLORS
             message = "fetching"
             fetch_timeout = 60 # seconds; long timeout needed for Travis
           end
-          $stderr.puts "#{fn}: #{message} from #{url}"
+          $stderr.puts "#{fn}: #{message} from #{url}" unless ENV["KRAMDOWN_REFCACHE_QUIET"]
           if Array === url
             begin
               case url[0]
