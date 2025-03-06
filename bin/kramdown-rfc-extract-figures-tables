@@ -6,7 +6,7 @@ require 'optparse'
 PROGNAME = $0 # "kramdown-rfc-extract-figures-tables"
 
 target = :section
-targets = [:section, :note]
+targets = [:section, :note, :rfc]
 require 'optparse'
 begin
   op = OptionParser.new do |opts|
@@ -58,24 +58,37 @@ REXML::XPath.each(d.root, %{//figure|//*[name()="table" or name()="texttable"]})
 end
 
 lists.each do |k, v|
-  title = "List of #{k.capitalize}s"
+  item = k.capitalize
+  title = "List of #{item}s"
   case target
   when :note
     puts
     puts "--- note_#{title.gsub(" ", "_")}"
     puts
-  when :section
+  when :section, :rfc
     puts
     puts "# #{title}"
     puts "{:unnumbered}"
     puts
-    puts "{:compact}"
+    puts "{:compact#{" hangindent=\"11\"" if target == :rfc}}"
   else
     fail
   end
   v.each_with_index do |(ref, ti), n|
     ti.sub!(/,?[\p{Zl}\p{Zp}\p{Cc}].*/, "") # first line of caption only
-    ti = "[#{ti}](##{ref})" if ref
-    puts "#{n+1}. #{ti}"
+    if target == :rfc
+      if ref
+        puts "{{#{ref}}}:"
+        puts ": {{<<#{ref}}}"
+      else
+        puts "#{item} #{n+1}:"
+        puts ": #{ti}"
+        warn "** No anchor on #{item} #{n+1} \"#{ti}\""
+      end
+      puts
+    else
+      ti = "[#{ti}](##{ref})" if ref
+      puts "#{n+1}. #{ti}"
+    end
   end
 end
