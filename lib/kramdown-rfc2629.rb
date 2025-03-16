@@ -369,7 +369,7 @@ module Kramdown
       if KRAMDOWN_PERSISTENT
         begin
           require 'net/http/persistent'
-          $http = Net::HTTP::Persistent.new name: 'kramdown-rfc'
+          $http = Net::HTTP::Persistent.new name: 'kramdown-rfc', proxy: :ENV
         rescue Exception => e
           warn "** Not using persistent HTTP -- #{e}"
           warn "**   To silence this message and get full speed, try:"
