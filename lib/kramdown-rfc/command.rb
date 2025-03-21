@@ -509,7 +509,11 @@ def xml_from_sections(input)
     end
   end
 
-  erbfilename = File.expand_path '../../../data/kramdown-rfc2629.erb', __FILE__
+  if ENV["KRAMDOWN_ERB_FILE"]
+    erbfilename = ENV["KRAMDOWN_ERB_FILE"]
+  else
+    erbfilename = File.expand_path '../../../data/kramdown-rfc2629.erb', __FILE__
+  end
   erbfile = File.read(erbfilename, coding: "UTF-8")
   erb = ERB.trim_new(erbfile, '-')
   # remove redundant nomarkdown pop outs/pop ins as they confuse kramdown
