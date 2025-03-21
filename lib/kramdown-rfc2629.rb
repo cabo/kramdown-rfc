@@ -1350,6 +1350,15 @@ COLORS
         "IANA" => ["bibxml8", KRAMDOWN_REFCACHETTL_IANA, true], # ditto
       }
 
+      # If the caller wishes to extend the XML_RESOURCE_ORG_MAP, they can do so
+      # by specifying a file to load here.
+      if ENV["XML_RESOURCE_ORG_MAP_EXTENSION"]
+        # Use autoload() to effectively enforce an interface rather than mere
+        # importing.
+        autoload(:XmlResourceOrgMapExtension, File.expand_path(ENV["XML_RESOURCE_ORG_MAP_EXTENSION"]))
+        XmlResourceOrgMapExtension.update_map(XML_RESOURCE_ORG_MAP)
+      end
+
       # XML_RESOURCE_ORG_HOST = ENV["XML_RESOURCE_ORG_HOST"] || "xml.resource.org"
       # XML_RESOURCE_ORG_HOST = ENV["XML_RESOURCE_ORG_HOST"] || "xml2rfc.tools.ietf.org"
       XML_RESOURCE_ORG_HOST = ENV["XML_RESOURCE_ORG_HOST"] || "bib.ietf.org"
