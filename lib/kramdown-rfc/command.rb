@@ -268,6 +268,13 @@ end
 
 include ::Kramdown::Utils::Html
 
+# Make this a method so there is a more speaking traceback if this fails
+def read_erbfile
+  erbfilename = ENV["KRAMDOWN_ERB_FILE"] ||
+                File.expand_path('../../../data/kramdown-rfc2629.erb', __FILE__)
+  File.read(erbfilename, coding: "UTF-8")
+end
+
 def xml_from_sections(input)
 
   unless ENV["KRAMDOWN_NO_SOURCE"]
@@ -509,12 +516,7 @@ def xml_from_sections(input)
     end
   end
 
-  if ENV["KRAMDOWN_ERB_FILE"]
-    erbfilename = ENV["KRAMDOWN_ERB_FILE"]
-  else
-    erbfilename = File.expand_path '../../../data/kramdown-rfc2629.erb', __FILE__
-  end
-  erbfile = File.read(erbfilename, coding: "UTF-8")
+  erbfile = read_erbfile
   erb = ERB.trim_new(erbfile, '-')
   # remove redundant nomarkdown pop outs/pop ins as they confuse kramdown
   input = erb.result(binding).gsub(%r"{::nomarkdown}\s*{:/nomarkdown}"m, "")
