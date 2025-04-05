@@ -443,8 +443,9 @@ def xml_from_sections(input)
 
   norm_ref.each do |k, v|
     # could check bibtagsys here: needed if open_refs is nil or string
-    target = ps.has(v ? :normative : :informative)
-    warn "*** overwriting #{k}" if target.has_key?(k)
+    kind = v ? :normative : :informative
+    target = ps.has(kind)
+    warn "** (#{kind} reference #{k} is both inline and in YAML header)" if target.has_key?(k)
     target[k] = open_refs[k] # add reference to normative/informative
   end
   # note that unused items from ref are considered OK, therefore no check for that here
