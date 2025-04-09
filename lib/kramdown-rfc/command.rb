@@ -4,6 +4,7 @@ require 'kramdown-rfc2629'
 require 'kramdown-rfc/parameterset'
 require 'kramdown-rfc/refxml'
 require 'kramdown-rfc/rfc8792'
+require 'kramdown-rfc/resources'
 require 'yaml'
 require 'kramdown-rfc/erb'
 require 'date'
@@ -275,7 +276,7 @@ def read_erbfile
   File.read(erbfilename, coding: "UTF-8")
 end
 
-def xml_from_sections(input)
+def xml_from_sections(input, resources)
 
   unless ENV["KRAMDOWN_NO_SOURCE"]
     require 'kramdown-rfc/gzip-clone'
@@ -340,6 +341,8 @@ def xml_from_sections(input)
                                               smart_quotes, typographic_symbols,
                                               header_kramdown_options)
 
+  resources.process_bibtags_meta(ps[:bibtags] || {})
+
   # all the other sections are put in a Hash, possibly concatenated from parts there
   sechash = Hash.new{ |h,k| h[k] = ""}
   snames = []                   # a stack of section names
@@ -367,7 +370,7 @@ def xml_from_sections(input)
       warn "*** bad section #{sn}: #{refs.inspect}" unless refs.respond_to? :each
       refs.each do |k, v|
         if v.respond_to? :to_str
-          if bibtagsys(v)       # enable "foo: RFC4711" as a custom anchor definition
+          if resources.bibtagsys(v)       # enable "foo: RFC4711" as a custom anchor definition
             anchor_to_bibref[k] = v.to_str
           end
           ref_replacements[v.to_str] = k
@@ -467,7 +470,7 @@ def xml_from_sections(input)
         kramdown_options[:link_defs][k] = ["##{href}", nil]   # allow [RFC2119] in addition to {{RFC2119}}
 
         bibref = anchor_to_bibref[k] || k
-        bts, url = bibtagsys(bibref, k, stand_alone)
+        bts, url = resources.bibtagsys(bibref, k, stand_alone)
         ann = v.delete("annotation") || v.delete("ann") if Hash === v
         if bts && (!v || v == {} || v.respond_to?(:to_str))
           if stand_alone
@@ -529,36 +532,6 @@ def xml_from_sections(input)
   [input, kramdown_options, coding_override]
 end
 
-XML_RESOURCE_ORG_PREFIX = Kramdown::Converter::Rfc2629::XML_RESOURCE_ORG_PREFIX
-
-# return XML entity name, url, rewrite_anchor flag
-def bibtagsys(bib, anchor=nil, stand_alone=true)
-  if bib =~ /\Arfc(\d+)/i
-    rfc4d = "%04d" % $1.to_i
-    [bib.upcase,
-     "#{XML_RESOURCE_ORG_PREFIX}/bibxml/reference.RFC.#{rfc4d}.xml"]
-  elsif $options.v3 && bib =~ /\A(bcp|std)(\d+)/i
-    n4d = "%04d" % $2.to_i
-    [bib.upcase,
-     "#{XML_RESOURCE_ORG_PREFIX}/bibxml-rfcsubseries-new/reference.#{$1.upcase}.#{n4d}.xml"]
-  elsif bib =~ /\A([-A-Z0-9]+)\./ &&
-        (xro = Kramdown::Converter::Rfc2629::XML_RESOURCE_ORG_MAP[$1])
-    dir, _ttl, rewrite_anchor = xro
-    bib1 = ::Kramdown::Parser::RFC2629Kramdown.idref_cleanup(bib)
-    if anchor && bib1 != anchor
-      if rewrite_anchor
-        a = %{?anchor=#{anchor}}
-      else
-        if !stand_alone
-          warn "*** selecting a custom anchor '#{anchor}' for '#{bib1}' requires stand_alone mode"
-          warn "    the output will need manual editing to correct this"
-        end
-      end
-    end
-    [bib1,
-     "#{XML_RESOURCE_ORG_PREFIX}/#{dir}/reference.#{bib}.xml#{a}"]
-  end
-end
 
 def read_encodings
   encfilename = File.expand_path '../../../data/encoding-fallbacks.txt', __FILE__
@@ -646,7 +619,8 @@ end
 
 if input =~ /\A---/        # this is a sectionized file
   do_the_tls_dance unless ENV["KRAMDOWN_DONT_VERIFY_HTTPS"]
-  input, options, coding_override = xml_from_sections(input)
+  resources = KramdownRFC::Resources.new
+  input, options, coding_override = xml_from_sections(input, resources)
 else
   options = process_kramdown_options # all default
 end
