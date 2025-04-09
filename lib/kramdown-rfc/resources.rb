@@ -159,10 +159,10 @@ module KramdownRFC
                             "https://datatracker.ietf.org/doc/bibxml3/draft-#{n.sub(/\Adraft-/, '')}.xml"] }
                ],
       "BCP" => ["bibxml-rfcsubseries", KRAMDOWN_REFCACHETTL_RFC, false,
-                ->(fn, n){ Rfc2629::bcp_std_ref("BCP", n) }
+                ->(fn, n){ bcp_std_ref("BCP", n) }
                ],
       "STD" => ["bibxml-rfcsubseries", KRAMDOWN_REFCACHETTL_RFC, false,
-                ->(fn, n){ Rfc2629::bcp_std_ref("STD", n) }
+                ->(fn, n){ bcp_std_ref("STD", n) }
                ],
       "W3C" => "bibxml4",
       "3GPP" => "bibxml5",
