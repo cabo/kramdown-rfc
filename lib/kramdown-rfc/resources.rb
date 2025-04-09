@@ -145,6 +145,8 @@ module KramdownRFC
     KRAMDOWN_REFCACHETTL_DOI = (e = ENV["KRAMDOWN_REFCACHETTL_DOI"]) ? e.to_i : KRAMDOWN_REFCACHETTL_DOI_IANA
     KRAMDOWN_REFCACHETTL_IANA = (e = ENV["KRAMDOWN_REFCACHETTL_IANA"]) ? e.to_i : KRAMDOWN_REFCACHETTL_DOI_IANA
 
+    KRAMDOWN_REFCACHETTL_EXTERNAL = (e = ENV["KRAMDOWN_REFCACHETTL_EXTERNAL"]) ? e.to_i : KRAMDOWN_REFCACHETTL_DOI_IANA
+
     # [subdirectory name, cache ttl in seconds, does it provide for ?anchor=]
     XML_RESOURCE_ORG_MAP = {
       "RFC" => ["bibxml", KRAMDOWN_REFCACHETTL_RFC, false,
@@ -250,7 +252,7 @@ module KramdownRFC
 
       return [
         '', # ignored
-        res['ttl'] || KRAMDOWN_REFCACHETTL,
+        res['ttl'] || KRAMDOWN_REFCACHETTL_EXTERNAL,
         res['rewrite_anchor'] || false,
         ->(fn, n) { [fname, url] },
         true
@@ -262,23 +264,22 @@ module KramdownRFC
       fn = _filename(rtype, rname)
       fn.gsub!('/', '_')
 
-      # Try a configured directory source first, if any
+      # Try a configured directory source first, if any. We always do this
+      # *and* look up things in the config for e.g. ttl or other values that
+      # may still apply.
       path = resolve_resource_from_dirs(fn, anchor)
-      if path
-        # If we have a local path, we can just return some defaults for the
-        # entry.
-        ret = ["file://#{path}", fn, KRAMDOWN_REFCACHETTL]
-        return ret
-      end
 
       # Prefer from configuration, fall back to resource map
       xro = resolve_resource_from_config(rtype, rname, anchor)
       if not xro
-
         xro = XML_RESOURCE_ORG_MAP[rtype]
         if not xro
-          warn "*** No citation source found for: #{rtype}.#{rname}"
-          return [nil, fn, KRAMDOWN_REFCACHETTL]
+          if path
+            return ["file://#{path}", fn, KRAMDOWN_REFCACHETTL]
+          else
+            warn "*** No citation source found for: #{rtype}.#{rname}"
+            return [nil, fn, KRAMDOWN_REFCACHETTL_EXTERNAL]
+          end
         end
       end
 
@@ -304,6 +305,12 @@ module KramdownRFC
       end
 
       fn = fn.gsub('/', '_')
+
+      # Now if we had a path, we don't want to use the URL, but override it with the
+      # path. The rest of the configuration we used above was still useful.
+      if path
+        url = "file://#{path}"
+      end
       return url, fn, ttl
     end
 
@@ -387,7 +394,6 @@ module KramdownRFC
 
   class Resources
     include ResourcesMixin
-
   end # class Resources
 
 end # module KramdownRFC
