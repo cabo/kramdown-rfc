@@ -268,6 +268,13 @@ end
 
 include ::Kramdown::Utils::Html
 
+# Make this a method so there is a more speaking traceback if this fails
+def read_erbfile
+  erbfilename = ENV["KRAMDOWN_ERB_FILE"] ||
+                File.expand_path('../../../data/kramdown-rfc2629.erb', __FILE__)
+  File.read(erbfilename, coding: "UTF-8")
+end
+
 def xml_from_sections(input)
 
   unless ENV["KRAMDOWN_NO_SOURCE"]
@@ -436,8 +443,9 @@ def xml_from_sections(input)
 
   norm_ref.each do |k, v|
     # could check bibtagsys here: needed if open_refs is nil or string
-    target = ps.has(v ? :normative : :informative)
-    warn "*** overwriting #{k}" if target.has_key?(k)
+    kind = v ? :normative : :informative
+    target = ps.has(kind)
+    warn "** (#{kind} reference #{k} is both inline and in YAML header)" if target.has_key?(k)
     target[k] = open_refs[k] # add reference to normative/informative
   end
   # note that unused items from ref are considered OK, therefore no check for that here
@@ -509,8 +517,7 @@ def xml_from_sections(input)
     end
   end
 
-  erbfilename = File.expand_path '../../../data/kramdown-rfc2629.erb', __FILE__
-  erbfile = File.read(erbfilename, coding: "UTF-8")
+  erbfile = read_erbfile
   erb = ERB.trim_new(erbfile, '-')
   # remove redundant nomarkdown pop outs/pop ins as they confuse kramdown
   input = erb.result(binding).gsub(%r"{::nomarkdown}\s*{:/nomarkdown}"m, "")

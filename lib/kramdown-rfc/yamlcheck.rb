@@ -7,7 +7,7 @@ module KramdownRFC
       if node.scalar?
         node.value
       else
-        node.children&.map {short_name(_1)}&.join("_")
+        node.children&.map {|nm| short_name(nm)}&.join("_")
       end
     end
 
@@ -15,8 +15,8 @@ module KramdownRFC
     def self.check_dup_keys1(node, path)
       if YAML::Nodes::Mapping === node
         children = node.children.each_slice(2)
-        duplicates = children.map { |key_node, _value_node| 
-          key_node }.group_by{short_name(_1)}.select { |_value, nodes| nodes.size > 1 }
+        duplicates = children.map { |key_node, _value_node|
+          key_node }.group_by{|nm| short_name(nm)}.select { |_value, nodes| nodes.size > 1 }
 
         duplicates.each do |key, nodes|
           name = (path + [key]).join("/")
@@ -24,7 +24,7 @@ module KramdownRFC
           warn "** duplicate map key >#{name}< in YAML, lines #{lines}"
         end
 
-        children.each do |key_node, value_node| 
+        children.each do |key_node, value_node|
           newname = short_name(key_node)
           check_dup_keys1(value_node, path + Array(newname))
         end
