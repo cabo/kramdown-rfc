@@ -1,0 +1,9 @@
+---
+# Shared config; see references.mkd for detail
+sources:
+  TEST:
+    url: "I will be overridden"
+  FULL:
+    url: 'https://example.com/ref.%{bibref}.xml'
+    filename: 'outout-%{bibtag}-sep-%{bibref}-dotxml'
+    ttl: 30 # in seconds
