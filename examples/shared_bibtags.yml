@@ -6,4 +6,4 @@ sources:
   FULL:
     url: 'https://example.com/ref.%{bibref}.xml'
     filename: 'outout-%{bibtag}-sep-%{bibref}-dotxml'
-    ttl: 30 # in seconds
+    ttl: 5 # in seconds
