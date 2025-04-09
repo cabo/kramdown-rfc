@@ -24,6 +24,7 @@ require 'rexml/document'        # for SVG and bibxml acrobatics
 
 require 'kramdown-rfc/doi'      # for fetching information for a DOI
 require 'kramdown-rfc/rfc8792'
+require 'kramdown-rfc/resources'
 
 class Object
   def deep_clone
@@ -353,6 +354,7 @@ module Kramdown
 
       # we use these to do XML stuff, too
       include ::Kramdown::Utils::Html
+      include ::KramdownRFC::ResourcesMixin
 
       def el_html_attributes(el)
         html_attributes(el.attr)
@@ -362,21 +364,6 @@ module Kramdown
       end
 
       # :stopdoc:
-
-      KRAMDOWN_PERSISTENT = ENV["KRAMDOWN_PERSISTENT"]
-      KRAMDOWN_PERSISTENT_VERBOSE = /v/ === KRAMDOWN_PERSISTENT
-
-      if KRAMDOWN_PERSISTENT
-        begin
-          require 'net/http/persistent'
-          $http = Net::HTTP::Persistent.new name: 'kramdown-rfc', proxy: :ENV
-        rescue Exception => e
-          warn "** Not using persistent HTTP -- #{e}"
-          warn "**   To silence this message and get full speed, try:"
-          warn "**     gem install net-http-persistent"
-          warn "**   If this doesn't work, you can ignore this warning."
-        end
-      end
 
       # Defines the amount of indentation used when nesting XML tags.
       INDENTATION = 2
@@ -1197,169 +1184,6 @@ COLORS
         "<contact#{el_html_attributes(el)}/>"
       end
 
-      REFCACHEDIR = ENV["KRAMDOWN_REFCACHEDIR"] || ".refcache"
-
-      # warn "*** REFCACHEDIR #{REFCACHEDIR}"
-
-      KRAMDOWN_OFFLINE = ENV["KRAMDOWN_OFFLINE"]
-      KRAMDOWN_REFCACHE_REFETCH = ENV["KRAMDOWN_REFCACHE_REFETCH"]
-      KRAMDOWN_REFCACHE_QUIET = ENV["KRAMDOWN_REFCACHE_QUIET"]
-
-      def get_and_write_resource(url, fn)
-        options = {}
-        if ENV["KRAMDOWN_DONT_VERIFY_HTTPS"]
-          options[:ssl_verify_mode] = OpenSSL::SSL::VERIFY_NONE
-        end             # workaround for OpenSSL on Windows...
-        # URI.open(url, **options) do |uf|          # not portable to older versions
-        OpenURI.open_uri(url, **options) do |uf|
-          s = uf.read
-          if uf.status[0] != "200"
-            warn "*** Status code #{status} while fetching #{url}"
-          else
-            File.write(fn, s)
-          end
-        end
-      end
-
-      def get_and_write_resource_persistently(url, fn)
-        t1 = Time.now
-        response = $http.request(URI(url))
-        if response.code != "200"
-          raise "Status code #{response.code} while fetching #{url}"
-        else
-          File.write(fn, response.body)
-        end
-        t2 = Time.now
-        warn "(#{"%.3f" % (t2 - t1)} s)" if KRAMDOWN_PERSISTENT_VERBOSE
-      end
-
-      def get_doi(refname)
-        lit = doi_fetch_and_convert(refname, fuzzy: true)
-        anchor = "DOI_#{refname.gsub("/", "_")}"
-        KramdownRFC::ref_to_xml(anchor, lit)
-      end
-
-      # this is now slightly dangerous as multiple urls could map to the same cachefile
-      def get_and_cache_resource(url, cachefile, tvalid = 7200, tn = Time.now)
-        fn = "#{REFCACHEDIR}/#{cachefile}"
-        Dir.mkdir(REFCACHEDIR) unless Dir.exist?(REFCACHEDIR)
-        f = File.stat(fn) rescue nil unless KRAMDOWN_REFCACHE_REFETCH
-        if !KRAMDOWN_OFFLINE && (!f || tn - f.mtime >= tvalid)
-          if f
-            message = "renewing (stale by #{"%.1f" % ((tn-f.mtime)/86400)} days)"
-            fetch_timeout = 10 # seconds, give up quickly if just renewing
-          else
-            message = "fetching"
-            fetch_timeout = 60 # seconds; long timeout needed for Travis
-          end
-          $stderr.puts "#{fn}: #{message} from #{url}" unless KRAMDOWN_REFCACHE_QUIET
-          if Array === url
-            begin
-              case url[0]
-              when :DOI
-                ref = get_doi(url[1])
-                File.write(fn, ref)
-              end
-            rescue Exception => e
-              warn "*** Error fetching #{url[0]} #{url[1].inspect}: #{e}"
-            end
-          elsif ENV["HAVE_WGET"]
-            `cd #{REFCACHEDIR}; wget -t 3 -T #{fetch_timeout} -Nnv "#{url}"` # ignore errors if offline (hack)
-            begin
-              File.utime nil, nil, fn
-            rescue Errno::ENOENT
-              warn "Can't fetch #{url} -- is wget in path?"
-            end
-          else
-            require 'open-uri'
-            require 'socket'
-            require 'openssl'
-            require 'timeout'
-            begin
-              Timeout::timeout(fetch_timeout) do
-                if $http
-                  begin         # belt and suspenders
-                    get_and_write_resource_persistently(url, fn)
-                  rescue Exception => e
-                    warn "*** Can't get with persistent HTTP: #{e}"
-                    get_and_write_resource(url, fn)
-                  end
-                else
-                  get_and_write_resource(url, fn)
-                end
-              end
-            rescue OpenURI::HTTPError, Errno::EHOSTUNREACH, Errno::ECONNREFUSED,
-                   SocketError, Timeout::Error => e
-              warn "*** #{e} while fetching #{url}"
-            end
-          end
-        end
-        begin
-          File.read(fn) # this blows up if no cache available after fetch attempt
-        rescue Errno::ENOENT => e
-          warn "*** #{e} for #{fn}"
-        end
-      end
-
-      def self.bcp_std_ref(t, n)
-        warn "*** #{t} anchors not supported in v2 format" unless $options.v3
-        [name = "reference.#{t}.#{"%04d" % n.to_i}.xml",
-         "#{XML_RESOURCE_ORG_PREFIX}/bibxml-rfcsubseries/#{name}"] # FOR NOW
-      end
-
-      KRAMDOWN_REFCACHETTL = (e = ENV["KRAMDOWN_REFCACHETTL"]) ? e.to_i : 3600
-
-      KRAMDOWN_REFCACHETTL_RFC = (e = ENV["KRAMDOWN_REFCACHETTL_RFC"]) ? e.to_i : 86400*7
-      KRAMDOWN_REFCACHETTL_DOI_IANA = (e = ENV["KRAMDOWN_REFCACHETTL_DOI_IANA"]) ? e.to_i : 86400
-      KRAMDOWN_REFCACHETTL_DOI = (e = ENV["KRAMDOWN_REFCACHETTL_DOI"]) ? e.to_i : KRAMDOWN_REFCACHETTL_DOI_IANA
-      KRAMDOWN_REFCACHETTL_IANA = (e = ENV["KRAMDOWN_REFCACHETTL_IANA"]) ? e.to_i : KRAMDOWN_REFCACHETTL_DOI_IANA
-
-      # [subdirectory name, cache ttl in seconds, does it provide for ?anchor=]
-      XML_RESOURCE_ORG_MAP = {
-        "RFC" => ["bibxml", KRAMDOWN_REFCACHETTL_RFC, false,
-                  ->(fn, n){ [name = "reference.RFC.#{"%04d" % n.to_i}.xml",
-                              "https://bib.ietf.org/public/rfc/bibxml/#{name}"] }
-# was                         "https://www.rfc-editor.org/refs/bibxml/#{name}"] }
-                 ],
-        "I-D" => ["bibxml3", false, false,
-                  ->(fn, n){ [fn,
-                              "https://datatracker.ietf.org/doc/bibxml3/draft-#{n.sub(/\Adraft-/, '')}.xml"] }
-                 ],
-        "BCP" => ["bibxml-rfcsubseries", KRAMDOWN_REFCACHETTL_RFC, false,
-                  ->(fn, n){ Rfc2629::bcp_std_ref("BCP", n) }
-                 ],
-        "STD" => ["bibxml-rfcsubseries", KRAMDOWN_REFCACHETTL_RFC, false,
-                  ->(fn, n){ Rfc2629::bcp_std_ref("STD", n) }
-                 ],
-        "W3C" => "bibxml4",
-        "3GPP" => "bibxml5",
-        "SDO-3GPP" => "bibxml5",
-        "ANSI" => "bibxml2",
-        "CCITT" => "bibxml2",
-        "FIPS" => "bibxml2",
-        # "IANA" => "bibxml2",   overtaken by bibxml8
-        "IEEE" => "bibxml6",    # copied over to bibxml6 2019-02-27
-        "ISO" => "bibxml2",
-        "ITU" => "bibxml2",
-        "NIST" => "bibxml2",
-        "OASIS" => "bibxml2",
-        "PKCS" => "bibxml2",
-        "DOI" => ["bibxml7", KRAMDOWN_REFCACHETTL_DOI, true,
-                  ->(fn, n){ ["computed-#{fn}", [:DOI, n] ] }, true # always_altproc
-                 ], # emulate old 24 h cache
-        "IANA" => ["bibxml8", KRAMDOWN_REFCACHETTL_IANA, true], # ditto
-      }
-
-      # XML_RESOURCE_ORG_HOST = ENV["XML_RESOURCE_ORG_HOST"] || "xml.resource.org"
-      # XML_RESOURCE_ORG_HOST = ENV["XML_RESOURCE_ORG_HOST"] || "xml2rfc.tools.ietf.org"
-      XML_RESOURCE_ORG_HOST = ENV["XML_RESOURCE_ORG_HOST"] || "bib.ietf.org"
-      XML_RESOURCE_ORG_PREFIX = ENV["XML_RESOURCE_ORG_PREFIX"] ||
-                                "https://#{XML_RESOURCE_ORG_HOST}/public/rfc"
-      KRAMDOWN_USE_TOOLS_SERVER = ENV["KRAMDOWN_USE_TOOLS_SERVER"]
-
-      KRAMDOWN_NO_TARGETS = ENV['KRAMDOWN_NO_TARGETS']
-      KRAMDOWN_KEEP_TARGETS = ENV['KRAMDOWN_KEEP_TARGETS']
-
       def convert_img(el, indent, opts) # misuse the tag!
         if a = el.attr
           alt = a.delete('alt').strip
@@ -1380,55 +1204,48 @@ COLORS
           to_insert = ""
           src.scan(/(W3C|3GPP|[A-Z-]+)[.]?([A-Za-z_0-9.\(\)\/\+-]+)/) do |t, n|
             never_altproc = n.sub!(/^[.]/, "")
-            fn = "reference.#{t}.#{n}.xml"
-            sub, ttl, _can_anchor, altproc, always_altproc = XML_RESOURCE_ORG_MAP[t]
-            ttl ||= KRAMDOWN_REFCACHETTL  # everything but RFCs might change a lot
-            puts "*** Huh: #{fn}" unless sub
-            if altproc && !never_altproc && (!KRAMDOWN_USE_TOOLS_SERVER || always_altproc)
-              fn, url = altproc.call(fn, n)
-            else
-              url = "#{XML_RESOURCE_ORG_PREFIX}/#{sub}/#{fn}"
-              fn = "alt-#{fn}" if never_altproc || KRAMDOWN_USE_TOOLS_SERVER
-            end
-            # if can_anchor # create anchor server-side for stand_alone: false
-            #   url << "?anchor=#{anchor}"
-            #   fn[/.xml$/] = "--anchor=#{anchor}.xml"
-            # end
-            to_insert = get_and_cache_resource(url, fn.gsub('/', '_'), ttl)
-            to_insert.scrub! rescue nil # only do this for Ruby >= 2.1
+            url, fn, ttl = resolve_resource(t, n, anchor, never_altproc)
+            if url
+              to_insert = get_and_cache_resource(url, fn, ttl)
+              to_insert.scrub! rescue nil # only do this for Ruby >= 2.1
 
-            begin
-              d = REXML::Document.new(to_insert)
-              d.xml_decl.nowrite
-              d.delete d.doctype
-              d.context[:attribute_quote] = :quote  # Set double-quote as the attribute value delimiter
-              d.root.attributes["anchor"] = anchor
-              if t == "RFC" or t == "I-D"
-                if KRAMDOWN_NO_TARGETS || !KRAMDOWN_KEEP_TARGETS
-                  d.root.attributes["target"] = nil
-                  REXML::XPath.each(d.root, "/reference/format") { |x|
-                    d.root.delete_element(x)
-                  }
-                else
-                  REXML::XPath.each(d.root, "/reference/format") { |x|
-                    x.attributes["target"].sub!(%r{https?://www.ietf.org/internet-drafts/},
-                                                %{https://www.ietf.org/archive/id/}) if t == "I-D"
-                  }
+              begin
+                d = REXML::Document.new(to_insert)
+                d.xml_decl.nowrite
+                d.delete d.doctype
+                d.context[:attribute_quote] = :quote  # Set double-quote as the attribute value delimiter
+                d.root.attributes["anchor"] = anchor
+                if t == "RFC" or t == "I-D"
+                  if KRAMDOWN_NO_TARGETS || !KRAMDOWN_KEEP_TARGETS
+                    d.root.attributes["target"] = nil
+                    REXML::XPath.each(d.root, "/reference/format") { |x|
+                      d.root.delete_element(x)
+                    }
+                  else
+                    REXML::XPath.each(d.root, "/reference/format") { |x|
+                      x.attributes["target"].sub!(%r{https?://www.ietf.org/internet-drafts/},
+                                                  %{https://www.ietf.org/archive/id/}) if t == "I-D"
+                    }
+                  end
+                elsif t == "IANA"
+                  d.root.attributes["target"].sub!(%r{\Ahttp://www.iana.org/assignments/}, 'https://www.iana.org/assignments/')
                 end
-              elsif t == "IANA"
-                d.root.attributes["target"].sub!(%r{\Ahttp://www.iana.org/assignments/}, 'https://www.iana.org/assignments/')
+                if ann
+                  el = ::Kramdown::Converter::Rfc2629::process_markdown_to_rexml(ann).root
+                  el.name = "annotation"
+                  d.root.add_element(el)
+                end
+                to_insert = d.to_s
+              rescue Exception => e
+                warn "** Can't manipulate reference XML: #{e}"
+                broken = true
+                to_insert = nil
               end
-              if ann
-                el = ::Kramdown::Converter::Rfc2629::process_markdown_to_rexml(ann).root
-                el.name = "annotation"
-                d.root.add_element(el)
-              end
-              to_insert = d.to_s
-            rescue Exception => e
-              warn "** Can't manipulate reference XML: #{e}"
+            else
               broken = true
               to_insert = nil
             end
+
             # this may be a bit controversial: Don't break the build if reference is broken
             if KRAMDOWN_OFFLINE || broken
               unless to_insert

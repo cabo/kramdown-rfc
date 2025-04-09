@@ -1,0 +1,13 @@
+<reference anchor="FULL.something-blah" target="https://example.com">
+  <front>
+    <title>Weird reference</title>
+    <author fullname="J. Finkhaeuser" initials="J." surname="Finkhaeuser"/>
+    <date month="April" year="2025"/>
+    <abstract>
+      <t>This is a test reference; it is written to a weird cache file. This
+      reference file, however, follows a standard pattern.
+      </t>
+    </abstract>
+  </front>
+  <seriesInfo name="FULL" value="something-blah"/>
+</reference>
