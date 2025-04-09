@@ -191,7 +191,7 @@ module KramdownRFC
     KRAMDOWN_NO_TARGETS = ENV['KRAMDOWN_NO_TARGETS']
     KRAMDOWN_KEEP_TARGETS = ENV['KRAMDOWN_KEEP_TARGETS']
 
-    XML_RESOURCE_DEFAULT_FILENAME = "reference.%{bibref}.xml"
+    XML_RESOURCE_DEFAULT_FILENAME = "reference.%{bibtag}.xml"
 
     @@bibtags = {}
 
@@ -213,6 +213,24 @@ module KramdownRFC
       return nil
     end
 
+    def _url_or_filename_template(rtype, rname, template)
+      bibtag = "#{rtype}.#{rname}"
+      bibref = rname
+      repl = {
+        bibtag: bibtag,
+        bibref: bibref,
+      }
+      return template % repl
+    end
+
+    def _filename(rtype, rname, template = nil)
+      return _url_or_filename_template(rtype, rname, template || XML_RESOURCE_DEFAULT_FILENAME)
+    end
+
+    def _url(rtype, rname, url)
+      return _url_or_filename_template(rtype, rname, url)
+    end
+
     def resolve_resource_from_config(rtype, rname, anchor)
       # Simple things first: see if we can get the rtype from our local
       # bibtags sources.
@@ -227,13 +245,8 @@ module KramdownRFC
       end
 
       # Process the URL, file name patterns.
-      if (res['strip_prefix'] || false)
-        bibref = rname
-      else
-        bibref = "#{rtype}.#{rname}"
-      end
-      fname = (res['filename'] || XML_RESOURCE_DEFAULT_FILENAME) % {bibref: bibref}
-      url = res["url"] % {bibref: bibref}
+      fname = _filename(rtype, rname, res['filename'])
+      url = _url(rtype, rname, res['url'])
 
       return [
         '', # ignored
@@ -246,16 +259,15 @@ module KramdownRFC
 
     def resolve_resource(rtype, rname, anchor, never_altproc=true, stand_alone=true)
       # Filename pattern
-      bibref = "#{rtype}.#{rname}"
-      fn = XML_RESOURCE_DEFAULT_FILENAME % {bibref: bibref}
+      fn = _filename(rtype, rname)
       fn.gsub!('/', '_')
 
       # Try a configured directory source first, if any
       path = resolve_resource_from_dirs(fn, anchor)
       if path
-        warn "GOT PATH: #{path}"
+        # If we have a local path, we can just return some defaults for the
+        # entry.
         ret = ["file://#{path}", fn, KRAMDOWN_REFCACHETTL]
-        warn "Returning #{ret}"
         return ret
       end
 
@@ -330,12 +342,24 @@ module KramdownRFC
      end
     end
 
-    BIBTAGS_KEYS = ['url', 'filename', 'ttl', 'rewrite_anchor', 'strip_prefix']
+    BIBTAGS_KEYS = ['url', 'filename', 'ttl', 'rewrite_anchor']
+
+    def _merge_sources(target, source)
+      source.each do |prefix, settings|
+        target[prefix] ||= {}
+        settings.each do |key, value|
+          if BIBTAGS_KEYS.include?(key)
+            target[prefix][key] = value
+          end
+        end
+      end
+    end
 
     def process_bibtags_meta(bibtags)
       sources = {}
       dirs = []
 
+      # Process 'from' section
       (bibtags['from'] || []).each do |path|
         path = File.expand_path(path)
         if File.directory?(path)
@@ -346,16 +370,12 @@ module KramdownRFC
           content = File.read(path, coding: "UTF-8")
           yaml = yaml_load(content)
 
-          (yaml["sources"] || {}).each do |prefix, settings|
-            sources[prefix] ||= {}
-            settings.each do |key, value|
-              if BIBTAGS_KEYS.include?(key)
-                sources[prefix][key] = value
-              end
-            end
-          end
+          _merge_sources(sources, yaml['sources'] || {})
         end
       end
+
+      # Merge collected sources with 'sources' section
+      _merge_sources(sources, bibtags['sources'] || {})
 
       @@bibtags = {
         :dirs => dirs,
