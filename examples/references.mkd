@@ -1,0 +1,60 @@
+---
+coding: utf-8
+
+title: Wow, external bibxml references!
+abbrev: webr
+docname: draft-webr-00
+category: info
+
+stand_alone: yes
+pi: [toc, sortrefs, symrefs, comments]
+
+### Configure external reference prefixes
+bibtags:
+    # Entries in the 'from' list will be preocessed in-order.
+    from:
+    # If a directory exists, and a file "reference.{ref}.xml" exists within it,
+    # that file is loaded, e.g. /some/dir/reference.RFC2119.xml
+    # In-order processing means that the *first* match is returned.
+    - /some/dir
+    # If a file exists and can be read as YAML, it's bibtags section is processed
+    # just like this snippet (but a 'from' key is skipped)
+    # In-order processing means that later files overwrite fields from earlier
+    # files.
+    - shared_bibtags.yml
+    # Add the following directory to use the local directory for references.
+    # - bibtags
+    sources:
+        # Every key is a prefix for references, and maps to (at minimum) a
+        # url template. "%{bibref}" will be replaced by the full reference with
+        # prefix, e.g. TEST.some-ref.string
+        # This hash overrides any settings from loaded YAML files in the
+        # from key.
+        TEST:
+            url: 'https://example.com/some/path/%{bibtag}'
+###
+
+
+author:
+  -
+    ins: J. Finkhaeuser
+    name: Jens Finkhaeuser
+    country: Germany
+    email: jens@finkhaeuser.de
+
+--- abstract
+
+insert abstract here
+
+--- middle
+
+# Introduction
+
+This MAY {{?RFC2119}} be useful.
+
+Note that {{?TEST.this-is.a-ref}} will not be resolved.
+
+A reference with this prefix {{?FULL.something-blah}} demonstrates how the
+URL and filename patterns can contain `%{bibref}` and/or `%{bibtag}` placeholders,
+where the former is just the part following the `FULL.` prefix, and the latter
+includes the prefix.
