@@ -12,6 +12,7 @@ $fuzzy = false
 $handle = "a"
 $xml = false
 $site = "https://dx.doi.org"
+$global_markdown_options ||= {} # work around uninitialized
 
 litent = {}
 ARGV.each do |doi|
@@ -37,7 +38,7 @@ ARGV.each do |doi|
     next
   when /\A-x=(.*)/
     $handle = $1
-    $xml = true
+    $xml = true                 # make all come out as XML
     next
   when /\A-/
     warn "*** Usage: doilit [-c] [-f] [-v] [-h=handle|-x=xmlhandle] doi..."

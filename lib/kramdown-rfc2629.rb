@@ -325,7 +325,7 @@ module Kramdown
 
     def rfc2629_fix(opts)
       if a = attr
-        if anchor = a.delete('id')
+        if !opts[:noanchor] && (anchor = a.delete('id'))
           a['anchor'] = ::Kramdown::Parser::RFC2629Kramdown.idref_cleanup(anchor)
         end
         if anchor = a.delete('href')
@@ -1030,6 +1030,9 @@ COLORS
       HTML_TAGS_WITH_BODY=['div', 'script']
 
       def convert_html_element(el, indent, opts)
+        if el.value == "svg"    # do not meddle with id= in SVG
+          opts = opts.merge({noanchor: true})
+        end
         res = inner(el, indent, opts)
         if el.options[:category] == :span
           "<#{el.value}#{el_html_attributes(el)}" << (!res.empty? ? ">#{res}</#{el.value}>" : " />")
