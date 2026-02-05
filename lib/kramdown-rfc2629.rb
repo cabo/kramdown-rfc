@@ -751,7 +751,10 @@ COLORS
             "#{' '*indent}<figure#{el_html_attributes(el)}>#{retart}</figure>\n"
           else
             gi ||= (
-              if !$options.v3 || !t || ARTWORK_TYPES.include?(t) || artwork_attr["align"]
+              if !$options.v3 || !t || ARTWORK_TYPES.include?(t)
+                "artwork"
+              elsif artwork_attr["align"]
+                warn "** RFXCMLv3 does not yet allow setting align= for <sourcecode, falling back to <artwork"
                 "artwork"
               else
                 "sourcecode"
