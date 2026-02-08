@@ -738,7 +738,10 @@ COLORS
             "#{' '*indent}<figure#{el_html_attributes(el)}>#{retart}</figure>\n"
           else
             gi ||= (
-              if !$options.v3 || !t || ARTWORK_TYPES.include?(t) || artwork_attr["align"]
+              if !$options.v3 || !t || ARTWORK_TYPES.include?(t)
+                "artwork"
+              elsif artwork_attr["align"]
+                warn "** RFXCMLv3 does not yet allow setting align= for <sourcecode, falling back to <artwork"
                 "artwork"
               else
                 "sourcecode"
@@ -1380,17 +1383,19 @@ COLORS
 
         else
           type = 'spanx'
-          if $options.v3
-            type = 'contact'
-            result = munge_latex(el.value)
-            attrstring = el_html_attributes_with(el, {"fullname" => result.chomp, "asciiFullname" => ''})
+          if $options.v3        # could use utftex if present
+            content = escape_html(munge_latex(el.value).chomp, :text)
+            attrstring = el_html_attributes_with(el, {"style" => 'none'})
           else
             warn "*** no support for inline math in XML2RFCv2"
-            type = 'spanx'
-            attrstring = el_html_attributes_with(el, {"style" => 'verb'})
             content = escape_html(el.value, :text)
+            attrstring = el_html_attributes_with(el, {"style" => 'verb'})
           end
-          "<#{type}#{attrstring}>#{content}</#{type}>"
+          if attrstring == ' style="none"'
+            content
+          else
+            "<#{type}#{attrstring}>#{content}</#{type}>" # this might get a style=none...
+          end
         end
       end
 
