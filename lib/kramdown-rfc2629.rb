@@ -825,11 +825,11 @@ COLORS
           when "json"
             # check for 8792; undo if needed:
             begin
-              JSON.load(handle_artwork_sourcecode(check_input))
+              JSON.parse(handle_artwork_sourcecode(check_input))
             rescue => e
               err1 = "*** #{loc_str}: JSON isn't: #{JSON.dump(e.message[0..40])}\n"
               begin
-                JSON.load("{" << check_input << "}")
+                JSON.parse("{" << handle_artwork_sourcecode(check_input) << "}")
               rescue => e
                 warn err1 << "***  not even with braces added around: #{JSON.dump(e.message[0..40])}"
               end
