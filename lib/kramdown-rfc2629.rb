@@ -776,7 +776,7 @@ COLORS
               warn "** There is no sourcecode-type “cbor”."
               warn "**   Do you mean “cbor-diag” (diagnostic notation)"
               warn "**   or “cbor-pretty” (annotated hex-dump)?"
-            when "json"
+            when "json", /\+json\z/
               checks ||= "json"
             when /\A(.*)-from-yaml\z/
               t = $1
