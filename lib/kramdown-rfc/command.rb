@@ -18,9 +18,18 @@ def add_quote(s)
   l.map {|li| "> #{li}"}.join
 end
 
-def process_chunk(s, nested, dedent, fold, quote)
+def process_xml(s)
+  d = REXML::Document.new(s)    # XXX add some better error handling
+  d.xml_decl.nowrite
+  d.delete d.doctype
+  d.to_s
+end
+
+def process_chunk(s, nested, dedent, fold, quote, xml, data)
   process_includes(s) if nested
   s = remove_indentation(s) if dedent
+  s = process_xml(s) if xml
+  s = %{src="data:application/octet-stream;base64,#{[s].pack('m0')}"} if data
   s = fold8792_1(s, *fold) if fold
   s = add_quote(s) if quote
   s
@@ -35,6 +44,8 @@ def process_includes(input)
   dedent = false
   fold = false
   quote = false
+  xml = false
+  data = false
   include_flags.split("-") do |flag|
     case flag
     when ""
@@ -44,6 +55,10 @@ def process_includes(input)
       quote = true
     when "dedent"
       dedent = true
+    when "xml"
+      xml = true
+    when "data"
+      data = true
     when /\Afold(\d*)(left(\d*))?(dry)?\z/
       fold = [$1.to_i,            # col 0 for ''
               ($3.to_i if $2),    # left 0 for '', nil if no "left"
@@ -52,7 +67,7 @@ def process_includes(input)
       fn = fn.flat_map{|n| Dir[n]}
       fn = [fn.last] if flag == "last"
       chunks = fn.map{ |f|
-        ret = process_chunk(File.read(f), nested, dedent, fold, quote)
+        ret = process_chunk(File.read(f), nested, dedent, fold, quote, xml, data)
         nested = false; dedent = false; fold = false; quote = false
         ret
       }
@@ -61,7 +76,7 @@ def process_includes(input)
     end
   end
   chunks = fn.map{|f| File.read(f)} unless chunks # no all/last
-  chunks = chunks.map {|ch| process_chunk(ch, nested, dedent, fold, quote)}
+  chunks = chunks.map {|ch| process_chunk(ch, nested, dedent, fold, quote, xml, data)}
   chunks.join.chomp
  }
 end
