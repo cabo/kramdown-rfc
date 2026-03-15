@@ -43,6 +43,14 @@ def doi_citeproc_to_lit(cite, fuzzy)
   if authors = cite["author"]
     lit["author"] = authors.map do |au|
       lau = {}
+      if (l = au["literal"])
+        case l # 10.3254/978-1-61499-018-5-115
+        when /\A(.*) ([A-Z][.](?:-[A-Z][.])*)\z/
+          lau["ins"] = "#$2 #$1"
+        else
+          lau["fullname"] = l
+        end
+      end
       if (f = au["family"])
         if (g = au["given"])
           lau["name"] = "#{g} #{f}"
