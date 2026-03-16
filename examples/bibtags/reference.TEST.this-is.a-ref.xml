@@ -1,0 +1,11 @@
+<reference anchor="TEST.this-is.a-ref" target="https://example.com">
+  <front>
+    <title>TEST reference</title>
+    <author fullname="J. Finkhaeuser" initials="J." surname="Finkhaeuser"/>
+    <date month="April" year="2025"/>
+    <abstract>
+      <t>This is a test reference.</t>
+    </abstract>
+  </front>
+  <seriesInfo name="TEST" value="this-is.a-ref"/>
+</reference>
