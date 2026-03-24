@@ -6,7 +6,6 @@ spec = Gem::Specification.new do |s|
 "kramdown" markdown parser.  Mostly useful for RFC writers.}
   s.add_dependency('kramdown', '~> 2.4.0')
   s.add_dependency('kramdown-parser-gfm', '~> 1.1')
-  s.add_dependency('certified', '~> 1.0')
   s.add_dependency('json_pure', '~> 2.0')
   s.add_dependency('unicode-name', '~> 1.0')
   s.add_dependency('unicode-blocks', '~> 1.0')
