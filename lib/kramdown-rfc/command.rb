@@ -180,7 +180,7 @@ def do_the_tls_dance
     File.open(OpenSSL::X509::DEFAULT_CERT_FILE) do end
     # This guards against having an unreadable cert file (yes, that appears to happen a lot).
   rescue
-    warn "** Configuration problem with OS certificate store."
+    warn "*** Configuration problem with OS certificate store."
     exit 71 # EX_OSERR
   end
 end
