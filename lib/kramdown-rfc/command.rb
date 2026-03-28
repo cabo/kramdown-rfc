@@ -180,16 +180,8 @@ def do_the_tls_dance
     File.open(OpenSSL::X509::DEFAULT_CERT_FILE) do end
     # This guards against having an unreadable cert file (yes, that appears to happen a lot).
   rescue
-    if Dir[File.join(OpenSSL::X509::DEFAULT_CERT_DIR, "*.pem")].empty?
-      # This guards against having no certs at all, not against missing the right one for IETF.
-      # Oh well.
-      warn "** Configuration problem with OpenSSL certificate store."
-      warn "**   You may want to examine #{OpenSSL::X509::DEFAULT_CERT_FILE}"
-      warn "**    and #{OpenSSL::X509::DEFAULT_CERT_DIR}."
-      warn "**   Activating suboptimal workaround."
-      warn "**   Occasionally run `certified-update` to maintain that workaround."
-      require 'certified'
-    end
+    warn "*** Configuration problem with OS certificate store."
+    exit 71 # EX_OSERR
   end
 end
 
