@@ -745,7 +745,7 @@ COLORS
                                 "<![CDATA[#{result}#{result =~ /\n\Z/ ? '' : "\n"}]]>")
             if result1          # nest TXT in artset with SVG
               retsvg = mk_artwork(artwork_attr, "svg",
-                                  result1.sub(/.*?<svg/m, "<svg"))
+                                  result1.sub(/.*?<svg/m, "<svg")) # , t == "mermaid")
               retart = "<artset>#{retsvg}#{retart}</artset>"
             end
             "#{' '*indent}<figure#{el_html_attributes(el)}>#{retart}</figure>\n"
@@ -844,8 +844,14 @@ COLORS
         result
       end
 
-      def mk_artwork(artwork_attr, typ, content)
-        "<artwork #{html_attributes(artwork_attr.merge("type" => typ))}>#{content}</artwork>"
+      def mk_artwork(artwork_attr, typ, content, use_data = false)
+        if use_data
+          warn "** using data URI for artwork type #{typ}"
+          data = %{data:application/octet-stream;base64,#{[content].pack('m0')}}
+          "<artwork #{html_attributes(artwork_attr.merge("type" => typ, "src" => data))}></artwork>"
+        else
+          "<artwork #{html_attributes(artwork_attr.merge("type" => typ))}>#{content}</artwork>"
+        end
       end
 
       def convert_blockquote(el, indent, opts)
