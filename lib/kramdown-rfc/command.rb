@@ -202,7 +202,7 @@ def yaml_load_compat(input, *args)
     begin
       YAML.safe_load(input, *args)
     rescue ArgumentError
-      YAML.safe_load(input, permitted_classes: args[0], permitted_symbols: args[1], aliases: args[2])
+      YAML.safe_load(input, permitted_classes: args[0], permitted_symbols: args[1], aliases: args[2], filename: args[3])
     end
   else
     YAML.load(input)
@@ -301,7 +301,7 @@ def read_erbfile
   File.read(erbfilename, coding: "UTF-8")
 end
 
-def xml_from_sections(input)
+def xml_from_sections(input, filename = "YAML header")
 
   unless ENV["KRAMDOWN_NO_SOURCE"]
     require 'kramdown-rfc/gzip-clone'
@@ -322,7 +322,7 @@ def xml_from_sections(input)
   # the first section is a YAML with front matter parameters (don't put a label here)
   # We put back the "---" plus gratuitous blank lines to hack the line number in errors
   yaml_in = input[/---\s*/] << sections.shift[2]
-  ps = KramdownRFC::ParameterSet.new(yaml_load(yaml_in, [Date], [], true))
+  ps = KramdownRFC::ParameterSet.new(yaml_load(yaml_in, [Date], [], true, filename))
   begin
     require 'kramdown-rfc/yamlcheck'
     KramdownRFC::YAMLcheck.check_dup_keys(yaml_in)
@@ -647,6 +647,11 @@ end
 
 warn "*** v2 #{$options.v2.inspect} v3 #{$options.v3.inspect}" if $options.verbose
 
+input_filename = ARGV.join(", ")
+case input_filename
+when "", "-"
+  input_filename = "<stdin>"
+end
 input = ARGF.read
 input.scrub! do |c|
   warn "*** replaced invalid UTF-8 byte sequence #{c.inspect} by U+FFFD REPLACEMENT CHARACTER"
@@ -673,7 +678,7 @@ end
 
 if input =~ /\A---/        # this is a sectionized file
   do_the_tls_dance unless ENV["KRAMDOWN_DONT_VERIFY_HTTPS"]
-  input, options, coding_override = xml_from_sections(input)
+  input, options, coding_override = xml_from_sections(input, input_filename)
 else
   options = process_kramdown_options # all default
 end
