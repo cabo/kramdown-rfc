@@ -192,8 +192,12 @@ NMDTAGS = ["{:/nomarkdown}\n\n", "\n\n{::nomarkdown}\n"]
 
 NORMINFORM = { "!" => :normative, "?" => :informative }
 
-def yaml_load(input, *args)
- begin
+
+# Handle several transitions of YAML API:
+# * very early Ruby (no safe_load, before Ruby 2.1)
+# * Ruby before 3.1 (safe_load, positional parameters)
+# * Ruby 2.6 up (safe_load, keyword parameters)
+def yaml_load_compat(input, *args)
   if YAML.respond_to?(:safe_load)
     begin
       YAML.safe_load(input, *args)
@@ -203,10 +207,25 @@ def yaml_load(input, *args)
   else
     YAML.load(input)
   end
- rescue Psych::SyntaxError => e
-   warn "*** YAML syntax error: #{e}"
-   exit 65 # EX_DATAERR
- end
+end
+
+def yaml_diagnose(input, *args)
+  l = input.lines.to_a
+  (l.size-1).downto(0) do |nl|
+    yaml_load_compat(l[0...nl].join, *args) rescue next
+    warn "** YAML appears to be parsable up to line #{nl}"
+    return
+  end
+end
+
+def yaml_load(input, *args)
+  begin
+    yaml_load_compat(input, *args)
+  rescue Psych::SyntaxError => e
+    warn "*** YAML syntax error: #{e}"
+    yaml_diagnose(input, *args) rescue nil
+    exit 65 # EX_DATAERR
+  end
 end
 
 def process_kramdown_options(coding_override = nil,
