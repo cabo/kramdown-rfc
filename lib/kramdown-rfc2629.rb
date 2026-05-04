@@ -800,6 +800,11 @@ COLORS
                   ($3.to_i if $2),    # left 0 for '', nil if no "left"
                   $4]                 # dry
           result = fix_unterminated_line(fold8792_1(trim_empty_lines_around(result), *fold)) # XXX
+        when /\Alines(\d*)\.\.(\.)?(\d*)\z/
+          range = Range.new($1.empty? ? nil : $1.to_i, # compensate for
+                            $3.empty? ? nil : $3.to_i, #   counting from 1
+                            $2)
+          result = result.lines[range].join
         when "yaml2json"
           begin
             y = YAML.safe_load(result, aliases: true, filename: loc_str)

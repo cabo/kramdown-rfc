@@ -25,10 +25,11 @@ def process_xml(s)
   d.to_s
 end
 
-def process_chunk(s, nested, dedent, fold, quote, xml, data)
+def process_chunk(s, nested, dedent, range, fold, quote, xml, data)
   process_includes(s) if nested
   s = remove_indentation(s) if dedent
   s = process_xml(s) if xml
+  s = s.lines[range].join if range
   s = %{src="data:application/octet-stream;base64,#{[s].pack('m0')}"} if data
   s = fold8792_1(s, *fold) if fold
   s = add_quote(s) if quote
@@ -36,7 +37,7 @@ def process_chunk(s, nested, dedent, fold, quote, xml, data)
 end
 
 def process_includes(input)
- input.gsub!(/^\{::include((?:-[a-z0-9]+)*)\s+(.*?)\}/) {
+ input.gsub!(/^\{::include((?:-[a-z0-9.]+)*)\s+(.*?)\}/) {
   include_flags = $1
   fn = [$2]
   chunks = false
@@ -45,6 +46,7 @@ def process_includes(input)
   fold = false
   quote = false
   xml = false
+  range = false
   data = false
   include_flags.split("-") do |flag|
     case flag
@@ -57,6 +59,10 @@ def process_includes(input)
       dedent = true
     when "xml"
       xml = true
+    when /\Alines(\d*)\.\.(\.)?(\d*)\z/
+      range = Range.new($1.empty? ? nil : $1.to_i - 1, # compensate for
+                        $3.empty? ? nil : $3.to_i - 1, #   extra newline
+                        $2)
     when "data"
       data = true
     when /\Afold(\d*)(left(\d*))?(dry)?\z/
@@ -67,7 +73,7 @@ def process_includes(input)
       fn = fn.flat_map{|n| Dir[n]}
       fn = [fn.last] if flag == "last"
       chunks = fn.map{ |f|
-        ret = process_chunk(File.read(f), nested, dedent, fold, quote, xml, data)
+        ret = process_chunk(File.read(f), nested, dedent, range, fold, quote, xml, data)
         nested = false; dedent = false; fold = false; quote = false
         ret
       }
@@ -76,7 +82,7 @@ def process_includes(input)
     end
   end
   chunks = fn.map{|f| File.read(f)} unless chunks # no all/last
-  chunks = chunks.map {|ch| process_chunk(ch, nested, dedent, fold, quote, xml, data)}
+  chunks = chunks.map {|ch| process_chunk(ch, nested, dedent, range, fold, quote, xml, data)}
   chunks.join.chomp
  }
 end
