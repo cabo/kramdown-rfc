@@ -27,9 +27,9 @@ end
 
 def process_chunk(s, nested, dedent, range, fold, quote, xml, data)
   process_includes(s) if nested
+  s = s.lines[range].join if range
   s = remove_indentation(s) if dedent
   s = process_xml(s) if xml
-  s = s.lines[range].join if range
   s = %{src="data:application/octet-stream;base64,#{[s].pack('m0')}"} if data
   s = fold8792_1(s, *fold) if fold
   s = add_quote(s) if quote
