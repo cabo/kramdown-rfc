@@ -549,42 +549,15 @@ machine-generated:
 {: #example2 title="A longer RPL example"}
 ```
 
-Include flags can be appended to the command name:
+Include flags can be combined and appended to the command name:
 
 ```markdown
 {::include-dedent-lines3..8 generated.txt}
 {::include-fold69hardleft4dry generated.json}
 ```
 
-Supported include flags are:
+Details about include flags can be found in the kramdown-rfc wiki: https://github.com/cabo/kramdown-rfc/wiki/Syntax#file-inclusion
 
-* `nested`: process include commands in the included text.
-* `dedent`: remove common leading indentation from the included text.
-* `quote`: prefix each included line with `> `.
-* `xml`: parse the included text as XML and include the serialized XML
-  content without XML declaration or doctype.
-* `linesN..M`, `linesN...M`: include only the selected 1-based line
-  range; the three-dot form excludes the end line.  `N` and `M` can be
-  left out and then stand for the start and end, respectively; e.g.,
-  `lines2..` includes from line 2 through the end.
-* `data`: base64-encode the included text as a data URI attribute value.
-* `all`: expand the path as a glob and include all matching files.
-* `last`: expand the path as a glob and include only the last matching file.
-* `fold`: fold the included text using RFC 8792 single-backslash line
-  wrapping.
-
-The `fold` flag accepts options in the form
-`fold[columns][hard][left[spaces]][dry]`:
-
-* `columns`: target fold column; omitted or `0` uses the default of 69.
-* `hard`: fold at the requested column unconditionally.  Without this option,
-  folding may move the break earlier when the requested column falls within a
-  sequence of letters, digits, or `_`, so that the sequence stays intact.
-* `left`: instead of aligning continuation lines to the right, use a fixed
-  continuation indentation; `left` without a number means zero spaces, and
-  `left4` means four spaces.
-* `dry`: use the plain RFC 8792 notice instead of padding it with `=`
-  characters.
 
 (0.x:) A page break can be forced by adding a horizontal rule (`----`,
 note that this creates ugly blank space in some HTML converters).

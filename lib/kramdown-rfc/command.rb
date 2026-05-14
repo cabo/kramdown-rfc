@@ -71,8 +71,15 @@ def process_includes(input)
       left = md[:spaces].to_i if md[:left]
       fold = [columns, left, md[:dry], md[:hard]]
     when "all", "last"
+      fn_in = fn
       fn = fn.flat_map{|n| Dir[n]}
-      fn = [fn.last] if flag == "last"
+      if flag == "last"
+        if last = fn.last
+          fn = [last]
+        else
+          warn "** include-last: no file matches #{fn_in.inspect}"
+        end
+      end
       chunks = fn.map{ |f|
         ret = process_chunk(File.read(f), nested, dedent, range, fold, quote, xml, data)
         nested = false; dedent = false; fold = false; quote = false
