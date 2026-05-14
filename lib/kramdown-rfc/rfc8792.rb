@@ -22,6 +22,23 @@ end
 
 FOLD_MSG = "NOTE: '\\' line wrapping per RFC 8792".freeze
 UNFOLD_RE = /\A.*#{FOLD_MSG.sub("\\", "(\\\\\\\\\\\\\\\\?)")}.*\n\r?\n/
+FOLD8792_PROC_RE = /\Afold(?<columns>\d*)(?<hard>hard)?(?<indent>(?<indent_type>left|smart)(?<spaces>\d*))?(?<dry>dry)?\z/
+
+def fold8792_options(proc)
+  md = FOLD8792_PROC_RE.match(proc)
+  return unless md
+
+  columns = md[:columns].to_i
+  left =
+    case md[:indent_type]
+    when "left"
+      md[:spaces].to_i
+    when "smart"
+      [:smart, md[:spaces].to_i]
+    end
+
+  [columns, left, md[:dry], md[:hard]]
+end
 
 def unfold8792(s)
   if s =~ UNFOLD_RE
@@ -61,6 +78,8 @@ def fold8792_1(s, columns = FOLD_COLUMNS, left = false, dry = false, hard = fals
 
   lines = s.lines.map(&:chomp)
   did_fold = false
+  smart_indent_offset = left[1] if Array === left && left[0] == :smart
+  smart_indent = nil
   ix = 0
   while li = lines[ix]
     col = columns
@@ -69,16 +88,25 @@ def fold8792_1(s, columns = FOLD_COLUMNS, left = false, dry = false, hard = fals
         lines[ix..ix] = [li << "\\", ""]
         ix += 1
       end
+      smart_indent = nil
       ix += 1
     else
       did_fold = true
-      min_indent = left || 0
+      left_indent =
+        if !smart_indent_offset.nil?
+          smart_indent ||= li[/\A */].size + smart_indent_offset
+        else
+          left
+        end
+      min_indent = left_indent || 0
       col -= 1                  # space for "\\"
       while li[col] == " "      # can't start new line with " "
         col -= 1
       end
       if col <= min_indent
-        warn "*** Cannot RFC8792-fold1 to #{columns} cols #{"with indent #{left}" if left}  |#{li.inspect}|"
+        indent_msg = "with indent #{min_indent}" if left
+        warn "*** Cannot RFC8792-fold1 to #{columns} cols #{indent_msg}  |#{li.inspect}|"
+        smart_indent = nil
       else
         if !hard && RE_IDENT === li[col] # Don't split IDs
           col2 = col
@@ -90,8 +118,8 @@ def fold8792_1(s, columns = FOLD_COLUMNS, left = false, dry = false, hard = fals
           end
         end
         rest = li[col..-1]
-        indent = left || columns - rest.size
-        if !left && li[-1] == "\\"
+        indent = left_indent || columns - rest.size
+        if !left_indent && li[-1] == "\\"
           indent -= 1           # leave space for next round
         end
         if indent > 0
