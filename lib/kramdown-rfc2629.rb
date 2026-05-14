@@ -796,7 +796,7 @@ COLORS
         when "dedent"
           result = remove_indentation(result)
         when ::FOLD8792_PROC_RE
-          fold = fold8792_options(proc)
+          fold = fold8792_options(Regexp.last_match)
           result = fix_unterminated_line(fold8792_1(trim_empty_lines_around(result), *fold)) # XXX
         when /\Alines(\d*)\.\.(\.)?(\d*)\z/
           range = Range.new($1.empty? ? nil : $1.to_i, # compensate for

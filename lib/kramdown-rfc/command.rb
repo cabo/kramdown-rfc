@@ -66,7 +66,7 @@ def process_includes(input)
     when "data"
       data = true
     when ::FOLD8792_PROC_RE
-      fold = fold8792_options(flag)
+      fold = fold8792_options(Regexp.last_match)
     when "all", "last"
       fn_in = fn
       fn = fn.flat_map{|n| Dir[n]}
