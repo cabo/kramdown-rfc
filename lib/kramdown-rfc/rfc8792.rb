@@ -44,7 +44,7 @@ MIN_FOLD_COLUMNS = FOLD_MSG.size
 FOLD_COLUMNS = 69
 RE_IDENT = /\A[A-Za-z0-9_]\z/
 
-def fold8792_1(s, columns = FOLD_COLUMNS, left = false, dry = false)
+def fold8792_1(s, columns = FOLD_COLUMNS, left = false, dry = false, hard = false)
   if s.index("\t")
     warn "*** HT (\"TAB\") in text to be folded. Giving up."
     return s
@@ -80,7 +80,7 @@ def fold8792_1(s, columns = FOLD_COLUMNS, left = false, dry = false)
       if col <= min_indent
         warn "*** Cannot RFC8792-fold1 to #{columns} cols #{"with indent #{left}" if left}  |#{li.inspect}|"
       else
-        if RE_IDENT === li[col] # Don't split IDs
+        if !hard && RE_IDENT === li[col] # Don't split IDs
           col2 = col
           while col2 > min_indent && RE_IDENT === li[col2-1]
             col2 -= 1

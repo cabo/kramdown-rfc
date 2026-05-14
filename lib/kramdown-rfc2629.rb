@@ -795,10 +795,11 @@ COLORS
         case proc
         when "dedent"
           result = remove_indentation(result)
-        when /\Afold(\d*)(left(\d*))?(dry)?\z/
+        when /\Afold(\d*)(left(\d*))?(dry)?(hard)?\z/
           fold = [$1.to_i,            # col 0 for ''
                   ($3.to_i if $2),    # left 0 for '', nil if no "left"
-                  $4]                 # dry
+                  $4,                 # dry
+                  $5]                 # hard
           result = fix_unterminated_line(fold8792_1(trim_empty_lines_around(result), *fold)) # XXX
         when /\Alines(\d*)\.\.(\.)?(\d*)\z/
           range = Range.new($1.empty? ? nil : $1.to_i, # compensate for
