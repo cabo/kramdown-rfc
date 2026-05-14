@@ -65,11 +65,11 @@ def process_includes(input)
                         $2)
     when "data"
       data = true
-    when /\Afold(\d*)(left(\d*))?(dry)?(hard)?\z/
-      fold = [$1.to_i,            # col 0 for ''
-              ($3.to_i if $2),    # left 0 for '', nil if no "left"
-              $4,                 # dry
-              $5]                 # hard
+    when /\Afold(?<columns>\d*)(?<hard>hard)?(?<left>left(?<spaces>\d*))?(?<dry>dry)?\z/
+      md = Regexp.last_match
+      columns = md[:columns].to_i
+      left = md[:spaces].to_i if md[:left]
+      fold = [columns, left, md[:dry], md[:hard]]
     when "all", "last"
       fn = fn.flat_map{|n| Dir[n]}
       fn = [fn.last] if flag == "last"

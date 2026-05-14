@@ -553,7 +553,7 @@ Include flags can be appended to the command name:
 
 ```markdown
 {::include-dedent-lines3..8 generated.txt}
-{::include-fold69left4dryhard generated.json}
+{::include-fold69hardleft4dry generated.json}
 ```
 
 Supported include flags are:
@@ -574,17 +574,17 @@ Supported include flags are:
   wrapping.
 
 The `fold` flag accepts options in the form
-`fold[columns][left[spaces]][dry][hard]`:
+`fold[columns][hard][left[spaces]][dry]`:
 
 * `columns`: target fold column; omitted or `0` uses the default of 69.
+* `hard`: fold at the requested column unconditionally.  Without this option,
+  folding may move the break earlier when the requested column falls within a
+  sequence of letters, digits, or `_`, so that the sequence stays intact.
 * `left`: instead of aligning continuation lines to the right, use a fixed
   continuation indentation; `left` without a number means zero spaces, and
   `left4` means four spaces.
 * `dry`: use the plain RFC 8792 notice instead of padding it with `=`
   characters.
-* `hard`: fold at the requested column unconditionally.  Without this option,
-  folding may move the break earlier when the requested column falls within a
-  sequence of letters, digits, or `_`, so that the sequence stays intact.
 
 (0.x:) A page break can be forced by adding a horizontal rule (`----`,
 note that this creates ugly blank space in some HTML converters).
