@@ -30,15 +30,21 @@ insert abstract here
 
 ## Testing fold
 
-~~~
+~~~ test-vectors
+short line
+short line with one \
+short line with two \\
 aaaaaaaaaaaaaaaa aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
    bbbbbbbbbbbbb bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
       cccccccccc ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
- ddddddddddddddd dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd
+  dddddddddddddd ddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd
 ~~~
 {: post="fold40hardleft2dry" title="fold40hardleft2dry"}
 
-~~~
+~~~ test-vectors
+short line
+short line with one \
+short line with two \\
 aaaaaaaaaaaaaaaa aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
    bbbbbbbbbbbbb bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
       cccccccccc ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -46,7 +52,10 @@ aaaaaaaaaaaaaaaa aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
 ~~~
 {: post="fold40smart2dry" title="fold40smart2dry"}
 
-~~~
+~~~ test-vectors
+short line
+short line with one \
+short line with two \\
 aaaaaaaaaaaaaaaa aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
    bbbbbbbbbbbbb bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
       cccccccccc ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -54,7 +63,10 @@ aaaaaaaaaaaaaaaa aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
 ~~~
 {: post="fold40hardsmart2dry" title="fold40hardsmart2dry"}
 
-~~~
+~~~ test-vectors
+short line
+short line with one \
+short line with two \\
 aaaaaaaaaaaaaaaa aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
    bbbbbbbbbbbbb bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
       cccccccccc ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
