@@ -23,5 +23,7 @@ html:   $(HTML)
 
 sou:    fold.xml
 	kramdown-rfc-extract-sourcecode -dsou $<
-	(cd sou/test-vectors; for i in *.test-vectors; do diff $$i testing-fold.test-vectors; echo $$i; done)
+
+fold-check: sou
+	(cd sou/test-vectors; for i in *.test-vectors; do diff -s $$i testing-fold.test-vectors; done)
 
