@@ -16,3 +16,14 @@ html:   $(HTML)
 
 %.txt:	%.xml
 	xml2rfc $<
+
+%.xml:	%.md
+	kramdown-rfc2629 $< >$@.new
+	mv $@.new $@
+
+sou:    fold.xml
+	kramdown-rfc-extract-sourcecode -dsou $<
+
+fold-check: sou
+	(cd sou/test-vectors; for i in *.test-vectors; do diff -s $$i testing-fold.test-vectors; done)
+

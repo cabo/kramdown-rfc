@@ -22,6 +22,12 @@ end
 
 FOLD_MSG = "NOTE: '\\' line wrapping per RFC 8792".freeze
 UNFOLD_RE = /\A.*#{FOLD_MSG.sub("\\", "(\\\\\\\\\\\\\\\\?)")}.*\n\r?\n/
+FOLD8792_PROC_RE = /\Afold(?<columns>\d*)(?<hard>hard)?(?:(?<indent_type>left|smart)(?<spaces>\d*))?(?<dry>dry)?\z/
+
+def fold8792_options(md)
+  indent_type = md[:indent_type].to_sym if md[:indent_type]
+  [md[:columns].to_i, indent_type, (md[:spaces] || 0).to_i, md[:dry], md[:hard]]
+end
 
 def unfold8792(s)
   if s =~ UNFOLD_RE
@@ -44,7 +50,7 @@ MIN_FOLD_COLUMNS = FOLD_MSG.size
 FOLD_COLUMNS = 69
 RE_IDENT = /\A[A-Za-z0-9_]\z/
 
-def fold8792_1(s, columns = FOLD_COLUMNS, left = false, dry = false, hard = false)
+def fold8792_1(s, columns = FOLD_COLUMNS, indent_type = nil, indent_spaces = 0, dry = false, hard = false)
   if s.index("\t")
     warn "*** HT (\"TAB\") in text to be folded. Giving up."
     return s
@@ -61,6 +67,7 @@ def fold8792_1(s, columns = FOLD_COLUMNS, left = false, dry = false, hard = fals
 
   lines = s.lines.map(&:chomp)
   did_fold = false
+  smart_indent = nil
   ix = 0
   while li = lines[ix]
     col = columns
@@ -69,16 +76,26 @@ def fold8792_1(s, columns = FOLD_COLUMNS, left = false, dry = false, hard = fals
         lines[ix..ix] = [li << "\\", ""]
         ix += 1
       end
+      smart_indent = nil
       ix += 1
     else
       did_fold = true
-      min_indent = left || 0
+      left_indent =
+        case indent_type
+        when :left
+          indent_spaces
+        when :smart
+          smart_indent ||= li[/\A */].size + indent_spaces
+        end
+      min_indent = left_indent || 0
       col -= 1                  # space for "\\"
       while li[col] == " "      # can't start new line with " "
         col -= 1
       end
       if col <= min_indent
-        warn "*** Cannot RFC8792-fold1 to #{columns} cols #{"with indent #{left}" if left}  |#{li.inspect}|"
+        indent_msg = "with indent #{min_indent}" if indent_type
+        warn "*** Cannot RFC8792-fold1 to #{columns} cols #{indent_msg}  |#{li.inspect}|"
+        smart_indent = nil
       else
         if !hard && RE_IDENT === li[col] # Don't split IDs
           col2 = col
@@ -90,8 +107,8 @@ def fold8792_1(s, columns = FOLD_COLUMNS, left = false, dry = false, hard = fals
           end
         end
         rest = li[col..-1]
-        indent = left || columns - rest.size
-        if !left && li[-1] == "\\"
+        indent = left_indent || columns - rest.size
+        if !left_indent && li[-1] == "\\"
           indent -= 1           # leave space for next round
         end
         if indent > 0

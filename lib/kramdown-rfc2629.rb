@@ -795,11 +795,8 @@ COLORS
         case proc
         when "dedent"
           result = remove_indentation(result)
-        when /\Afold(?<columns>\d*)(?<hard>hard)?(?<left>left(?<spaces>\d*))?(?<dry>dry)?\z/
-          md = Regexp.last_match
-          columns = md[:columns].to_i
-          left = md[:spaces].to_i if md[:left]
-          fold = [columns, left, md[:dry], md[:hard]]
+        when ::FOLD8792_PROC_RE
+          fold = fold8792_options(Regexp.last_match)
           result = fix_unterminated_line(fold8792_1(trim_empty_lines_around(result), *fold)) # XXX
         when /\Alines(\d*)\.\.(\.)?(\d*)\z/
           range = Range.new($1.empty? ? nil : $1.to_i, # compensate for
