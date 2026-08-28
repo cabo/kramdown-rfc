@@ -20,9 +20,10 @@ def slugify_like_xml2rfc(s, delta = 0)
   s.gsub!(/[^-\w\s\/]/, '')
   s = s.strip
   s.gsub!(/[-\s\/]/, '-')
-  n = 32 - delta
+  ni = 32 - delta
+  n = ni
   nmax = [s.size, 40 - delta].min
-  while $seen_slugs[slugex = s[0...n]] && n < nmax
+  while $seen_slugs[slugex = s[0...ni]] && n < nmax
     n += 1
   end
   if $seen_slugs[slugex]
@@ -53,7 +54,7 @@ begin
     opts.on("-dDIR", "--dir=DIR", "Target directory (default: sourcecode)") do |v|
       dir = v
     end
-    opts.on("-xTYPE/NAME", "--extract=TYPE/NAME", "Extract single item to stdout") do |v|
+    opts.on("-xTYPE/NAME", "--extract=\"TYPE/NAME\"", "Extract single item of type TYPE and name NAME to stdout") do |v|
       target = :stdout
       out_type, out_name = v.split("/", 2)
     end
