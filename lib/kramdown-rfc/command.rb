@@ -186,14 +186,24 @@ RFC7942
 end
 
 def do_the_tls_dance
+  require 'openssl'
+  # OpenSSL itself honors SSL_CERT_FILE/SSL_CERT_DIR before the compiled-in
+  # defaults, so check the same places it will look.  Some distributions
+  # (e.g., current Fedora and Gentoo) have no file at DEFAULT_CERT_FILE.
+  cert_file = ENV[OpenSSL::X509::DEFAULT_CERT_FILE_ENV] || OpenSSL::X509::DEFAULT_CERT_FILE
+  cert_dirs = (ENV[OpenSSL::X509::DEFAULT_CERT_DIR_ENV] || OpenSSL::X509::DEFAULT_CERT_DIR)
+                .split(File::PATH_SEPARATOR)
   begin
-    require 'openssl'
-    File.open(OpenSSL::X509::DEFAULT_CERT_FILE) do end
+    File.open(cert_file) do end
     # This guards against having an unreadable cert file (yes, that appears to happen a lot).
-  rescue
-    warn "*** Configuration problem with OS certificate store."
-    exit 71 # EX_OSERR
+    return
+  rescue SystemCallError
   end
+  return if cert_dirs.any? { |d| File.directory?(d) && !Dir.empty?(d) }
+  warn "*** Configuration problem with OS certificate store."
+  warn "*** Looked for #{cert_file} and #{cert_dirs.join(File::PATH_SEPARATOR)}."
+  warn "*** Set #{OpenSSL::X509::DEFAULT_CERT_FILE_ENV} to your CA bundle if it lives elsewhere."
+  exit 71 # EX_OSERR
 end
 
 RE_NL = /(?:\r\n|\n|\r)/
